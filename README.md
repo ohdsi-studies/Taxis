@@ -25,14 +25,11 @@ Importantly, **no personally identifiable (PII) or protected health information 
 - **Oct 2025**: First large-scale outputs: v1 Diagnosis–Diagnosis Relationship Tables and network engagement launch at OHDSI Symposium
 - **Oct-Nov 2025**: Participating site run study package for disagnosis-diagnosis relationships locally and upload results thorught TAXIS website for validation and aggregation, Public domain Medication relationships aggregated and published
 - **Dec 2025**: Diagnosis-diagnosis relationships based on Network data review and cleanup
-- **Jan 2026**: Add Procedure Relationships to study package and Diagnosis-Diagnosis relationships V1 availablel
-- **Feb-Mar 2026**: Participating site run updated study package for procedure relationships locally and upload results thorught TAXIS website for validation and aggregation
-- **Mar 2026**: Procedure relationships based on Network data review and cleanup
-- **Apr 2026**: Diagnosis, Procedue and Medication relationships V1 available
- 
-
-- **2026 (planned)**: Expansion to service–diagnosis and medication–diagnosis relationships; integration into a public knowledge graph
-
+- **Jan 2026**: Add Service Relationships to study package and Diagnosis-Diagnosis relationships V1 availablel
+- **Feb-Mar 2026**: Participating site run updated study package for service relationships locally and upload results thorught TAXIS website for validation and aggregation
+- **Mar 2026**: Service relationships based on Network data review and cleanup
+- **Apr 2026**: Diagnosis, Service and Medication relationships V1 available
+ - **2026**: Work with OMOP vocabulary team to incorporate results where appropriate into standard and evaluate how to leverage the relatinships fully in ATLAS.
 ---
 
 ## How to Engage
