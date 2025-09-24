@@ -20,11 +20,16 @@ Importantly, **no personally identifiable (PII) or protected health information 
 ---
 
 ## Timeline
-- **2024**: Foundational work on diagnostic hierarchies and early relationship tables【27†bandeian_stephen_THEMIS_Enhancing_OMOP_Capabilities_2025symposium.pdf.pdf】
-- **Sep 2025**: Launch of TAXIS OHDSI Network Study, protocol published【20†OHDSI TAXIS timeline.pptx】【23†Project_Notes.docx】
-- **Oct 2025**: First large-scale outputs: v1 Diagnosis–Diagnosis Relationship Tables
-- **2026 (planned)**: Expansion to service–diagnosis and medication–diagnosis relationships; integration into a public knowledge graph
-
+- **2024**: Foundational work on diagnostic hierarchies and early relationship table
+- **Sep 2025**: Launch of TAXIS OHDSI Network Study, protocol published
+- **Oct 2025**: First large-scale outputs: v1 Diagnosis–Diagnosis Relationship Tables and network engagement launch at OHDSI Symposium
+- **Oct-Nov 2025**: Participating site run study package for disagnosis-diagnosis relationships locally and upload results thorught TAXIS website for validation and aggregation, Public domain Medication relationships aggregated and published
+- **Dec 2025**: Diagnosis-diagnosis relationships based on Network data review and cleanup
+- **Jan 2026**: Add Service Relationships to study package and Diagnosis-Diagnosis relationships V1 availablel
+- **Feb-Mar 2026**: Participating site run updated study package for service relationships locally and upload results thorught TAXIS website for validation and aggregation
+- **Mar 2026**: Service relationships based on Network data review and cleanup
+- **Apr 2026**: Diagnosis, Service and Medication relationships V1 available
+ - **2026**: Work with OMOP vocabulary team to incorporate results where appropriate into standard and evaluate how to leverage the relatinships fully in ATLAS.
 ---
 
 ## How to Engage
@@ -32,7 +37,7 @@ We invite OHDSI collaborators and external researchers to **participate directly
 
 1. **Run the Study Package**  
    - Clone and execute the TAXIS study package against your OMOP CDM instance.  
-   - SQL scripts (e.g., `concept_ab.sql`) compute co-occurrence statistics, directionality ratios, odds ratios, and related measures【28†concept_ab (1).sql】.
+   - SQL scripts (e.g., `concept_ab.sql`) compute co-occurrence statistics, directionality ratios, odds ratios, and related measures
 
 2. **Upload Step 5 Output**  
    - Once the study package produces a **step_5 CSV file**, upload it to the [TAXIS web portal](https://taxis.netlify.app/).  
