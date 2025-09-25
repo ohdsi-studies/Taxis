@@ -1,0 +1,54 @@
+# -------- project root (used for logs, program code, and configuration) --------
+CAB_HOME=C:/Users/sband/OneDrive/Documents/OHDSI_DEV/CONCEPT_CF_AB_v4
+#CAB_LOG_DIR=
+
+# -------- java (for rJava/DatabaseConnector) ---------------
+JAVA_HOME="C:/Program Files/Eclipse Adoptium/jdk-17.0.16.8-hotspot"
+
+# -------- JDBC driver location (OHDSI standard) ------------
+DATABASECONNECTOR_JAR_FOLDER=C:/jdbc/sqlserver/sqlserver_v92
+
+# ================== DATABASE (FIELD-BASED) =================
+# ================== Populate for your system -- See OHDSI Support
+DBMS=sql server
+DB_SERVER=localhost;databaseName=cas
+DB_PORT=1433
+DB_USER=concept_ab_runner
+DB_PASSWORD=
+CAB_AUTH_MODE=prompt
+DB_EXTRA_SETTINGS=encrypt=false;trustServerCertificate=true;loginTimeout=30
+
+# ================== SCHEMAS & PIPELINE =====================
+CDM_SCHEMA=omop_cms
+VOCAB_SCHEMA=omop_cms
+PROJECT_SCHEMA=ohdsi_dev
+#Specify a project schema for both input data (e.g. a look-up table) and results or specify input and result schemas separately as below
+#INPUT_SCHEMA=
+#RESULTS_SCHEMA=
+
+# -------- required study lookups (schema.table, comma-separated) ---load into project_schema or input_schema as per above
+CAB_LOOKUP_TABLES=ohdsi_dev.concept_ab_cf_rollup
+
+# -------- sql file locations --------------------------------------
+CAB_SQL_DIR=C:/Users/sband/OneDrive/Documents/OHDSI_DEV/CONCEPT_CF_AB_v4
+CAB_SQL_PERMS=concept_cf_ab_permissions.sql
+CAB_SQL_INIT=concept_cf_ab_init.sql
+CAB_SQL_BATCH=concept_cf_ab_batch.sql
+CAB_SQL_FINALIZE=concept_cf_ab_finalize.sql
+
+# -------- runtime controls that you can alter----------------------------------------
+# For a full run set CAB_PARTIAL_RUN_BATCH_LIMIT = CAB_BATCH_COUNT; for a test set between 1 and 2.
+# By reducing the number of records processed at time, batching can help improve system performance; 20 to 40 is suggested for general use; > 40 might be needed for very large data sets.  
+
+CAB_BATCH_COUNT=40
+CAB_PARTIAL_RUN_BATCH_LIMIT=2
+# -------- runtime controls that should not be altered--------------------------------
+CAB_WINDOW_DAYS=30
+CAB_MIN_PERSONS=50
+CAB_CREATE_INDEX_DDL=true
+
+# andromeda temp (optional; blank = OS temp)
+ANDROMEDA_TEMP=
+
+# -------- permissions execution toggle; permissions pacakge currently not supported ----------------------------
+CAB_RUN_PERMS=false
