@@ -26,8 +26,8 @@ TAXIS investigates whether empirical association rule mining combined with struc
 2. **Standardized Clinical Taxonomy**: Applying a 112-code clinical taxonomy to categorize observational co-occurrences into a typed clinical knowledge graph.
 3. **Multi-Domain Phenotype Synthesis**: Using the resulting knowledge graph to link index conditions with associated laboratories, medications, and differential diagnoses, generating candidate Circe cohort definitions compatible with the OHDSI Phenotype Library.
 
-### Initial Focus on Phenotyping & Closed-Loop Evaluation
-While structured clinical knowledge graphs may have applications across multiple stages of observational research—including candidate negative control identification, study design, and evaluating residual bias—**TAXIS focuses initially on phenotyping** as its primary application.
+### Phenotyping Workflow Optimization: One Conceptual Application of TAXIS
+While structured clinical knowledge graphs provide a computable foundation across multiple stages of observational research—including candidate negative control identification, informing study design to reduce confounding, and evaluating residual bias—**phenotyping workflow optimization using TAXIS represents one primary conceptual application**.
 
 - **Differentiating Clinical Intent from Computable Logic**: The OHDSI Phenotype Development and Evaluation Workgroup establishes a vital distinction between a **Clinical Definition** (*"what it is"*—clinical presentation, confirmatory findings, first-line treatments, and differential diagnoses) and a **Phenotype Algorithm** (*"how to find it in data"*—Circe JSON criteria, temporal windows, and exclusion rules).
 - **Automating Phenotype Construction**: In standard practice, translating clinical descriptions and PHOEBE concept sets into multi-domain Circe logic is a manual, labor-intensive bottleneck. TAXIS automates this translation by traversing 1.9M graded clinical edges to populate Circe criteria slots (confirmatory labs, indicated medications, and exclusionary mimics capped at $<10\%$ anchor patient cost).

@@ -54,9 +54,9 @@ TAXIS investigates whether empirical association rule mining combined with struc
 
 ---
 
-## 2. Methodological Scope: Focus on Phenotyping
+## 2. Conceptual Applications of TAXIS: Phenotyping Workflow Optimization & Beyond
 
-Observational health research encompasses cohort definition, negative control identification, study design, covariate selection, and evidence interpretation. While structured clinical knowledge graphs may have applications across multiple stages of this lifecycle, **TAXIS focuses initially on phenotyping** as its primary application.
+Observational health research encompasses multiple interconnected disciplines: cohort definition, negative control identification, study design, covariate selection, and evidence interpretation. **Phenotyping workflow optimization using TAXIS is one conceptual application of the TAXIS clinical knowledge layer.** While structured clinical knowledge graphs provide a computable foundation across the entire observational research lifecycle, phenotyping workflow optimization serves as the primary initial demonstration for the 2026 Collaborator Showcase.
 
 ### Areas of Methodological Application
 
@@ -71,8 +71,8 @@ TAXIS is designed to explore applications across four areas of observational res
     ▼                           ▼                                   ▼                            ▼
 ┌───────────────────────┐   ┌───────────────────────┐   ┌───────────────────────┐   ┌───────────────────────┐
 │ 1. PHENOTYPING        │   │ 2. NEGATIVE CONTROLS  │   │ 3. STUDY DESIGN &     │   │ 4. STUDY              │
-│    (INITIAL FOCUS)    │   │    & CALIBRATION      │   │    CONFOUNDING REDUCT.│   │    INTERPRETATION     │
-│                       │   │                       │   │                       │   │                       │
+│    WORKFLOW OPTIMIZ.  │   │    & CALIBRATION      │   │    CONFOUNDING REDUCT.│   │    INTERPRETATION     │
+│    (INITIAL FOCUS)    │   │                       │   │                       │   │                       │
 │ • Reusable cohort     │   │ • Candidate negative  │   │ • Informs study design│   │ • Contextualizing     │
 │   definitions for     │   │   control outcome     │   │   choices to reduce   │   │   network study       │
 │   Phenotype Library   │   │   identification      │   │   confounding         │   │   estimates           │
@@ -85,7 +85,7 @@ TAXIS is designed to explore applications across four areas of observational res
 └───────────────────────┘   └───────────────────────┘   └───────────────────────┘   └───────────────────────┘
 ```
 
-1. **Automated, Reusable Phenotyping (Primary Initial Focus)**:
+1. **Phenotyping Workflow Optimization (Primary Initial Demonstration)**:
    - Supports the transition from study-by-study phenotype authoring by translating structured clinical criteria (presentation, confirmatory laboratory criteria, first-line therapies, and differential exclusions) into candidate Circe cohort definitions.
    - Complements existing vocabularies by identifying multi-domain clinical associations to support the **OHDSI Phenotype Library**.
 2. **Negative Control Identification**:
@@ -99,9 +99,9 @@ TAXIS is designed to explore applications across four areas of observational res
    - Provides a structured clinical knowledge layer to help contextualize network findings and evaluate potential residual bias.
    - Assists investigators in evaluating whether an observed empirical association may be influenced by confounding by indication, protopathic bias (early disease symptoms treated prior to diagnosis), or detection artifacts.
 
-### Initial Focus on Phenotyping & Closed-Loop Evaluation
+### Phenotyping Workflow Optimization: Closed-Loop Lifecycle & Evaluation
 
-TAXIS focuses its initial evaluation on cohort definition and phenotyping:
+**Phenotyping workflow optimization using TAXIS represents one conceptual application of computable clinical knowledge.** TAXIS focuses its initial evaluation on cohort definition and phenotyping because:
 - **Foundational Step in Observational Studies**: Population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Evaluating whether computable clinical knowledge can assist cohort construction provides a clear, practical test case.
 - **Differentiating Clinical Intent from Computable Logic**: The OHDSI Phenotype Development and Evaluation Workgroup establishes a vital distinction between a **Clinical Definition** (*"what it is"*—clinical presentation, confirmatory findings, first-line treatments, and differential diagnoses) and a **Phenotype Algorithm** (*"how to find it in data"*—Circe JSON criteria, temporal windows, and exclusion rules).
 - **Automating Phenotype Construction**: In standard practice, translating clinical descriptions and PHOEBE concept sets into multi-domain Circe logic is a manual, labor-intensive bottleneck. TAXIS automates this translation by traversing 1.9M graded clinical edges to populate Circe criteria slots (confirmatory labs, indicated medications, and exclusionary mimics capped at $<10\%$ anchor patient cost).
