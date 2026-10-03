@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
 TAXIS Study Verification Suite: Concept AB Mining Engine (v57) & SQL Pipeline
-Validates sanitization, parameterized SqlRender tokens, mathematical estimand
-consistency (Directionality Ratio continuity correction, healthcare utilization
-decile stratification), measurement key packing/unpacking, and 18-table schema
-coverage.
+Performs static file sanitization audits, SqlRender parameterized token consistency
+checks, and independent Python mathematical formula validation (Directionality
+Ratio continuity correction, healthcare utilization decile stratification, measurement
+key packing/unpacking, and 16-table schema coverage).
+
+Note: This suite evaluates static file contracts and mathematical formulations.
+It does not parse SQL dialect execution trees on a live database server.
 
 Usage:
   python extras/verify_mining_engine_and_sql.py

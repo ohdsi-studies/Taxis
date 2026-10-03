@@ -218,40 +218,48 @@ Each relation code in Taxonomy v6.0 is defined by:
 Taxonomy v6.0 explicitly coordinates with the empirical statistical metrics produced by Pipeline v57 (`cab_s55_pair_all`):
 
 ```text
-                                       TAXIS DIRECTIONALITY SPECTRUM
-               Reverse Predominant            Symmetric / Contemp            Forward Predominant
-              (Concept B Precedes A)         (Contemporaneous Pair)        (Concept A Precedes B)
-         ◄─────────────────────────────┼─────────────────────────────┼─────────────────────────────►
-                       │                             │                             │
-                   DR ≤ 0.67                0.67 < DR < 1.50                   DR ≥ 1.50
-                       │                             │                             │
-            Therapeutic Interventions        Diagnostic Biomarkers            Etiologic Insults
-            Staging Procedures               Syndromic Clusters              Organ Failures
-            Surveillance Modalities          Contiguous Co-Occurrences       Malignant Progression
+                                        TAXIS DIRECTIONALITY SPECTRUM
+                Reverse Predominant            Balanced / Indeterminate         Forward Predominant
+               (Concept B Precedes A)         (Balanced Precedence Counts)     (Concept A Precedes B)
+          ◄─────────────────────────────┼─────────────────────────────┼─────────────────────────────►
+                        │                             │                             │
+                    DR ≤ 0.67                0.67 < DR < 1.50                   DR ≥ 1.50
+                        │                             │                             │
+             Intervention evaluated           Diagnostic Biomarkers            Etiologic Insults
+             as A=Drug/Proc, B=Condition      Syndromic Clusters               Intermediate Precursors
+             where diagnosis precedes rx      Reciprocal Comorbidities         Late Complications
 ```
 
-### Empirical Directionality Boundary Definitions:
-1. **Forward Predominant ($DR \ge 1.50$)**:
-   - The index presentation of Concept A occurs strictly before Concept B with at least a 1.5-to-1 ratio after continuity correction.
-   - Enforced on all Class I (Causal/Etiologic) and Class IV (Progression/Complication) codes.
-2. **Reverse Predominant ($DR \le 0.67$)**:
-   - Concept B precedes Concept A with at least a 1.5-to-1 ratio. In TAXIS schema, this corresponds to treatments, interventions, and surveillance modalities where diagnosis precedes therapeutic action.
-   - Enforced on Class III (Therapeutic/Interventional) codes.
-3. **Symmetric / Contemporaneous ($0.67 < DR < 1.50$)**:
-   - Concepts occur in mutual temporal proximity (same-day or closely spaced intervals).
-   - Enforced on Class II (Diagnostic/Indicative) and Class V (Associational/Syndromic) codes.
+### Empirical Directionality & Diagnostic Precedence Rules:
+The Directionality Ratio $DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$ reflects the relative frequency with which the index presentation of Concept A precedes Concept B versus Concept B preceding Concept A.
+
+1. **Forward Predominant ($DR \ge 1.50$, Binomial $p < 0.01$)**:
+   - The index recording of Concept A precedes Concept B with at least a 1.5-to-1 ratio.
+   - Typically observed in Class I (Causal/Etiologic) and Class IV (Progression/Complication) pairs where exposure or precursor condition A predates manifestation or complication B.
+2. **Reverse Predominant ($DR \le 0.67$, Binomial $p < 0.01$)**:
+   - The index recording of Concept B precedes Concept A with at least a 1.5-to-1 ratio.
+   - In Class III (Therapeutic/Interventional) where canonical relation definitions place Concept A = Treatment (Drug or Procedure) and Concept B = Indication (Condition), the underlying disease diagnosis B typically precedes therapeutic intervention A ($N_{B \to A} > N_{A \to B}$), yielding $DR \le 0.67$.
+   - **Reciprocal Evaluation**: When evaluated in reverse orientation (Concept A = Condition, Concept B = Treatment), the active code is the inverse relation (e.g., `THER_FIRST_01_INV`), and the observed ratio reciprocates to $DR' = 1/DR \ge 1.50$.
+3. **Balanced / Indeterminate ($0.67 < DR < 1.50$)**:
+   - Reflects balanced directional ordering across patient trajectories ($N_{A \to B} \approx N_{B \to A}$).
+   - **Important Distinction**: Balanced $DR$ does *not* necessarily imply same-day presentation; same-day occurrences are tracked as an independent count $N_{A=B}$ and excluded from the $DR$ calculation.
+   - Common in contemporaneous diagnostic testing (Class II) and reciprocal syndromic clustering (Class V).
+4. **Diagnostic Signal vs. Ontological Truth**:
+   - Observed recording order in observational health data serves as an empirical **consistency diagnostic** rather than a rigid ontological proof. Administrative coding artifacts, delayed physician documentation, and long-standing chronic recurrences can alter empirical ordering without invalidating clinical relationship semantics.
 
 ---
 
 ## 4. Integration with OMOP Common Data Model & Circe Phenotyping
 
 When integrated into the TAXIS downstream engines:
-1. **Triples Materialization**: Each mined concept pair $(A, B)$ meeting statistical significance gates ($N_{AB} \ge 100$, stratified Lift $> 1.50$, $p < 0.001$) is assigned a taxonomy code via the two-stage LLM screen-and-code framework.
-2. **Circe Cohort Ingestion**:
-   - Codes in Class I & IV identify **exclusion criteria** and **prior wash-in confounders**.
-   - Codes in Class II identify **confirmatory diagnostic criteria** (e.g., requiring positive lab test within $[-7, +7]$ days of condition presentation).
-   - Codes in Class III identify **prior treatment requirements** or **subsequent therapeutic failure**.
-   - Inverse relationship lookups enable automated extraction of **candidate negative controls**.
+1. **Triples Materialization**: Each mined concept pair $(A, B)$ meeting statistical significance gates ($N_{AB} \ge 100$, stratified Lift $> 1.50$, CMH $p < 0.001$, Binomial $p < 0.01$) is evaluated by the two-stage LLM screen-and-code framework to assign candidate relation codes.
+2. **Circe Cohort Ingestion & Phenotype Role Mapping**:
+   Taxonomy relations map to distinct functional criteria in computable Circe phenotypes based on clinical role rather than broad class-wide exclusions:
+   - **Index & Primary Defining Criteria**: Class II (Diagnostic/Indicative) concepts that establish the primary clinical event presentation.
+   - **Confirmatory Secondary Criteria**: Class II confirmatory assays (`DIAG_CONF_01`, `DIAG_CONF_02`) and Class III first-line interventions (`THER_FIRST_01`, `THER_PROC_01`) occurring within qualified observation windows (e.g., $[-7, +30]$ days of index event).
+   - **Differential Exclusions & Phenotypic Mimics**: Strictly restricted to specific differential diagnosis codes such as `DIAG_DIFF_01` (Phenotypic Mimic Presentation) and `DIAG_DIFF_02` (Biomarker Rule-Out Assay). In accordance with `DEC-GR-008`, rule-out exclusions enforce the configurable 10% anchor mimic-attrition cap to prevent catastrophic cohort shrinkage.
+   - **Comorbidities & Disease Progression**: Class IV (Prognostic & Longitudinal Complications) and Class I (Etiologic Insults) represent natural disease progression, downstream outcomes, or upstream common causes. They are **never default exclusions**; they inform baseline risk stratification, covariate balance in comparative designs, or downstream outcome cohorts.
+   - **Candidate Negative Controls**: Inverse relation codes provide bidirectional navigation across the knowledge graph ($A \xrightarrow{R} B \iff B \xrightarrow{R^{-1}} A$). They do **not** define candidate negative controls. Negative control generation requires formulating an explicit causal-null hypothesis ($H_0: \text{RR} = 1.0$), verifying the absence of known pathophysiological mechanisms, confirming zero or near-zero statistical association in prior network literature (e.g., PHOEBE), and independent clinical expert adjudication per protocol Section 6.
 
 ---
 

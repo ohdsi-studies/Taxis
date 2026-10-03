@@ -138,26 +138,35 @@ Respond with a strict JSON object:
 
 ## 5. Multi-Agent Consensus Arbitration Protocol
 
-To guarantee reproducibility and eliminate stochastic hallucinations:
-1. **Triplicate Execution**: Every candidate pair is evaluated by 3 independent model runs (with temperature settings $T = 0.0$, $T = 0.2$, $T = 0.4$).
-2. **Unanimous (3/3) or Majority (2/3) Consensus**: The modal relation code is accepted directly if confidence $\ge 0.80$.
-3. **Split Decision (1/1/1)**: Triggers an autonomous Supervisory Judge persona that inspects the 3 rationales, checks empirical $DR$, and renders a binding determination or marks the edge as `AMBIGUOUS_CLINICAL_PAIR`.
-4. **Inter-Annotator Concordance**: System tracks Fleiss' Kappa across batches; production runs require $\kappa \ge 0.85$.
+To minimize stochastic sampling variance and enforce auditable consensus:
+1. **Multi-Model Consensus & Triplicate Sampling**: Candidate pairs are evaluated across independent model configurations (or temperature triplicate $T = 0.0, 0.2, 0.4$) to measure classification stability.
+2. **Unanimous (3/3) or Majority (2/3) Consensus**: The modal relation code is accepted if confidence $\ge 0.80$.
+3. **Split Decision Adjudication**: When models diverge, an autonomous Supervisory Judge inspects the divergent rationales and empirical metrics ($DR$, Stratified Lift) to either assign a reconciled code or flag the edge for expert clinical adjudication as `AMBIGUOUS_CLINICAL_PAIR`.
+4. **Inter-Annotator Concordance**: System tracks inter-model agreement (Fleiss' Kappa) across batches; empirical production batches maintain $\kappa \ge 0.85$.
+5. **Assisted Classification vs Ground Truth**: LLM classification operates as an assistive semantic proposer within the TAXIS neuro-symbolic framework. Final validation rests on empirical cohort diagnostic evaluation and clinical adjudication.
 
 ---
 
 ## 6. Exemplar Classifications Across 6 Cross-Domain Intersections
 
-### Exemplar 1: `Condition -> Drug` (Therapeutic First-Line)
-- **Concept A**: Type 2 diabetes mellitus (Concept ID: `201826`)
-- **Concept B**: Metformin (Concept ID: `1503297`)
-- **Pipeline v57 Metrics**: Stratified Lift = $4.82$, $DR = 0.31$ (Reverse: Diagnosis precedes drug), $p < 10^{-15}$.
-- **Stage 1 Assignment**: `CLASS_III` (Therapeutic & Interventional).
-- **Stage 2 Assignment**:
-  - `relation_code`: `THER_FIRST_01` (First-Line Guideline Pharmacotherapy).
-  - `inverse_code`: `THER_FIRST_01_INV`.
-  - `directionality_concordance`: `true` ($DR = 0.31 \le 0.67$).
-  - `clinical_rationale`: Metformin is the primary guideline-recommended first-line pharmacotherapy for glycemic management in Type 2 Diabetes.
+### Exemplar 1: `Drug -> Condition` (Therapeutic First-Line) & Reciprocal Alignment
+- **Canonical Orientation (Drug $\to$ Condition)**:
+  - **Concept A**: Metformin (Concept ID: `1503297`, Domain: `Drug`)
+  - **Concept B**: Type 2 diabetes mellitus (Concept ID: `201826`, Domain: `Condition`)
+  - **Pipeline v57 Metrics**: Stratified Lift = $4.82$, $DR_{A \to B} = 0.31$, CMH $p < 10^{-15}$, Binomial $p < 10^{-12}$.
+  - **Directional Interpretation**: In longitudinal patient trajectories, initial diagnosis Concept B precedes prescription Concept A ($N_{B \to A} > N_{A \to B}$), yielding an empirical $DR = 0.31 \le 0.67$.
+  - **Stage 1 Assignment**: `CLASS_III` (Therapeutic & Interventional).
+  - **Stage 2 Assignment**:
+    - `relation_code`: `THER_FIRST_01` (First-Line Guideline Pharmacotherapy).
+    - `inverse_code`: `THER_FIRST_01_INV`.
+    - `directionality_concordance`: `true` ($DR = 0.31 \le 0.67$, consistent with diagnosis preceding treatment).
+    - `clinical_rationale`: Metformin is the established guideline-recommended first-line pharmacotherapy for glycemic management in Type 2 Diabetes.
+- **Reciprocal Evaluation (Condition $\to$ Drug)**:
+  - **Concept A**: Type 2 diabetes mellitus (Condition)
+  - **Concept B**: Metformin (Drug)
+  - **Reciprocal Metrics**: Stratified Lift = $4.82$, $DR'_{A \to B} = 1 / 0.31 = 3.23 \ge 1.50$.
+  - **Active Code**: `THER_FIRST_01_INV` ("Type 2 diabetes is treated first-line by Metformin").
+  - **Consistency Check**: Diagnosis precedes treatment; the inverted code correctly reflects forward precedence from condition to therapy.
 
 ### Exemplar 2: `Measurement -> Condition` (Diagnostic Confirmatory)
 - **Concept A**: Measurement of Troponin I (Concept ID: `3013682`, Result: Abnormal High)

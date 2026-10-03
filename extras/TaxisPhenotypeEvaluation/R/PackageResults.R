@@ -77,13 +77,42 @@ packageResults <- function(outputFolder,
       grepl("log|scratch|person|patient|subject", zipContents, ignore.case = TRUE)
     ]
 
-    if (length(unapprovedMembers) > 0) {
+    # Column-level schema audit: inspect CSV headers inside zip to reject forbidden identifier columns
+    hasForbiddenCols <- FALSE
+    if (length(unapprovedMembers) == 0 && length(zipContents) > 0) {
+      tempExtractDir <- tempfile("cd_inspect_")
+      dir.create(tempExtractDir, showWarnings = FALSE)
+      on.exit(unlink(tempExtractDir, recursive = TRUE), add = TRUE)
+
+      tryCatch({
+        utils::unzip(diagZipFull, files = zipContents, exdir = tempExtractDir)
+        for (m in zipContents) {
+          csvPath <- file.path(tempExtractDir, m)
+          if (file.exists(csvPath) && !dir.exists(csvPath)) {
+            firstLine <- readLines(csvPath, n = 1, warn = FALSE)
+            cols <- tolower(strsplit(firstLine, "[,;\t]")[[1]])
+            if (any(cols %in% c("subject_id", "person_id", "patient_id", "mrn", "ssn"))) {
+              ParallelLogger::logWarn(sprintf(
+                "Diagnostics archive member %s contains forbidden identifier column(s). Excluding archive from export.", m
+              ))
+              hasForbiddenCols <- TRUE
+              break
+            }
+          }
+        }
+      }, error = function(e) {
+        ParallelLogger::logWarn(sprintf("Error during column inspection of %s: %s", diagZipFull, e$message))
+        hasForbiddenCols <- TRUE
+      })
+    }
+
+    if (length(unapprovedMembers) > 0 || hasForbiddenCols) {
       ParallelLogger::logWarn(sprintf(
-        "Diagnostics archive %s contains %d unapproved or non-aggregate members (e.g. %s). Excluding from export bundle per data governance policy.",
-        diagZipFull, length(unapprovedMembers), unapprovedMembers[1]
+        "Diagnostics archive %s failed aggregate schema verification (unapproved members or forbidden columns). Excluding from export bundle per data governance policy.",
+        diagZipFull
       ))
     } else if (length(zipContents) > 0) {
-      ParallelLogger::logInfo(sprintf("Verified %d approved aggregate CSV members in %s.", length(zipContents), diagZipFull))
+      ParallelLogger::logInfo(sprintf("Verified %d approved aggregate CSV members with valid aggregate schemas in %s.", length(zipContents), diagZipFull))
       filesToZip <- c(filesToZip, diagZipFull)
     }
   }

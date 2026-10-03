@@ -34,7 +34,7 @@ The resulting output—a structured, graded matrix of **1.9 million clinically r
 
 ## 2. Statistical Estimands & Epidemiological Counting Rules
 
-Pipeline v57 enforces precise mathematical definitions and boundary conditions to ensure that observed co-occurrences reflect genuine biological and clinical relationships rather than acute recording artifacts or healthcare utilization confounding.
+Pipeline v57 enforces precise mathematical definitions and boundary conditions to characterize observed co-occurrences and assess whether temporal patterns and stratification suggest substantive clinical associations rather than acute recording artifacts or unadjusted healthcare utilization confounding.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -57,26 +57,26 @@ Pipeline v57 enforces precise mathematical definitions and boundary conditions t
 ```
 
 ### 2.1 Baseline Observation Wash-In & Incident Eligibility
-To establish baseline clinical characterization and confirm that index occurrences are incident (or newly captured chronic episodes) rather than established prevalent conditions:
+To establish baseline clinical characterization and confirm that index occurrences are newly documented presentations rather than established prevalent conditions:
 - **Wash-In Requirement**: A patient must have $\ge 365$ days of continuous observation in `observation_period` prior to the index occurrence of Concept A ($T_{\text{index}} - T_{\text{start}} \ge 365\text{ days}$).
 - **Eligible Population Denominator ($N$)**: The global population denominator is strictly restricted to patients meeting the 365-day wash-in requirement ($N = 2,160,000$ in the INPC benchmark run).
 
-### 2.2 Asymmetric Chronic-Onset Hazard Windows
-Symmetric short windows (e.g., $\pm 30$ days) introduce severe **acute bias** when applied to chronic progressive illnesses, capturing only the acute hospitalizations where both concepts happen to be coded together while missing the natural disease history. 
+### 2.2 Asymmetric Finite-Window Longitudinal Precedence Intervals
+Symmetric short windows (e.g., $\pm 30$ days) introduce acute capture bias when applied to chronic progressive illnesses, recording only acute encounters where both concepts happen to be coded together while missing prospective disease progression.
 
-Pipeline v57 introduces **asymmetric forward hazard models**:
-1. **Prospective Follow-Up Intervals**: Tracks the subsequent occurrence of Concept B across standard epidemiological intervals:
+While finite follow-up intervals are sometimes colloquially described as "hazard windows" in exploratory mining, Pipeline v57 computes **distinct-person incident co-occurrence counts across specified prospective time horizons** (without estimating parametric continuous-time hazard rates):
+1. **Prospective Follow-Up Horizons**: Evaluates the subsequent incident presentation of Concept B across standard epidemiological intervals following index Concept A:
    - $[+1, +30\text{ days}]$: Immediate peri-diagnostic testing and acute stabilization therapy.
    - $[+1, +90\text{ days}]$: Short-term treatment modification and subacute monitoring.
    - $[+1, +365\text{ days}]$: Annual maintenance management and intermediate complications.
    - $[+1, +730\text{ days}]$: Two-year chronic disease progression and secondary sequelae.
    - $[+1, \text{End of Observation}]$: Complete longitudinal follow-up.
-2. **Incident Manifestation Rule (Lookback Cleanliness)**: To measure incident prospective hazard, the calculation of $N_{A \to B}$ strictly requires that Concept B had **zero recorded occurrences** in the patient's record prior to Concept A during the 365-day baseline observation period.
+2. **Incident Manifestation Rule (Lookback Cleanliness)**: To measure incident prospective presentation, the calculation of $N_{A \to B}$ strictly requires that Concept B had **zero recorded occurrences** in the patient's record prior to Concept A during the 365-day baseline observation period.
 
 ### 2.3 Separation of Same-Day Ties ($N_{A=B}$)
 Clinical concepts recorded on the exact same calendar date ($T_A = T_B$, e.g., on the same emergency encounter or problem list) introduce ambiguous temporal precedence:
 - Same-day co-occurrences are tallied and reported as a dedicated metric: **$N_{A=B}$** (and same-visit fraction `same_visit_frac`).
-- **Strict Boundary Rule**: Same-day ties are **strictly excluded** from directional precedence counts ($N_{A \to B}$ and $N_{B \to A}$). This prevents simultaneous diagnostic billing codes from artificially inflating directional causality.
+- **Strict Boundary Rule**: Same-day ties are **strictly excluded** from directional precedence counts ($N_{A \to B}$ and $N_{B \to A}$). This prevents simultaneous diagnostic billing codes from artificially inflating descriptive temporal precedence counts.
 
 ### 2.4 Continuity-Corrected Directionality Ratio ($DR$)
 To assess whether Concept A reliably precedes Concept B, the engine computes the continuity-corrected Directionality Ratio:
@@ -87,16 +87,17 @@ Where:
 - $N_{B \to A}$ is the distinct person count where Concept B preceded Concept A ($T_B < T_A$).
 - $+0.5$ is Haldane-Anscombe continuity correction protecting against zero-division in rare event pairs.
 
-**Classification Thresholds**:
-- **Forward Directed Precedence ($A \rightarrow B$)**: $DR \ge 1.50$ with $N_{A \to B} \ge 10$ and $p < 0.01$ (e.g., Disease $\rightarrow$ Drug indication; Disease $\rightarrow$ Secondary complication).
-- **Reverse Directed Precedence ($B \rightarrow A$)**: $DR \le 0.67$ with $N_{B \to A} \ge 10$ and $p < 0.01$ (e.g., Risk factor $\rightarrow$ Event).
-- **Symmetric / Bidirectional Comorbidity**: $0.67 < DR < 1.50$ (e.g., Chronic Comorbidity clustering, Metabolic syndrome components).
+**Classification Thresholds & Statistical Tests**:
+- **Forward Directed Precedence ($A \rightarrow B$)**: $DR \ge 1.50$ with $N_{A \to B} \ge 10$ and two-sided binomial test $p < 0.01$ under the null hypothesis of equal directional precedence $H_0: P(A \to B) = 0.5$ (e.g., Disease $\rightarrow$ Drug indication; Disease $\rightarrow$ Secondary complication).
+- **Reverse Directed Precedence ($B \rightarrow A$)**: $DR \le 0.67$ with $N_{B \to A} \ge 10$ and binomial $p < 0.01$ (e.g., Risk factor $\rightarrow$ Event).
+- **Symmetric / Contemporaneous Association**: $0.67 < DR < 1.50$ (e.g., Chronic Comorbidity clustering, Metabolic syndrome components).
+- **Indeterminate Precedence**: Pairs failing minimum support thresholds ($N_{A \to B} < 10$ and $N_{B \to A} < 10$) or failing the binomial significance gate are classified as indeterminate rather than directional.
 
 ### 2.5 Healthcare Utilization Decile Stratification (`DEC-GR-010`)
-The primary systematic confounder in observational association mining is the **hyper-monitored sick patient bias**: individuals with severe multimorbidity interact frequently with the healthcare system, generating vast code counts that appear highly correlated purely due to shared encounter frequency.
+A prominent systematic confounder in observational association mining is **healthcare contact density bias**: individuals with severe multimorbidity interact frequently with the healthcare system, generating vast code counts that appear correlated purely due to shared encounter frequency.
 
-Pipeline v57 neutralizes this bias through **utilization-decile stratification**:
-1. **Decile Partitioning ($U_1 \dots U_{10}$)**: Every patient in the denominator is assigned to a healthcare utilization decile based on their annualized distinct encounter dates.
+Pipeline v57 adjusts for this measured contact density through **utilization-decile stratification**:
+1. **Decile Partitioning ($U_1 \dots U_{10}$)**: Every patient in the denominator is assigned to a healthcare utilization decile based on their distinct encounter dates during their baseline observation period.
 2. **Decile-Stratified Expected Co-occurrences**:
    $$E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A, k} \cdot N_{B, k}}{N_k}$$
    Where $N_k$ is the total person count in decile $k$, and $N_{A,k}, N_{B,k}$ are the marginal person counts for Concept A and Concept B within decile $k$.
@@ -104,12 +105,14 @@ Pipeline v57 neutralizes this bias through **utilization-decile stratification**
    $$Lift_{\text{util}} = \frac{O_{AB}}{E_{AB, \text{util}}}$$
    Where $O_{AB}$ is the observed distinct person co-occurrence count.
 
+*Methodological Note*: While utilization stratification attenuates confounding driven by broad contact density, residual within-decile recording patterns and unmeasured health-seeking behavior may persist and require substantive clinical evaluation.
+
 ### 2.6 Dual Lift Reporting Architecture
 Per Authoritative Decision `DEC-GR-010`, TAXIS reports both lift metrics:
 - **Unadjusted Person Lift ($Lift_{\text{unadj}}$)**:
-  $$Lift_{\text{unadj}} = \frac{O_{AB} / N}{(N_A / N) \cdot (N_B / N)} = \frac{N \cdot O_{AB}}{N_A \cdot N_B}$$
-  Measures raw observational co-occurrence relative to population independence.
-- **Utilization-Stratified Lift ($Lift_{\text{util}}$)**: Measures co-occurrence adjusted for encounter volume. Pairs where $Lift_{\text{unadj}} \gg 1.0$ but $Lift_{\text{util}} \approx 1.0$ are immediately recognized as utilization-driven artifacts.
+   $$Lift_{\text{unadj}} = \frac{O_{AB} / N}{(N_A / N) \cdot (N_B / N)} = \frac{N \cdot O_{AB}}{N_A \cdot N_B}$$
+   Measures raw observational co-occurrence relative to population independence.
+- **Utilization-Stratified Lift ($Lift_{\text{util}}$)**: Measures co-occurrence adjusted for baseline encounter volume. Pairs where $Lift_{\text{unadj}} \gg 1.0$ but $Lift_{\text{util}} \approx 1.0$ serve as a diagnostic indicator of substantial utilization confounding.
 - **Encounter Event Lift ($Lift_{\text{event}}$)**: Evaluates whether Concept A and Concept B occur together during the same clinical encounter ($E(A \cap B) / [E(A) \cdot E(B)]$), identifying acute episode-specific pairs.
 
 ### 2.7 Statistical Filtering & Significance Gating
