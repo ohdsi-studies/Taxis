@@ -86,8 +86,8 @@ def test_sanitization_and_prohibited_terms():
 
 
 def test_brief_report_word_count_and_budget():
-    """Verify Brief Report fits strictly within the 4-page OHDSI symposium budget."""
-    print("--> Test 2: Validating Brief Report word count budget (4-page target)...")
+    """Verify Brief Report satisfies the word-budget heuristic for the 4-page target (REC-030-4: pagination unverified until layout render)."""
+    print("--> Test 2: Validating Brief Report word-budget heuristic (4-page submission target)...")
     with open(BRIEF_REPORT_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -101,7 +101,7 @@ def test_brief_report_word_count_and_budget():
     assert min_words <= word_count <= max_words, (
         f"Brief Report word count ({word_count}) outside acceptable 4-page budget [{min_words}, {max_words}]"
     )
-    print(f"  [PASS] Brief Report word count ({word_count} words) satisfies 4-page budget [{min_words}, {max_words}].")
+    print(f"  [PASS] Brief Report word count ({word_count} words) satisfies 4-page heuristic budget [{min_words}, {max_words}] (visual page rendering unverified pending template export).")
     return True
 
 

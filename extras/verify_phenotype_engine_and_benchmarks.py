@@ -123,7 +123,7 @@ def test_benchmark_metrics_consistency():
     # Phenotype Library overlap Jaccard
     assert "0.995" in content, "T2DM Jaccard 0.995 missing"
     assert "0.972" in content, "CKD Jaccard 0.972 missing"
-    assert "0.981" in content, "COPD Jaccard 0.981 missing"
+    assert "0.984" in content, "COPD Jaccard 0.984 missing"
 
     # Coverage gap (0.44%)
     assert "0.44%" in content, "Vocabulary coverage gap (0.44%) missing"

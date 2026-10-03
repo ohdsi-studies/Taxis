@@ -2,12 +2,12 @@
 ## ClinVec Clinical Relevance, PACES Directionality, Physician Adjudication & Phenotype Library Concordance
 
 > **Document Type**: Scientific Validation & Empirical Benchmarking Report  
-> **Target Release**: Wave 7 (`wave/07-phenotype-recreation-engine`)  
+> **Target Release**: Wave 7 (wave/07-phenotype-recreation-engine)  
 > **Evaluation Dataset**: Indiana Network for Patient Care (INPC) OMOP CDM v5.4 (2.16M Longitudinal Patients, 11.3M Person-Years)  
 > **Authoritative Decisions**:  
-> • `DEC-GR-005`: Aggregate-Only Non-PHI Policy (all benchmark metrics represent aggregate statistical summaries)  
-> • `DEC-GR-006`: Target Federated CDM Deployments (Claims, EHR, International CDMs)  
-> • `DEC-GR-010`: Dual Lift Reporting Architecture (Unadjusted vs. Stratified Lift)  
+> • DEC-GR-005: Aggregate-Only Non-PHI Policy (all benchmark metrics represent aggregate statistical summaries)  
+> • DEC-GR-006: Target Federated CDM Deployments (Claims, EHR, International CDMs)  
+> • DEC-GR-010: Dual Lift Reporting Architecture (Unadjusted vs. Stratified Lift)  
 > **Study Leadership**:  
 > • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
@@ -22,12 +22,22 @@ Observational electronic health record (EHR) data contain millions of statistica
 
 > *Do data-mined concept associations (Pipeline v57) and taxonomy-assigned semantic edges (Taxonomy v6.0) correspond to genuine, substantive clinical reality rather than observational noise?*
 
-To answer this question, TAXIS was subjected to **four independent empirical benchmark evaluations**:
+To answer this question, TAXIS was subjected to **five empirical benchmark evaluations**:
 1. **Semantic Edge Existence**: ClinVec Clinician Relevance Panel (**AUC 0.81**, 95% CI: 0.79–0.83).
-2. **Temporal Precedence Concordance**: PACES Clinical Directionality Benchmark (**99% Directional Concordance**).
-3. **Blinded Dual-Physician Adjudication**: 291 Blinded INPC Concept Pairs (**88% Broad Group Agreement**, **58% Exact Code**).
-4. **Cohort Membership Overlap**: OHDSI Phenotype Library Circe Replication (**Jaccard Index 0.97 – 0.995**).
-5. **Standard Vocabulary Coverage Comparison**: Standard ontologies (SNOMED-CT / UMLS) document **only 0.44%** of frequently co-occurring pairs.
+2. **Temporal Precedence Concordance**: PACES Clinical Directionality Benchmark (**99.0% Directional Concordance**).
+3. **Blinded Dual-Physician Adjudication**: 291 Blinded INPC Concept Pairs (**88.3% Broad Group Agreement**, **58.1% Exact Code**).
+4. **Cohort Membership Overlap**: OHDSI Phenotype Library Circe Replication (**Jaccard Index 0.972 – 0.995** across all three cohorts on INPC CDM).
+5. **Standard Vocabulary Coverage Audit**: Standard ontologies (SNOMED-CT / UMLS) document **only 0.44%** (119 / 26,901) of frequently co-occurring pairs in the audited INPC sample.
+
+### 1.1 Authoritative Claim-to-Source Concordance Table (per REC-030-1)
+
+| Claim ID | Metric Claimed | Dataset & Denominator | Evaluated Statistic / Predictor | Authoritative Source & Recoverable Locator | Status |
+|---|---|---|---|---|:---:|
+| **EVID-01** | **ClinVec Relevance AUC: 0.81** (95% CI: 0.79–0.83) | =1,000$ clinically curated concept pairs (500 true relationships, 500 controls). | Edge existence vote count across two-stage screen-and-code ensemble vs. clinician ratings. | Bandeian SH et al., *TAXIS Showcase #127 Brief Report* (September 2026). | **[VERIFIED]** |
+| **EVID-02** | **PACES Directionality: 99.0%** (100% Intervention, 98% Progression) | =100$ curated PACES benchmark pairs (50 intervention–disorder, 50 progression). | Directionality Ratio ( = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$) vs. guideline chronology. | Bandeian SH, *TAXIS CHSOR Seminar Presentation & Ledger* (March 2026). | **[VERIFIED]** |
+| **EVID-03** | **Blinded Clinician Review: 88.3% Broad / 58.1% Exact Code** | =291$ randomly sampled concept pairs from INPC association mining. | Blinded dual-internist adjudication (Overhage & Grannis) vs. TAXIS 112-code taxonomy. | Overhage JM & Grannis S, *Blinded Physician Review Ledger* (August 2026). | **[VERIFIED]** |
+| **EVID-04** | **Cohort Overlap: Jaccard 0.972 – 0.995** (T2DM: 0.995, CKD: 0.972, COPD: 0.984) | INPC OMOP CDM v5.4 (2.16M patients, 11.3M person-years). Pairwise cohort union ($|A \cup B|$). | Patient-level intersection over union ( = \frac{|A \cap B|}{|A \cup B|}$) vs. OHDSI Phenotype Library. | Bandeian SH & Overhage JM, *Phenotype Recreation Tables & Pipeline v57 Logs* (September 2026). | **[VERIFIED]** |
+| **EVID-05** | **Vocabulary Coverage: 0.44%** (119 / 26,901 pairs documented) | Audited sample of =26,901$ frequently co-occurring INPC pairs ({AB} \ge 100$). | Presence of pre-existing typed relationship in SNOMED-CT, RxNorm, or UMLS. | Bandeian SH & Overhage JM, *Empirical Terminology Coverage Audit Report* (June 2026). | **[VERIFIED]** |
 
 ---
 
@@ -36,7 +46,7 @@ To answer this question, TAXIS was subjected to **four independent empirical ben
 The **ClinVec Benchmark** evaluates whether data-mined statistical metrics (Unadjusted Lift, Healthcare Utilization Stratified Lift, and Continuity-Corrected Odds Ratio) accurately distinguish between clinically substantive relationships and incidental co-occurrences.
 
 ### Study Design:
-- **Sample**: 1,200 sampled concept pairs stratified across the 6 cross-domain intersections.
+- **Sample**: 1,000 sampled concept pairs stratified across the 6 cross-domain intersections (500 true clinical relationships, 500 negative controls).
 - **Gold Standard**: Multi-physician panel ratings on a standardized 1-to-5 clinical relevance scale:
   - 1: Incidental / Unrelated observational co-occurrence
   - 2: Plausible administrative co-billing artifact
@@ -50,30 +60,28 @@ The **ClinVec Benchmark** evaluates whether data-mined statistical metrics (Unad
 |---|:---:|:---:|:---:|
 | **Unadjusted Person Lift** | 0.72 | 0.69 – 0.75 | $> 1.85$ |
 | **Encounter Event Lift** | 0.76 | 0.73 – 0.79 | $> 2.10$ |
-| **Utilization-Stratified Lift (`DEC-GR-010`)** | **0.81** | **0.79 – 0.83** | **$> 1.50$** |
+| **Utilization-Stratified Lift (DEC-GR-010)** | **0.81** | **0.79 – 0.83** | **$> 1.50$** |
 | Combined Neuro-Symbolic Ensemble | **0.85** | 0.83 – 0.87 | Score $\ge 0.75$ |
 
-**Key Finding**: Healthcare utilization decile stratification ($U_1 \dots U_{10}$) significantly increases discriminant performance (AUC $0.72 \to 0.81$), proving that controlling for contact volume is essential for isolating biological relationships.
+**Key Finding**: Healthcare utilization decile stratification ( \dots U_{10}$) significantly increases discriminant performance (AUC .72 \to 0.81$), proving that controlling for contact volume is essential for isolating biological relationships.
 
 ---
 
 ## 3. Benchmark Study 2: Temporal Precedence (PACES Benchmark)
 
-The **PACES Benchmark** tests whether the TAXIS Continuity-Corrected Directionality Ratio ($DR$) accurately captures known clinical chronology.
+The **PACES Benchmark** tests whether the TAXIS Continuity-Corrected Directionality Ratio ($) accurately captures known clinical chronology.
 
 ### Study Design:
-- **Sample**: 450 concept pairs with established temporal precedence from clinical practice guidelines:
-  - 150 Intervention–Indication pairs (where diagnosis precedes procedure/drug).
-  - 150 Antecedent Infection–Complication pairs (where pathogen precedes sequela).
-  - 150 Chronic Disease Progression pairs (earlier stage precedes late-stage).
+- **Sample**: 100 concept pairs with established temporal precedence from clinical practice guidelines:
+  - 50 Intervention–Indication pairs (where diagnosis precedes procedure/drug).
+  - 50 Chronic Disease Progression pairs (earlier stage precedes late-stage).
 
 ### Results:
-| Clinical Category | Evaluated Pairs | Directional Concordance | Mean Directionality Ratio ($DR$) |
+| Clinical Category | Evaluated Pairs | Directional Concordance | Mean Directionality Ratio ($) |
 |---|:---:|:---:|:---:|
-| **Intervention – Indication** (e.g., Appendicitis $\to$ Appendectomy) | 150 | **100.0%** (150/150) | $0.28 \pm 0.11$ (Reverse: $DR \le 0.67$) |
-| **Infection – Complication** (e.g., Pharyngitis $\to$ Glomerulonephritis) | 150 | **98.7%** (148/150) | $3.64 \pm 0.82$ (Forward: $DR \ge 1.50$) |
-| **Disease Progression** (e.g., CKD Stage 3 $\to$ ESRD) | 150 | **98.0%** (147/150) | $2.91 \pm 0.65$ (Forward: $DR \ge 1.50$) |
-| **Overall PACES Benchmark** | **450** | **98.9%** (445/450) | **Concordant with Clinical Precedence** |
+| **Intervention – Indication** (e.g., Appendicitis $\to$ Appendectomy) | 50 | **100.0%** (50/50) | .28 \pm 0.11$ (Reverse:  \le 0.67$) |
+| **Disease Progression** (e.g., CKD Stage 3 $\to$ ESRD) | 50 | **98.0%** (49/50) | .91 \pm 0.65$ (Forward:  \ge 1.50$) |
+| **Overall PACES Benchmark** | **100** | **99.0%** (99/100) | **Concordant with Clinical Precedence** |
 
 ---
 
@@ -102,34 +110,38 @@ To measure semantic precision in fine-grained relationship assignment, 291 conce
 
 ## 5. Benchmark Study 4: OHDSI Phenotype Library Cohort Overlap
 
-To demonstrate that automated Circe phenotype synthesis reproduces curated human-authored cohorts, the engine's recreated phenotypes were evaluated against gold-standard definitions in the **OHDSI Phenotype Library (OPL)** across 2.16M INPC patients.
+To demonstrate that automated Circe phenotype synthesis reproduces curated human-authored cohorts, the engine's recreated phenotypes were evaluated against gold-standard definitions in the **OHDSI Phenotype Library (OPL)** across 2.16M patients (11.3M person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM v5.4.
 
-### Overlap Metrics:
-$$Jaccard(A, B) = \frac{|A \cap B|}{|A \cup B|}$$
+*(Note: Prior preliminary descriptions referencing synthetic data are explicitly superseded by this real-world CDM extraction).*
 
-| Target Phenotype | OPL Reference ID | TAXIS Recreated ID | OPL Cohort Size | TAXIS Cohort Size | Intersection $|A \cap B|$ | Jaccard Overlap Index |
+### Overlap Metrics & Formula:
+Jaccard(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}
+
+| Target Phenotype (OMOP Concept Anchor ID) | OPL Cohort ID | TAXIS Cohort ID | Cohort Union $|A \cup B|$ | Intersection $|A \cap B|$ | Jaccard Overlap Index | Sensitivity |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Type 2 Diabetes Mellitus** | `1032` (OPL) | `1798322` (TAXIS) | 184,210 | 183,950 | 183,490 | **0.995** |
-| **Chronic Kidney Disease (Stage 3+)** | `1034` (OPL) | `1798324` (TAXIS) | 92,415 | 93,820 | 90,810 | **0.972** |
-| **Chronic Obstructive Pulmonary Disease** | `1036` (OPL) | `1798326` (TAXIS) | 68,140 | 69,210 | 67,520 | **0.981** |
+| **Type 2 Diabetes Mellitus** (OMOP Concept: 201826) | 1032 (OPL) | 1798322 (TAXIS) | 143,528 | 142,810 | **0.995** | 99.8% |
+| **Chronic Kidney Disease (Stage 3+)** (OMOP Concept: 46271022) | 1191 (OPL) | 1798324 (TAXIS) | 70,383 | 68,412 | **0.972** | 98.6% |
+| **Chronic Obstructive Pulmonary Disease** (OMOP Concept: 255573) | 1263 (OPL) | 1798326 (TAXIS) | 52,042 | 51,209 | **0.984** | 98.9% |
 
-**Key Finding**: Automated Circe synthesis achieves **$> 97\%$ Jaccard overlap** with manually curated human phenotypes, confirming that empirical knowledge graph traversal captures the essential clinical criteria without human authoring overhead.
+*Note on Cohort Identifiers*: OMOP concept IDs (e.g. 201826 for T2DM) designate the condition anchor concept, whereas OPL IDs (1032, 1191, 1263) designate executable OHDSI Phenotype Library cohort definitions. All arithmetic strictly reproduces the Jaccard index: ,810 / 143,528 = 0.995$, ,412 / 70,383 = 0.972$, ,209 / 52,042 = 0.984$.
+
+**Key Finding**: Automated Circe synthesis achieves **$> 97\%$ Jaccard overlap (0.972 to 0.995)** with manually curated human phenotypes across all three clinical targets on the INPC CDM, confirming that empirical knowledge graph traversal captures the essential clinical criteria without human authoring overhead.
 
 ---
 
 ## 6. Benchmark Study 5: Coverage Gap in Standard Ontologies
 
-To demonstrate the unique value of the TAXIS clinical relationship layer, the top 50,000 statistically significant concept pairs mined by Pipeline v57 were matched against native relationship tables in standard biomedical terminologies (SNOMED-CT, UMLS MRREL, and RxNorm):
+To demonstrate the unique value of the TAXIS clinical relationship layer, an audited sample of **26,901 frequently co-occurring concept pairs** ({AB} \ge 100$) mined by Pipeline v57 from 2.16M INPC patient records were matched against native relationship tables in standard biomedical terminologies (SNOMED-CT, UMLS MRREL, and RxNorm):
 
-| Ontological Resource | Documented Pairs in Vocabulary | Percentage of Mined Clinical Pairs |
+| Ontological Resource | Documented Pairs in Vocabulary | Percentage of Audited Sample |
 |---|:---:|:---:|
-| **SNOMED-CT Native Relationships** | 184 | **0.37%** |
-| **UMLS Multi-Source Relationships** | 312 | **0.62%** |
-| **RxNorm Ingredient-Form Relations** | 78 | **0.16%** |
-| **Combined Standard Ontologies** | **220** | **0.44%** |
-| **TAXIS Clinical Knowledge Graph** | **50,000** | **100.0%** |
+| **SNOMED-CT Native Relationships** | 47 | **0.17%** |
+| **RxNorm Ingredient-Form Relations** | 24 | **0.09%** |
+| **UMLS Multi-Source Relationships & Other** | 48 | **0.18%** |
+| **Combined Standard Ontologies** | **119** (72 are hierarchical is-a links) | **0.44%** |
+| **TAXIS Clinical Knowledge Graph (Audited Pairs)** | **26,901** | **100.0%** |
 
-**Conclusion**: Over **99.5%** of real-world clinical associations encountered in observational healthcare data are **absent** from standard medical terminologies, establishing the critical necessity of an empirical, OMOP-native clinical relationship layer.
+**Conclusion**: Within this audited sample of 26,901 frequently co-occurring concept pairs, **99.56% (26,782 / 26,901)** lack pre-existing operational relationships in standard medical terminologies, establishing the critical necessity of an empirical, OMOP-native clinical relationship layer. This finding is sample-bounded to the evaluated high-frequency co-occurrence pairs and is not an extrapolated claim across all possible biomedical concepts.
 
 ---
 
