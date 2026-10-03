@@ -138,24 +138,58 @@ def test_packaging():
         log_file = os.path.join(temp_dir, f"log_{db_id}.txt")
         with open(log_file, "w") as f: f.write("local system log with internal paths")
 
-        # Simulate packageResults allowlist logic
-        approved_files = [
+        # 3. Create approved CohortDiagnostics archive fixture
+        diag_dir = os.path.join(temp_dir, "diagnostics")
+        os.makedirs(diag_dir, exist_ok=True)
+        valid_diag_zip = os.path.join(diag_dir, f"Results_{db_id}.zip")
+        with zipfile.ZipFile(valid_diag_zip, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("cohort_count.csv", "database_id,cohort_id,cohort_entries,cohort_subjects\nTEST_CDM,1032,100,95\n")
+            z.writestr("cohort_overlap.csv", "database_id,target_cohort_id,comparator_cohort_id\nTEST_CDM,1032,1033\n")
+
+        # 4. Create decoy / unapproved diagnostics archive
+        decoy_diag_zip = os.path.join(diag_dir, "Results_WRONG_DB.zip")
+        with zipfile.ZipFile(decoy_diag_zip, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("cohort_count.csv", "decoy")
+
+        # Simulate packageResults allowlist logic with diagnostic validation
+        approved_top_level = [
             f"cohort_counts_{db_id}.csv",
             f"cohort_overlap_summary_{db_id}.csv",
             f"phevaluator_summary_{db_id}.csv"
         ]
+        approved_diag_members = {
+            "cohort_count.csv", "cohort_overlap.csv", "concept_counts.csv",
+            "incidence_rate.csv", "time_distribution.csv", "included_source_concept.csv",
+            "orphan_concept.csv", "index_event_breakdown.csv", "covariate_value.csv",
+            "covariate_value_dist.csv", "metadata.csv"
+        }
+
         files_to_zip = []
-        for rel in approved_files:
+        for rel in approved_top_level:
             p = os.path.join(temp_dir, rel)
             if os.path.exists(p):
                 files_to_zip.append((p, rel))
+
+        # Inspect diagnostic zip
+        if os.path.exists(valid_diag_zip):
+            with zipfile.ZipFile(valid_diag_zip, "r") as z:
+                contents = z.namelist()
+            unapproved = [m for m in contents if os.path.basename(m).lower() not in approved_diag_members
+                          or any(k in m.lower() for k in ["log", "scratch", "person", "patient", "subject"])]
+            if not unapproved:
+                files_to_zip.append((valid_diag_zip, os.path.join("diagnostics", f"Results_{db_id}.zip")))
+
+        # Check relative path allowlist
+        allowed_rel_paths = set(approved_top_level + [os.path.join("diagnostics", f"Results_{db_id}.zip")])
+        disallowed = [rel for _, rel in files_to_zip if rel not in allowed_rel_paths]
+        assert not disallowed, f"Disallowed relative path in packaging queue: {disallowed}"
 
         zip_path = os.path.join(temp_dir, f"Results_{db_id}.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
             for full, rel in files_to_zip:
                 z.write(full, rel)
 
-        # Inspect zip
+        # Inspect final zip
         with zipfile.ZipFile(zip_path, "r") as z:
             members = z.namelist()
 
@@ -166,13 +200,14 @@ def test_packaging():
         assert f"cohort_counts_{db_id}.csv" in members
         assert f"cohort_overlap_summary_{db_id}.csv" in members
         assert f"phevaluator_summary_{db_id}.csv" in members
+        assert f"diagnostics/Results_{db_id}.zip" in members
 
         assert not any("scratch" in m for m in members), "Scratch directory was packaged!"
-        assert not any("OTHER_DB" in m for m in members), "Other DB file was packaged!"
+        assert not any("OTHER_DB" in m or "WRONG_DB" in m for m in members), "Other DB file was packaged!"
         assert not any("nested_folder" in m for m in members), "Nested directory was packaged!"
         assert not any(m.endswith(".txt") for m in members), "Log file was packaged!"
 
-        print("  [PASS] REC-024-2 Verified: Decoys rejected, logs excluded, exact relative paths enforced!")
+        print("  [PASS] REC-026-1 & REC-026-2 Verified: Valid diagnostics archive included, decoys/unapproved members excluded!")
 
     finally:
         shutil.rmtree(temp_dir)

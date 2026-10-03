@@ -290,6 +290,8 @@ To convert massive observational associations into a computable, typed clinical 
 | **Stage 1 Screening** | Manual heuristic | 4-Model LLM screen ($\ge 3\text{ of } 4$ consensus) | Pre-computed knowledge graph lookup |
 | **Stage 2 Classification** | Binary association | 112 taxonomy codes (32 families / 5 classes) | Standardized edge semantics & qualifiers |
 
+> **Technical Pipeline Specification**: For complete SQL architecture, batch partitioning parameters, and table schemas, see the technical manual: [TAXIS Concept AB Association Mining Engine (Pipeline v57)](../mining/CONCEPT_AB_MINING_ENGINE_V57.md).
+
 ### 6.6 Downstream Methodological Applications
 
 #### 1. Automated Phenotype Recreation & Concept Set Optimization

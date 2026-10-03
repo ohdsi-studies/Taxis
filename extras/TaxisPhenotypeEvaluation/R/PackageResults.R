@@ -43,12 +43,27 @@ packageResults <- function(outputFolder,
     }
   }
 
+  # Approved CohortDiagnostics export members (aggregate-only summaries)
+  approvedCohortDiagnosticsMembers <- c(
+    "cohort_count.csv",
+    "cohort_overlap.csv",
+    "concept_counts.csv",
+    "incidence_rate.csv",
+    "time_distribution.csv",
+    "included_source_concept.csv",
+    "orphan_concept.csv",
+    "index_event_breakdown.csv",
+    "covariate_value.csv",
+    "covariate_value_dist.csv",
+    "metadata.csv"
+  )
+
   # Check and inspect CohortDiagnostics export zip if present
   diagZipRel <- file.path("diagnostics", sprintf("Results_%s.zip", databaseId))
   diagZipFull <- file.path(outputFolder, diagZipRel)
 
   if (file.exists(diagZipFull)) {
-    # Deep-inspect zip contents to verify only aggregate CSVs
+    # Deep-inspect zip contents to verify only approved aggregate CSVs
     zipContents <- tryCatch({
       utils::unzip(diagZipFull, list = TRUE)$Name
     }, error = function(e) {
@@ -56,13 +71,15 @@ packageResults <- function(outputFolder,
       character(0)
     })
 
-    # Allowed aggregate diagnostic members must be CSVs and not contain logs or patient tables
-    unapprovedMembers <- zipContents[!grepl("\\.csv$", zipContents, ignore.case = TRUE) |
-                                      grepl("log|scratch|person|patient_id", zipContents, ignore.case = TRUE)]
+    # Validate archive members: must be approved aggregate tables and free of patient identifiers
+    unapprovedMembers <- zipContents[
+      !tolower(basename(zipContents)) %in% approvedCohortDiagnosticsMembers |
+      grepl("log|scratch|person|patient|subject", zipContents, ignore.case = TRUE)
+    ]
 
     if (length(unapprovedMembers) > 0) {
       ParallelLogger::logWarn(sprintf(
-        "Diagnostics archive %s contains %d unapproved members (e.g. %s). Excluding from export bundle per data governance policy.",
+        "Diagnostics archive %s contains %d unapproved or non-aggregate members (e.g. %s). Excluding from export bundle per data governance policy.",
         diagZipFull, length(unapprovedMembers), unapprovedMembers[1]
       ))
     } else if (length(zipContents) > 0) {
@@ -71,8 +88,17 @@ packageResults <- function(outputFolder,
     }
   }
 
-  # Safety check: ensure no decoy, scratch, log, or wrong-database files are included
-  disallowed <- filesToZip[grepl("scratch|log|\\.txt$|Results_(?!%s\\.zip)", filesToZip, perl = TRUE, ignore.case = TRUE)]
+  # Safety check: ensure every file in filesToZip is strictly in the approved relative allowlist
+  normOutputFolder <- normalizePath(outputFolder, winslash = "/", mustWork = FALSE)
+  relFilesToZip <- gsub(paste0("^", normOutputFolder, "/?"), "",
+                        normalizePath(filesToZip, winslash = "/", mustWork = FALSE))
+
+  allowedRelPaths <- c(
+    approvedTopLevelFiles,
+    file.path("diagnostics", sprintf("Results_%s.zip", databaseId))
+  )
+
+  disallowed <- relFilesToZip[!relFilesToZip %in% allowedRelPaths]
   if (length(disallowed) > 0) {
     stop(sprintf("Security violation: disallowed file detected in packaging queue: %s", disallowed[1]))
   }
