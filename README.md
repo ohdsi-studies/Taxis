@@ -241,7 +241,7 @@ TAXIS operates strictly under an **aggregate-only, code-to-data** federated para
 3. **Sensitive Pair Protection**: Raw concept-concept co-occurrence tables remain strictly local. Only aggregate cohort overlap indices (Jaccard) and PheValuator ROC statistics are exported in `Results_<db>.zip`.
 4. **Complementary Cell Protection**: Mathematical checks prevent algebraic reconstruction of small cell counts from published summary ratios.
 
-Review the formal [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md) and the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md) for complete study design and institutional governance specifications.
+Review the formal [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md), the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md), and the [Concept AB Association Mining Engine (v57) Specifications](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md) for complete study design, institutional governance, and SQL pipeline specifications.
 
 ---
 
@@ -325,7 +325,7 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
 │   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
 │   ├── governance/              # Network data use agreements & privacy policies
 │   ├── protocol/                # Study protocol & design specifications
-│   ├── methodology/             # Concept AB association mining algorithms
+│   ├── mining/                  # Concept AB association mining engine (v57) & SQL architecture
 │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
 │   └── phenotyping/             # Automated phenotype builder specifications
 ├── extras/                      # Study execution packages

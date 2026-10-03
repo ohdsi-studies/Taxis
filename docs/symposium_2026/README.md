@@ -171,6 +171,7 @@ Submission and dissemination deliverables for Collaborator Showcase Entry #127:
 3. **Network Study Protocol (v1.0)**: Formal study protocol detailing the multi-site federated study design, eventization rules, hazard windows, and two-stage ensemble. Located at [`docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md`](../protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md).
 4. **Network Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package for multi-database evaluation across partner OMOP CDMs. Located in [`extras/TaxisPhenotypeEvaluation/`](../../extras/TaxisPhenotypeEvaluation/README.md).
 5. **Network Data Governance Term Sheet**: Institutional privacy specification guaranteeing local aggregate-only execution, zero patient-level data export, and $<5$ small-cell suppression. Located at [`docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md`](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
+6. **Concept AB Association Mining Engine (Pipeline v57) Specifications**: Complete mathematical, statistical, and SQL architecture manual for enterprise-scale association mining across 2.16M longitudinal patients. Located at [`docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md`](../mining/CONCEPT_AB_MINING_ENGINE_V57.md).
 
 ---
 
