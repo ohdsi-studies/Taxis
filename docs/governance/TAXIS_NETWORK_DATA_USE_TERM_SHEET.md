@@ -22,7 +22,7 @@ The **TAXIS (Transparent Analytic Knowledge Graph for Interoperable Science)** n
 
 ## 2. Resolving Concept-Pair Granularity & Data Sensitivity
 
-Institutional data holders frequently evaluate the sensitivity of concept-concept co-occurrences. To guarantee strict institutional privacy while supporting community scientific goals, TAXIS establishes a **two-tiered governance architecture**:
+Institutional data holders frequently evaluate the sensitivity of concept-concept co-occurrences. To guarantee institutional data privacy while supporting community scientific goals, TAXIS establishes a **two-tiered governance architecture**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -32,39 +32,40 @@ Institutional data holders frequently evaluate the sensitivity of concept-concep
 │   • Crude Person Counts and Local Contingency Tables                   │
 │   ==> REMAINS ENTIRELY LOCAL BEHIND FIREWALL. NEVER SHARED.            │
 └───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Local Aggregation, Filtering & Cell Suppression (< 5)
+                                    │ Local Aggregation, Filtering & Cell Suppression (minCellCount)
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                  TIER 2: SHARED NETWORK DELIVERABLES                   │
-│   • Aggregate Phenotype Performance (ROC-AUC, Sensitivity, PPV)        │
+│   • Permitted Aggregate Phenotype Performance Metrics (ROC-AUC, PPV)   │
 │   • Pairwise Cohort Overlap Indices (Jaccard Similarity)               │
-│   • High-Confidence Derived Knowledge Graph Edges (Thresholded)        │
+│   • Filtered Diagnostic Summary Metrics (Index Event Breakdowns)       │
 │   ==> EXPORTED VIA Results_<databaseId>.zip FOR COMMUNITY SHARING      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Explicit Data Sharing Terms & Output Scope
+## 3. Explicit Data Sharing Terms & Output Allowlist
 
-| Analytics Phase | Local Execution Asset | What Leaves the Data Partner | What NEVER Leaves the Data Partner |
+| Analytics Phase | Local Execution Asset | Permitted Shared Outputs (What Leaves Partner) | Strictly Local (What NEVER Leaves Partner) |
 |---|---|---|---|
-| **Phase 1: Phenotype Evaluation** | `TaxisPhenotypeEvaluation` R Package (HADES compliant) | Aggregate cohort counts (with $<5$ cell suppression), pairwise Jaccard overlap indices, standard `CohortDiagnostics` export archives, and `PheValuator` performance models (ROC-AUC, Sensitivity, Specificity, PPV). | Zero patient IDs, zero encounter dates, zero individual clinical trajectories. |
-| **Phase 2: Knowledge Graph Association Mining** | Concept AB Association Rule Mining Pipeline (v57) | High-confidence, statistically thresholded clinical relationships (e.g. *Drug A Treats Condition B*), normalized lift ratios, and clinical taxonomy classifications. | Raw concept-concept co-occurrence contingency matrices, unmasked cell counts, or institution-specific patient volume distributions. |
+| **Phase 1: Phenotype Evaluation (Core Network Scope)** | `TaxisPhenotypeEvaluation` R Package (HADES compliant) | **Allowlist Only**:<br>• Aggregate cohort counts (with small-cell suppression applied)<br>• Pairwise Jaccard cohort overlap indices<br>• Summary diagnostic characterization metrics (aggregate index event breakdowns, orphan concept aggregate counts)<br>• Summary `PheValuator` diagnostic performance metrics (ROC-AUC, sensitivity, specificity, PPV) packaged in `Results_<databaseId>.zip`. | • Zero patient IDs or person identifiers<br>• Zero encounter timestamps or visit dates<br>• Zero individual clinical trajectories<br>• Zero patient-level model weights or individual covariate records<br>• Zero raw, unfiltered diagnostic archives. |
+| **Phase 2: Knowledge Graph Mining (Future Extension)** | Concept AB Association Rule Mining Pipeline | *Separate future scope subject to site-specific agreed terms*:<br>• High-confidence, statistically thresholded clinical relationship labels (e.g. *Drug A Treats Condition B*)<br>• Normalized lift ratios. | • Zero raw contingency matrices<br>• Zero unmasked pairwise co-occurrence counts<br>• Zero institution-specific patient volume distributions. |
 
 ---
 
 ## 4. Privacy Safeguards & Cell Suppression
 
-1. **Mandatory Small-Cell Suppression**: In accordance with HIPAA Safe Harbor and international privacy standards, any aggregate count fewer than 5 (`minCellCount = 5`) is automatically masked as `-1` prior to packaging.
-2. **Deterministic Output Auditing**: Output files are packaged into a single inspection-ready zip archive (`Results_<databaseId>.zip`). Participating partner institutions have full authority to inspect and audit all CSV files prior to transmission.
-3. **Non-Commercial Scientific Use**: Shared outputs are restricted to scientific knowledge graph generation, open-source OHDSI Phenotype Library enhancement, and academic dissemination. Re-identification attempts are strictly prohibited.
-4. **Complementary Cell Protection**: Mathematical safeguards prevent algebraic reconstruction of small cell counts from published summary ratios or marginal distributions.
+1. **Mandatory Small-Cell Suppression**: As a baseline study disclosure policy, any aggregate count fewer than 5 (`minCellCount = 5`, or a stricter institutional threshold such as 10 or 20 if required by local governance policy) is masked prior to export. This rule is a study-specific risk mitigation threshold; participating institutions retain full discretion to enforce stricter small-cell thresholds.
+2. **Deterministic Output Auditing**: Output files are pre-packaged into a single inspection-ready zip archive (`Results_<databaseId>.zip`). Participating partner institutions retain complete authority to inspect, audit, and approve all CSV files prior to transmission.
+3. **Restricted Research Purpose**: Shared outputs are restricted exclusively to scientific knowledge graph evaluation, open-source OHDSI Phenotype Library enhancement, and academic dissemination. Re-identification attempts or linkage with external datasets are strictly prohibited.
+4. **Complementary Cell Protection**: Mathematical checks and margin audits prevent algebraic reconstruction of suppressed small cell counts from marginal totals or summary ratios.
 
 ---
 
 ## 5. Intellectual Property, Licensing & Academic Attribution
 
-1. **Open Science & Community Benefit**: All derived knowledge graphs, Circe cohort definitions, and evaluation scripts are released under standard **Apache 2.0 / Creative Commons BY 4.0** open-source licenses for the benefit of the global scientific community.
-2. **Authorship & Attribution**: Participating data partners contributing execution results are acknowledged and invited to co-author resulting network manuscripts and symposium proceedings in accordance with standard **ICMJE guidelines**.
-3. **Institutional Autonomy**: Network participation is entirely voluntary. Sites may choose to run Phase 1 (Phenotype Evaluation) without executing Phase 2 (Knowledge Graph Association Mining).
+1. **Software & Specification Licensing**: Open-source study packages, Circe cohort definitions, and technical documentation are released under the **Apache 2.0** (software) and **Creative Commons Attribution 4.0 International (CC-BY-4.0)** (documentation) licenses.
+2. **Data Governance & Output Use**: Research outputs exported by participating data partners remain governed by this Data Use Term Sheet and may be utilized solely for the non-commercial academic and scientific purposes described herein.
+3. **Authorship & Attribution**: Participating data partners contributing execution results are acknowledged and invited to co-author resulting network manuscripts and symposium proceedings in accordance with standard **ICMJE guidelines**.
+4. **Institutional Autonomy**: Network participation is entirely voluntary. Sites participate in Phase 1 phenotype evaluation without obligation to participate in future Phase 2 association mining extensions.

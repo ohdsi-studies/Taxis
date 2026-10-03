@@ -75,22 +75,22 @@ TAXIS is designed to explore applications across four areas of observational res
 │    (INITIAL FOCUS)    │   │                       │   │                       │   │                       │
 │ • Reusable cohort     │   │ • Candidate negative  │   │ • Informs study design│   │ • Contextualizing     │
 │   definitions for     │   │   control outcome     │   │   choices to reduce   │   │   network study       │
-│   Phenotype Library   │   │   identification      │   │   confounding         │   │   estimates           │
-│ • Multi-domain "Bill  │   │ • Graph-topological   │   │ • Graph-guided DAGs   │   │ • Evaluates residual  │
-│   of Materials"       │   │   null confirmation   │   │   identifying true    │   │   systematic bias     │
-│   (Labs, Drugs,       │   │   (0 lift, 0 clinical │   │   confounders         │   │ • Distinguishes true  │
-│   Exclusions)         │   │   mechanism)          │   │ • Distinguishes       │   │   effects from        │
-│ • Reduces one-off     │   │ • Systematic error    │   │   mediators to avoid  │   │   protopathic bias or │
-│   manual authoring    │   │   evaluation          │   │   over-adjustment     │   │   indication bias     │
+│   Phenotype Library   │   │   generation          │   │   confounding         │   │   estimates           │
+│ • Multi-domain "Bill  │   │ • Graph screening for │   │ • Graph-guided DAGs   │   │ • Evaluates residual  │
+│   of Materials"       │   │   absence of clinical │   │   identifying true    │   │   systematic bias     │
+│   (Labs, Drugs,       │   │   mechanism (Lift≈1)  │   │   confounders         │   │ • Distinguishes true  │
+│   Exclusions)         │   │ • Enables empirical   │   │ • Distinguishes       │   │   effects from        │
+│ • Reduces one-off     │   │   calibration battery │   │   mediators to avoid  │   │   protopathic bias or │
+│   manual authoring    │   │   synthesis           │   │   over-adjustment     │   │   indication bias     │
 └───────────────────────┘   └───────────────────────┘   └───────────────────────┘   └───────────────────────┘
 ```
 
 1. **Phenotyping Workflow Optimization (Primary Initial Demonstration)**:
    - Supports the transition from study-by-study phenotype authoring by translating structured clinical criteria (presentation, confirmatory laboratory criteria, first-line therapies, and differential exclusions) into candidate Circe cohort definitions.
    - Complements existing vocabularies by identifying multi-domain clinical associations to support the **OHDSI Phenotype Library**.
-2. **Negative Control Identification**:
-   - Helps identify candidate negative control outcomes by evaluating concept pairs with negligible statistical association, neutral temporal directionality, and absence of known clinical relationship.
-   - Explores generating candidate negative control sets to support empirical calibration of systematic error across network studies.
+2. **Candidate Negative Control Generation & Hypothesis Screening**:
+   - Assists investigators in candidate negative control generation by screening concept pairs that lack documented pathophysiologic mechanisms across the 112-code clinical taxonomy, coupled with neutral baseline co-occurrence ($\text{Lift} \approx 1.0$, or $\log(\text{Lift}) \approx 0$) and neutral temporal directionality ($0.67 < DR < 1.50$).
+   - Rather than assuming empirical independence in a single dataset proves a null causal effect, TAXIS provides candidate hypotheses for expert clinical and literature review, supporting the curation of pre-specified negative control batteries used to measure and calibrate systematic error across OHDSI network studies.
 3. **Informing Study Design Choices & Confounding Reduction**:
    - Supports comparative observational research by providing structured clinical knowledge to inform study design choices, covariate specifications, and cohort boundary definitions.
    - Leverages typed clinical relationships and temporal directionality ratios ($DR \ge 1.50$) to help investigators identify potential common-cause confounders while distinguishing intermediate mediators (to avoid over-adjustment bias) and potential colliders.
@@ -108,6 +108,10 @@ TAXIS is designed to explore applications across four areas of observational res
 - **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable continuous algorithmic refinement:
   - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and detect **orphan concepts** omitted from initial concept sets.
   - **PheValuator (Model Covariates Feedback Loop)**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV) using predictive regression models. High-weight predictive covariates identified by the models serve as an empirical feedback loop back into the TAXIS knowledge graph traversal to iteratively refine concept sets and cohort logic criteria.
+- **Independent Development vs. Final Evaluation Protocol**: To guard against circular overfitting—where an algorithm is iteratively tuned merely to reproduce an evaluator model rather than true clinical cases—the closed-loop refinement loop enforces a strict development-versus-evaluation boundary:
+  - *Exploratory Refinement Partition*: PheValuator predictive model training and graph-matching feedback are executed exclusively on a designated exploratory development CDM or patient partition.
+  - *Algorithm Freezing*: Once inclusion/exclusion criteria are finalized, the Circe JSON definition is **frozen** and versioned.
+  - *Independent Validation*: Final diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV) and characterization metrics are evaluated on held-out test partitions or independent external partner CDMs.
 - **Dynamic Knowledge Engine for Autonomous Phenotyping Agents**: Emerging community frameworks in autonomous cohort engineering (such as `PhenotypingAgent`, implemented as a LangGraph state machine) automate cohort development from clinical definitions through iterative design, Capr code generation, cohort measurement, and profile evaluation. While autonomous agents typically rely on pre-computed concept sets or manual single-concept lookups, TAXIS provides a computable clinical knowledge layer that supplies structured, multi-domain concept sets (anchor conditions, confirmatory labs, indicated medications, and exclusionary mimics) across 1.9M graded edges. Furthermore, during agent error-profile diagnosis, TAXIS's typed clinical relationships provide the clinical mechanism explaining observed discrepancies, informing grounded cohort refinement.
 - **Algorithmic Concept Set Condensation & Optimization**: Observational association mining can identify extensive concept sets across OMOP vocabularies. Downstream integration with concept set optimization tools (such as `ConceptSetCondenser`) enables finding the shortest, most parsimonious Circe concept set expression (combining `includeDescendants = TRUE` and explicit exclusions) that covers *exactly* the specified concepts without changing cohort membership, producing clean, human-auditable definitions for the OHDSI Phenotype Library and ATLAS.
 
@@ -289,9 +293,9 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
    - **Workgroup Peer Review**: Support human-in-the-loop review within the **OHDSI Phenotype Development and Evaluation Workgroup**, providing clinicians and epidemiologists with structured rationale and validation data to evaluate candidate definitions for official library adoption.
 
 #### Track B: Causal Study Design, Negative Controls & Error Calibration
-6. **Empirical Negative Control Synthesis & Error Calibration**:
-   - **Candidate Negative Control Identification**: Systematically identify candidate negative control outcomes by screening concept pairs with verified zero statistical lift, neutral temporal directionality ($0.67 < DR < 1.50$), and confirmed absence of pathophysiologic mechanism.
-   - **Empirical Calibration Batteries**: Generate reproducible, graph-audited candidate negative control sets to support empirical p-value and confidence interval calibration across OHDSI network comparative studies.
+6. **Candidate Negative Control Generation & Empirical Error Calibration**:
+   - **Candidate Negative Control Hypothesis Screening**: Systematically identify candidate negative control outcomes by querying the clinical relationship layer for concept pairs with an absence of documented pathophysiologic mechanism across all 112 taxonomy codes, neutral baseline association ($\text{Lift} \approx 1.0$), and neutral temporal directionality ($0.67 < DR < 1.50$).
+   - **Supporting Pre-Specified Calibration Batteries**: Rather than using data-driven estimates to declare an association causally null, TAXIS-screened candidates undergo independent clinical and literature review to establish pre-specified negative control sets. Evaluating these controls across partner CDMs produces empirical null distributions that quantify and calibrate residual systematic error in comparative effectiveness studies.
 
 7. **Confounder Identification & Confounder Balance Evaluation**:
    - **Informing Study Design Choices**: Leverage explicit clinical relationship semantics (causal, manifestation, contraindication) to assist investigators in identifying true common-cause confounders when defining cohort inclusion and baseline covariate criteria.
