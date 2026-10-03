@@ -1,0 +1,339 @@
+{
+  "cdmVersionRange": ">=5.0.0",
+  "PrimaryCriteria": {
+    "CriteriaList": [
+      {
+        "ConditionOccurrence": {
+          "CodesetId": 0
+        }
+      },
+      {
+        "DrugExposure": {
+          "CodesetId": 1,
+          "DrugTypeExclude": false
+        }
+      }
+    ],
+    "ObservationWindow": {
+      "PriorDays": 0,
+      "PostDays": 0
+    },
+    "PrimaryCriteriaLimit": {
+      "Type": "First"
+    }
+  },
+  "ConceptSets": [
+    {
+      "id": 0,
+      "name": "Hyperkalemia (TAXIS S1)",
+      "expression": {
+        "items": [
+          {
+            "concept": {
+              "CONCEPT_ID": 434610,
+              "CONCEPT_NAME": "Hyperkalemia",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "14140009",
+              "DOMAIN_ID": "Condition",
+              "VOCABULARY_ID": "SNOMED",
+              "CONCEPT_CLASS_ID": "Disorder"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "name": "Drugs that modify the disease (TAXIS ID-02 + MED-RT May treat, minus drugs that also treat a DD-09 mimic)",
+      "expression": {
+        "items": [
+          {
+            "concept": {
+              "CONCEPT_ID": 1154343,
+              "CONCEPT_NAME": "albuterol",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "435",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 19078126,
+              "CONCEPT_NAME": "sodium polystyrene sulfonate",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "56512",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 942350,
+              "CONCEPT_NAME": "torsemide",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "38413",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 1510687,
+              "CONCEPT_NAME": "sodium zirconium cyclosilicate",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "2047628",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 1550023,
+              "CONCEPT_NAME": "insulin lispro",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "86009",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 1567198,
+              "CONCEPT_NAME": "insulin aspart, human",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "51428",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 45775570,
+              "CONCEPT_NAME": "polystyrene sulfonate",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "1546437",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 939506,
+              "CONCEPT_NAME": "sodium bicarbonate",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "36676",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          },
+          {
+            "concept": {
+              "CONCEPT_ID": 956874,
+              "CONCEPT_NAME": "furosemide",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "4603",
+              "DOMAIN_ID": "Drug",
+              "VOCABULARY_ID": "RxNorm",
+              "CONCEPT_CLASS_ID": "Ingredient"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "Blood potassium measurement (TAXIS lab, report-only: no diagnostic threshold)",
+      "expression": {
+        "items": [
+          {
+            "concept": {
+              "CONCEPT_ID": 4207483,
+              "CONCEPT_NAME": "Blood potassium measurement",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "312468003",
+              "DOMAIN_ID": "Measurement",
+              "VOCABULARY_ID": "SNOMED",
+              "CONCEPT_CLASS_ID": "Procedure"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "name": "Potassium [Moles/volume] in Serum or Plasma (TAXIS lab, report-only: no diagnostic threshold)",
+      "expression": {
+        "items": [
+          {
+            "concept": {
+              "CONCEPT_ID": 3023103,
+              "CONCEPT_NAME": "Potassium [Moles/volume] in Serum or Plasma",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "2823-3",
+              "DOMAIN_ID": "Measurement",
+              "VOCABULARY_ID": "LOINC",
+              "CONCEPT_CLASS_ID": "Lab Test"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "name": "QRS duration (TAXIS lab, report-only: no diagnostic threshold)",
+      "expression": {
+        "items": [
+          {
+            "concept": {
+              "CONCEPT_ID": 3022022,
+              "CONCEPT_NAME": "QRS duration",
+              "STANDARD_CONCEPT": "S",
+              "STANDARD_CONCEPT_CAPTION": "Standard",
+              "INVALID_REASON": null,
+              "INVALID_REASON_CAPTION": "Unknown",
+              "CONCEPT_CODE": "8633-0",
+              "DOMAIN_ID": "Measurement",
+              "VOCABULARY_ID": "LOINC",
+              "CONCEPT_CLASS_ID": "Clinical Observation"
+            },
+            "isExcluded": false,
+            "includeDescendants": true,
+            "includeMapped": false
+          }
+        ]
+      }
+    }
+  ],
+  "QualifiedLimit": {
+    "Type": "First"
+  },
+  "ExpressionLimit": {
+    "Type": "First"
+  },
+  "InclusionRules": [
+    {
+      "name": "has >=1 Hyperkalemia dx within 0..+365d of index (route confirmer)",
+      "description": "Route confirmer: people who entered on a drug or lab (S2) must also carry the diagnosis within 365 days; people who entered on the diagnosis satisfy it at index. Window from temporal_policy (chronic), not from any KG edge.",
+      "expression": {
+        "Type": "ALL",
+        "CriteriaList": [
+          {
+            "Criteria": {
+              "ConditionOccurrence": {
+                "CodesetId": 0
+              }
+            },
+            "StartWindow": {
+              "Start": {
+                "Days": 0,
+                "Coeff": -1
+              },
+              "End": {
+                "Days": 365,
+                "Coeff": 1
+              },
+              "UseIndexEnd": false,
+              "UseEventEnd": false
+            },
+            "RestrictVisit": false,
+            "IgnoreObservationPeriod": false,
+            "Occurrence": {
+              "Type": 2,
+              "Count": 1,
+              "IsDistinct": false
+            }
+          }
+        ],
+        "DemographicCriteriaList": [],
+        "Groups": []
+      }
+    }
+  ],
+  "CensoringCriteria": [],
+  "CollapseSettings": {
+    "CollapseType": "ERA",
+    "EraPad": 0
+  },
+  "CensorWindow": {}
+}

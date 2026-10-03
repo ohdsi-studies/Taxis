@@ -1,0 +1,6 @@
+pairGroup,phenotypeName,conditionConceptId,taxisCohortId,taxisCohortName,libraryCohortId,libraryCohortName
+COPD,Chronic obstructive pulmonary disease,255573,1798322,Taxis COPD,1263,OHDSI COPD 1263
+Obesity,Obesity,433736,1798323,Taxis Obesity,1179,OHDSI Obesity 1179
+CKD,Chronic kidney disease,46271022,1798324,Taxis CKD,1191,OHDSI CKD 1191
+Hyperkalemia,Hyperkalemia,434610,1798325,Taxis Hyperkalemia,940,OHDSI Hyperkalemia 940
+T2DM,Type 2 diabetes mellitus,201826,1798326,Taxis Type 2 Diabetes Mellitus,1032,OHDSI T2DM 1032

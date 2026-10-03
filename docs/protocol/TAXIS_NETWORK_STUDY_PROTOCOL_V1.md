@@ -35,8 +35,9 @@ The protocol establishes:
 ### 2.1 The Clinical Knowledge Bottleneck in Observational Research
 Generating reliable real-world evidence requires answering detailed clinical questions: *What medications treat this disorder? What laboratory tests confirm its diagnosis? What clinical findings represent exclusionary mimics? What downstream complications are expected?* 
 
-Currently, observational research platforms leave these clinical associations largely unrepresented in computable form. While the OMOP CDM standardizes syntax and vocabulary concepts, the substantive clinical relationships connecting those concepts are re-engineered manually for each new study. This study-by-study authoring creates several operational challenges:
-- **Redundant Effort**: Teams across institutions independently reconstruct overlapping concept sets and clinical rules.
+Currently, observational research platforms leave these clinical associations largely unrepresented in computable form. While the OMOP CDM standardizes syntax and vocabulary concepts, the substantive clinical relationships connecting those concepts are re-engineered manually for each new study. This study-by-study authoring creates major methodological challenges:
+- **The Reproducibility Bottleneck & Cohort Variation**: Systematic reviews of published literature across clinical indications (e.g., Alzheimer's disease, major depressive disorder, rheumatoid arthritis) have revealed striking heterogeneity in phenotype algorithms, with independent research teams producing up to a **tenfold difference in cohort sizes** for the identical target condition (Shoaibi et al., AMIA 2024).
+- **Subjectivity & Missing Clinical Anchors**: To establish reproducibility across study teams, the OHDSI community established that an *a priori* written **Clinical Description** across standardized domains (presentation, assessment, confirmatory labs, differential diagnoses/exclusions, indicated treatments) must serve as the **semantic anchor** before translating clinical intent into computable queries (Shoaibi, Ostropolets, Murphy, Rao, et al.).
 - **Variable Phenotype Quality**: The OHDSI Phenotype Library contains over 1,100 cohort definitions, yet approximately two-thirds are single-code lists without temporal or multi-domain logic, and only ~2% incorporate laboratory criteria.
 - **Inadvertent Bias in Study Design**: Hand-curated covariate selection can unintentionally adjust for intermediate mediators (inducing over-adjustment bias) or condition on common effects (collider stratification).
 
@@ -155,7 +156,7 @@ TAXIS is designed as a **multicenter, observational, federated network study** e
 
 ### 5.1 Distributed Analytics Principle & Workstream Scope
 - **Zero Patient-Level Data Transfer**: Patient-level data, direct identifiers, and personal health information never leave the participating institution.
-- **Deterministic Execution**: Analysis routines are distributed as standardized HADES R study packages (`TaxisPhenotypeEvaluation`), prepared for multi-site evaluation and pending formal network execution testing in Wave 4.
+- **Deterministic Execution**: Analysis routines are distributed as standardized HADES R study packages ([`TaxisPhenotypeEvaluation`](../../extras/TaxisPhenotypeEvaluation/README.md)), evaluating candidate cohorts against comparator definitions under federated execution.
 - **Site Audit Authority**: All exported files are written into a single inspection archive (`Results_<databaseId>.zip`). Participating sites retain absolute authority to inspect, audit, and approve the archive before transmission.
 - **Workstream Phasing**:
   - **Initial Network Workstream (Collaborator Showcase Demonstration)**: Focuses exclusively on the **5-phenotype evaluation** (COPD, Obesity, CKD, Hyperkalemia, T2DM), generating local Circe cohorts, running `CohortDiagnostics` and `PheValuator`, and exporting masked aggregate overlap and performance summaries.
@@ -292,10 +293,18 @@ To convert massive observational associations into a computable, typed clinical 
 ### 6.6 Downstream Methodological Applications
 
 #### 1. Automated Phenotype Recreation & Concept Set Optimization
-- **Clinical-to-Circe Translation**: Translates high-level clinical definitions into multi-domain Circe JSON cohort algorithms by traversing graded edges.
-- **v2 Phenotype Generation Baseline (DEC-GR-007 & DEC-GR-008)**: Automated phenotype generation adheres to the agreed v2 release baseline enforcing `PrimaryCriteriaLimit: First` (earliest diagnosis), capturing initial incident presentation. Multi-event and recurrent episode handling is slated for collaborator review in v3.
-- **Configurable Rule-Out Mimic Filter (DEC-GR-010)**: Differential mimic exclusions are managed via a configurable parameter with an agreed default cap of **10%** (calculated as $\frac{|A \cap \text{Mimic}|}{|A|}$, the proportion of anchor patients eliminated). Candidate exclusions discarding $\ge 10\%$ of anchor patients are flagged or dropped to protect diagnostic sensitivity.
-- **Parsemonious Concept Set Condensation**: Integrates with algorithmic set-covering optimization tools (e.g., `ConceptSetCondenser`) to produce minimal, human-auditable Circe expressions combining `includeDescendants = TRUE` and explicit exclusions without altering cohort membership.
+- **Neuro-Symbolic Proposer-Validator Architecture**: Operationalizes the dual cognitive architecture (Kahneman System 1 vs. System 2) formalized by the OHDSI Phenotype Development and Evaluation Workgroup (Rao et al., 2026). The neural component (associative Concept AB co-occurrence mining across 2.16M patients paired with the two-stage screen-and-code LLM ensemble) acts as the **Proposer**, discovering and typing candidate multi-domain clinical associations and mitigating ungrounded hallucinations through empirical data grounding. The symbolic component (`build_1032.py`) acts as the **Structural Compiler and Validator**, compiling candidate relationships into deterministic, syntactically auditable Circe JSON logic slots. Substantive clinical validity and phenotype diagnostic performance are evaluated separately through expert clinical adjudication and empirical measurement across partner CDMs using `CohortDiagnostics` and `PheValuator`.
+- **Harmonization with Structured Clinical Description Prompts**: Directly connects the OHDSI Phenotype Development and Evaluation Workgroup standard prompt schema (`clinicalDescriptionPromptBriefWithExclusions.txt`) to automated Circe synthesis specifications, establishing a deterministic 1-to-1 semantic slot mapping into computable criteria blocks:
+  - *Condition Overview & Presentation* $\rightarrow$ Primary Anchor Disorder (`PrimaryCriteria.CriteriaList`).
+  - *Laboratory Tests & Diagnostic Values* $\rightarrow$ Confirmatory Labs (`InclusionRules` with `Measurement` domain criteria, guideline thresholds, and qualifying temporal windows $[-7, +30]$ days).
+  - *Medications Usually Given* $\rightarrow$ Indicated Drug Exposures (`InclusionRules` with `DrugExposure` domain criteria: acute $\le 24$ hours, chronic $\le 30$ days).
+  - *Differential Diagnoses & Excluded Conditions* $\rightarrow$ Rule-Out Mimics (`InclusionRules` with Occurrence = 0 or `CensoringCriteria`), strictly subject to the 10% anchor patient cost cap.
+  - *Comorbid Conditions* $\rightarrow$ Baseline Patient Characterization & Covariate Balance (explicitly segregated to avoid false exclusions).
+  - *Prognosis & Follow-up* $\rightarrow$ Post-Index Observation Windows (`PostDays`) and persistence logic.
+  - *References* $\rightarrow$ Circe Definition Metadata & Provenance Tags.
+- **v2 Phenotype Generation Baseline (DEC-GR-007)**: Automated phenotype generation adheres to the agreed v2 release baseline enforcing `PrimaryCriteriaLimit: First` (earliest diagnosis), capturing initial incident presentation. Multi-event and recurrent episode handling is slated for collaborator review in v3.
+- **Configurable Rule-Out Mimic Filter (DEC-GR-008)**: Differential mimic exclusions are managed via a configurable parameter with an agreed default cap of **10%** (calculated as $\frac{|A \cap \text{Mimic}|}{|A|}$, the proportion of anchor patients eliminated). Candidate exclusions discarding $\ge 10\%$ of anchor patients are flagged or dropped to protect diagnostic sensitivity.
+- **Parsimonious Concept Set Condensation**: Integrates with algorithmic set-covering optimization tools (e.g., `ConceptSetCondenser`) to produce minimal, human-auditable Circe expressions combining `includeDescendants = TRUE` and explicit exclusions without altering cohort membership.
 
 #### 2. Candidate Negative Control Generation
 - **Mechanism-Based Causal Null Screening**: Identifies candidate negative control outcomes by querying the knowledge graph for concept pairs with an absence of documented clinical, etiologic, or therapeutic mechanisms across all 112 taxonomy codes.
@@ -326,8 +335,11 @@ To guard against circular overfitting—where a phenotype algorithm is iterative
 
 1. **Bandeian SH, Tompkins CP, Davison A.** A Future Health Care Analytic System: Part 1—What the Destination Looks Like & Part 2—Building Blocks and Implementation Roadmap. In: *Healthcare Information Management Systems: Cases, Strategies, and Solutions*. 5th ed. Cham: Springer; 2022.
 2. **Rao GA, et al.** OHDSI Phenotype Library Version 3.0: Autonomous Governance and Agentic Clinical Cohort Engineering. *OHDSI Global Symposium 2026 Proceedings*; 2026.
-3. **Ostropolets A, Reich C, Hripcsak G.** PHOEBE: Concept Recommendation and Evaluation for Observational Health Data Sciences. *OHDSI Global Symposium Proceedings*; 2022. (See also: https://ohdsi.github.io/Phoebe/).
+3. **Ostropolets A, et al.** PHOEBE 2.0: selecting the right concept sets for the right patients using lexical, semantic, and data-driven recommendations. *OHDSI Symposium*; 2022. (Available: https://www.ohdsi.org/wp-content/uploads/2022/10/6-Ostropolets_Phoebe2.0-abstract.pdf).
 4. **Swerdel JN, et al.** PheValuator: Development and evaluation of a phenotype algorithm evaluator. *J Biomed Inform*. 2019;97:103258.
 5. **Schuemie MJ, et al.** Improving reproducibility by using high-throughput observational studies with empirical calibration. *Philos Trans A Math Phys Eng Sci*. 2018;376(2128):20170356.
 6. **Schuemie MJ.** *PhenotypingAgent: Autonomous Cohort Engineering via LangGraph State Machines*. GitHub repository: `schuemie/PhenotypingAgent`; 2026.
 7. **Schuemie MJ.** *ConceptSetCondenser: Algorithmic Set-Covering Optimization for OMOP Concept Sets*. GitHub repository: `schuemie/ConceptSetCondenser`; 2026.
+8. **Shoaibi A, Ostropolets A, Weaver J, Rao G, et al.** Variation in phenotype definitions in observational clinical research: a review of three conditions. *AMIA Annu Symp Proc*. 2024.
+9. **Shoaibi A, Ostropolets A, Murphy JD, Rao GA, et al.** Clinical Descriptions as Semantic Anchors: A Best Practice in OHDSI Phenotype Development. *OHDSI Phenotype Development and Evaluation Workgroup Consensus Statement*; 2025.
+10. **Rao GA, et al.** Neuro-Symbolic Conceptual Workflows for Phenotyping in Observational Research: The Proposer-Validator Architecture. *OHDSI Phenotype Development and Evaluation Workgroup*; 2026.

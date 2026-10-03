@@ -1,0 +1,7 @@
+.Rhistory
+.RData
+.Rproj.user
+extras
+local-private
+*.zip
+output
