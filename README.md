@@ -9,11 +9,15 @@
 > ### 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127)
 > **Dates**: October 20–22, 2026  
 > **Venue**: Hyatt Regency New Brunswick, New Brunswick, NJ  
+> **Showcase Deliverables**:  
+> - [Showcase #127 Brief Report Manuscript v6.0](docs/symposium_2026/TAXIS_Brief_Report_v6.md) (4-page submission text)  
+> - [48"x36" Digital Poster Presentation Guide](docs/symposium_2026/Poster_Presentation_Guide.md) (tri-panel layout & walkthrough script)  
+> - [2026 Symposium Dissemination Overview](docs/symposium_2026/README.md)  
 > **Study Leadership**:  
-> - **Stephen H. Bandeian, MD, JD** – Johns Hopkins University School of Medicine (Biomedical Informatics & Data Science)  
-> - **Gowtham Rao, MD, PhD** – CoReason, Inc. USA; OHDSI (Phenotype working group)  
-> - **Shaun Grannis, MD, MS** – Regenstrief Institute / Indiana University School of Medicine  
-> - **J. Marc Overhage, MD, PhD** – The Overhage Group / Indiana University School of Medicine  
+> - **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine  
+> - **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup  
+> - **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine  
+> - **J. Marc Overhage, MD, PhD** – Investigator, The Overhage Group / Indiana University School of Medicine  
 
 ---
 
@@ -323,11 +327,15 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
 ```
 ├── docs/                        # Public study documentation & specifications
 │   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
+│   │   ├── README.md            # Symposium overview & presentation roadmap
+│   │   ├── TAXIS_Brief_Report_v6.md # Showcase #127 4-page Brief Report
+│   │   └── Poster_Presentation_Guide.md # 48"x36" horizontal digital poster guide
 │   ├── governance/              # Network data use agreements & privacy policies
 │   ├── protocol/                # Study protocol & design specifications
 │   ├── mining/                  # Concept AB association mining engine (v57) & SQL architecture
 │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
-│   └── phenotyping/             # Automated phenotype builder specifications
+│   ├── phenotyping/             # Automated phenotype builder specifications
+│   └── validation/              # ClinVec empirical benchmark and concordance results
 ├── extras/                      # Study execution packages
 │   └── TaxisPhenotypeEvaluation/# HADES R study package for network partners
 ├── examples/                    # Sanitized output schemas and reference data
