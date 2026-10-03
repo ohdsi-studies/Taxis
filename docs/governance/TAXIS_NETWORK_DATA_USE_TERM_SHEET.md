@@ -4,9 +4,9 @@
 > **Target Audience**: Institutional Review Boards (IRBs), Data Governance Committees, and Network Data Partners  
 > **Study Leadership**:
 > - **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine)
-> - **Gowtham Rao, MD, PhD** (Senior Investigator, CoReason, Inc. USA; OHDSI)
-> - **Shaun Grannis, MD, MS** (Senior Investigator, Regenstrief Institute / Indiana University School of Medicine)
-> - **J. Marc Overhage, MD, PhD** (Senior Investigator, The Overhage Group / Indiana University School of Medicine)  
+> - **Gowtham Rao, MD, PhD** (Investigator, CoReason, Inc. USA; OHDSI)
+> - **Shaun Grannis, MD, MS** (Investigator, Regenstrief Institute / Indiana University School of Medicine)
+> - **J. Marc Overhage, MD, PhD** (Investigator, The Overhage Group / Indiana University School of Medicine)  
 > **OHDSI Presentation**: 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127, October 20–22, 2026, New Brunswick, NJ)  
 
 ---

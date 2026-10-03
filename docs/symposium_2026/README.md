@@ -103,9 +103,9 @@ While structured clinical knowledge graphs provide a computable foundation acros
 | Investigator | Role & Primary Institutional Affiliation |
 |---|---|
 | **Stephen H. Bandeian, MD, JD** | Principal Investigator, Johns Hopkins University School of Medicine (Biomedical Informatics & Data Science) |
-| **Gowtham Rao, MD, PhD** | Senior Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group) |
-| **Shaun Grannis, MD, MS** | Senior Investigator, Regenstrief Institute / Indiana University School of Medicine |
-| **J. Marc Overhage, MD, PhD** | Senior Investigator, The Overhage Group / Indiana University School of Medicine |
+| **Gowtham Rao, MD, PhD** | Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group) |
+| **Shaun Grannis, MD, MS** | Investigator, Regenstrief Institute / Indiana University School of Medicine |
+| **J. Marc Overhage, MD, PhD** | Investigator, The Overhage Group / Indiana University School of Medicine |
 
 ---
 
@@ -157,8 +157,9 @@ Submission and dissemination deliverables for Collaborator Showcase Entry #127:
 
 1. **4-Page Brief Report Manuscript**: Adhering to OHDSI author guidelines, submitted for the 2026 Collaborator Showcase proceedings. Covers clinical knowledge graph construction, validation benchmarks (ClinVec, PACES, INPC blinded adjudication), and phenotype recreation performance.
 2. **Digital Poster Suite (48" x 36" Horizontal)**: Visual diagrams detailing the Concept AB association mining pipeline, the Two-Stage Screen-and-Code Ensemble (112-code clinical taxonomy), and the 5-Phenotype evaluation framework.
-3. **Network Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package prepared for multi-database evaluation across partner OMOP CDMs (scheduled for public release in Wave 4).
-4. **Network Data Governance Term Sheet**: Institutional privacy specification guaranteeing local aggregate-only execution, zero patient-level data export, and $<5$ small-cell suppression. Located at [`docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md`](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
+3. **Network Study Protocol (v1.0)**: Formal study protocol detailing the multi-site federated study design, eventization rules, hazard windows, and two-stage ensemble. Located at [`docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md`](../protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md).
+4. **Network Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package prepared for multi-database evaluation across partner OMOP CDMs (scheduled for public release in Wave 4).
+5. **Network Data Governance Term Sheet**: Institutional privacy specification guaranteeing local aggregate-only execution, zero patient-level data export, and $<5$ small-cell suppression. Located at [`docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md`](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
 
 ---
 
@@ -204,8 +205,8 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
 
 ### Track B: Causal Study Design, Negative Controls & Error Calibration
 6. **Candidate Negative Control Generation & Empirical Error Calibration**:
-   - **Candidate Negative Control Hypothesis Screening**: Systematically identify candidate negative control outcomes by querying the clinical relationship layer for concept pairs with an absence of documented pathophysiologic mechanism across all 112 taxonomy codes, neutral baseline association ($\text{Lift} \approx 1.0$), and neutral temporal directionality ($0.67 < DR < 1.50$).
-   - **Supporting Pre-Specified Calibration Batteries**: Rather than using data-driven estimates to declare an association causally null, TAXIS-screened candidates undergo independent clinical and literature review to establish pre-specified negative control sets. Evaluating these controls across partner CDMs produces empirical null distributions that quantify and calibrate residual systematic error in comparative effectiveness studies.
+   - **Candidate Negative Control Hypothesis Screening**: Systematically identify candidate negative control outcomes by querying the clinical relationship layer for concept pairs with an absence of documented pathophysiologic, etiologic, or therapeutic mechanisms across all 112 taxonomy codes.
+   - **Causal Null Candidacy vs. Observational Diagnostics**: Rather than conditioning candidate eligibility on observed null association in evaluation data (which risks discarding the very confounding bias calibration is meant to measure), TAXIS uses clinical relationship absence to generate causal-null candidates for independent clinical and literature review. Baseline observational metrics ($\text{Lift}$, $DR$) are reported as characterization diagnostics. Pre-specified negative control sets are then evaluated across partner CDMs to generate empirical null distributions that calibrate residual systematic error in comparative studies.
 
 7. **Confounder Identification & Confounder Balance Evaluation**:
    - **Informing Study Design Choices**: Leverage explicit clinical relationship semantics (causal, manifestation, contraindication) to assist investigators in identifying true common-cause confounders when defining cohort inclusion and baseline covariate criteria.
