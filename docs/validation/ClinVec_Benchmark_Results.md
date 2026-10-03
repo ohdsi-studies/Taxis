@@ -57,13 +57,13 @@ The **ClinVec Benchmark** evaluates whether the TAXIS Two-Stage Screen-and-Code 
 - **Primary Predictor**: Edge existence consensus vote count across the Two-Stage LLM Screen-and-Code ensemble.
 
 ### Results:
-| Evaluated Predictor / Metric | Receiver Operating Characteristic AUC | 95% Confidence Interval | Optimal Threshold |
-|---|:---:|:---:|:---:|
-| **Ensemble Edge-Existence Vote Count (EVID-01)** | **0.81** | **0.79 – 0.83** | Consensus Score $\ge 0.67$ |
-| Healthcare Utilization Stratified Lift (DEC-GR-010) | 0.81 | 0.79 – 0.83 | Stratified Lift $> 1.50$ |
-| Unadjusted Person Lift | 0.72 | 0.69 – 0.75 | Unadjusted Lift $> 1.85$ |
+| Evaluated Predictor / Metric | Receiver Operating Characteristic AUC | 95% Confidence Interval | Optimal Decision Threshold | Verification Status |
+|---|:---:|:---:|:---:|:---:|
+| **Ensemble Edge-Existence Vote Count (EVID-01)** | **0.81** | **0.79 – 0.83** | Consensus Score $\ge 0.67$ (Majority $\ge 2/3$) | **[VERIFIED]** (Bandeian et al., Showcase #127 Brief Report) |
 
-**Key Finding**: The consensus ensemble reliably identifies clinically meaningful relationships (AUC 0.81). Furthermore, healthcare utilization stratification substantially mitigates encounter-frequency bias compared to unadjusted metrics (AUC .72 \to 0.81$), providing disciplined quantitative input to the semantic classification stage.
+*(Exploratory Analysis Note: While healthcare utilization stratification is applied within the data mining pipeline (DEC-GR-010) to attenuate encounter-frequency confounding, preliminary comparative ROC metrics for crude vs. stratified lift remain unverified exploratory sensitivities pending recovery of primary individual-pair scoring ledgers; primary verified benchmark discrimination rests on the ensemble consensus vote count).*
+
+**Key Finding**: The Two-Stage Screen-and-Code consensus ensemble discriminates between clinically meaningful relationships and incidental co-occurrences with an ROC-AUC of 0.81 (95% CI: 0.79–0.83) against multi-physician ratings.
 
 ---
 
