@@ -137,3 +137,21 @@ In accordance with the **TAXIS Network Data Use Term Sheet** ([`docs/governance/
 - The mining pipeline executes **100% locally** behind institutional firewalls.
 - No patient-level records, person IDs, or encounter dates leave the local database.
 - Raw concept-pair co-occurrence matrices remain stored strictly in the local `RESULTS_SCHEMA` and are not shared across institutions without separate, formal data use agreements.
+
+---
+
+## 7. Pipeline Verification Suite
+
+To verify template integrity, token balance, and mathematical consistency prior to production execution:
+```bash
+python extras/verify_mining_engine_and_sql.py
+```
+
+The verification suite automatically audits:
+1. **Asset Sanitization**: Ensures zero local system paths, IP addresses, database hostnames, or credentials exist.
+2. **SqlRender Parameterization**: Checks presence and balance of all required schema and configuration tokens (`@source_cdm_schema`, `@results_database_schema`, `@batch_count`, etc.).
+3. **Directionality Ratio (DR) Continuity Correction**: Validates mathematical boundaries ($DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$) and reciprocal symmetry.
+4. **Utilization Stratification Math**: Validates expected count calculations across 10 contact deciles ($E_{AB} = \sum_k \frac{N_{A,k} N_{B,k}}{N_k}$).
+5. **Measurement Key Packing**: Confirms bijective 64-bit integer encoding/decoding (`test_concept_id * 1e9 + result_code`).
+6. **Data Dictionary Coverage**: Confirms schema definitions for all 16 analytical and profiling tables.
+
