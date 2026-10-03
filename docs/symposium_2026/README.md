@@ -5,7 +5,10 @@
 > **Conference**: 2026 OHDSI Global Symposium  
 > **Dates**: October 20–22, 2026  
 > **Venue**: Hyatt Regency New Brunswick, New Brunswick, NJ  
-> **Submission Deadline**: Friday, October 9, 2026 (Brief Report PDF & Poster Walkthrough Script to Craig Sachson)  
+> **Submission Deliverables**:  
+> • [4-Page Brief Report Manuscript v6.0](TAXIS_Brief_Report_v6.md)  
+> • [48"x36" Horizontal Digital Poster Presentation Guide](Poster_Presentation_Guide.md)  
+> • **Submission Deadline**: Friday, October 9, 2026 (Brief Report PDF & Poster Walkthrough Script to Craig Sachson)  
 
 ---
 
