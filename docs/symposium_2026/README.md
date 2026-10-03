@@ -26,10 +26,10 @@ TAXIS investigates whether empirical association rule mining combined with struc
 2. **Standardized Clinical Taxonomy**: Applying a 112-code clinical taxonomy to categorize observational co-occurrences into a typed clinical knowledge graph.
 3. **Multi-Domain Phenotype Synthesis**: Using the resulting knowledge graph to link index conditions with associated laboratories, medications, and differential diagnoses, generating candidate Circe cohort definitions compatible with the OHDSI Phenotype Library.
 
-### Initial Focus on Phenotyping
+### Initial Focus on Phenotyping & Closed-Loop Evaluation
 While structured clinical knowledge graphs may have applications across multiple stages of observational research—including candidate negative control identification, study design, and evaluating residual bias—**TAXIS focuses initially on phenotyping** as its primary application.
 
-Cohort definition is foundational for observational research: population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Furthermore, phenotyping provides established evaluation frameworks (evaluating candidate cohorts against OHDSI Phenotype Library definitions via `CohortDiagnostics` and `PheValuator`) to assess clinical validity before exploring broader applications.
+Cohort definition is foundational for observational research: population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Furthermore, phenotyping provides established community evaluation frameworks (`CohortDiagnostics` as part of phenotype development and characterization, and `PheValuator` to quantitatively assess operating characteristics and iteratively refine definitions based on predictive model covariates) to assess clinical validity before exploring broader applications.
 
 ---
 
@@ -113,8 +113,17 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
    - **Calibrating Exclusion Thresholds**: Utilize network concept prevalence to tune rule-out criteria, ensuring exclusions eliminate clinical mimics without excessively restricting target populations.
 
 3. **CohortDiagnostics & PheValuator Evaluation Lifecycle**:
-   - **CohortDiagnostics Integration**: Integrate automated execution of `CohortDiagnostics` as a standard step in phenotype development and evaluation, characterizing candidate cohorts across index event breakdowns, incidence rates, orphan concepts, and visit context across OMOP CDMs.
-   - **PheValuator Covariate-Driven Iterative Refinement**: Quantitatively evaluate operating characteristics (sensitivity, specificity, PPV) using `PheValuator`. Leverage high-importance predictive model covariates from the diagnostic models as an empirical feedback loop to iteratively refine candidate cohort definitions and concept sets in the TAXIS knowledge graph traversal.
+   - **CohortDiagnostics in Phenotype Development & Evaluation**:
+     - Systematically embed `CohortDiagnostics` execution as an integral step in phenotype development and evaluation across partner OMOP CDMs.
+     - Characterize candidate cohorts across index event breakdowns (identifying which concepts drive cohort entry across data sources), incidence rates, demographics, visit context (inpatient vs. outpatient proportions), and inclusion rule attrition.
+     - Leverage orphan concept evaluation to identify clinically related codes within the OMOP vocabulary that were omitted from initial TAXIS concept sets, informing concept set expansion.
+   - **PheValuator Covariate-Driven Iterative Refinement**:
+     - Quantitatively evaluate diagnostic operating characteristics (sensitivity, specificity, positive predictive value) across partner databases using `PheValuator`.
+     - Extract non-zero predictive covariates and feature weights from `PheValuator` diagnostic predictive models (e.g., LASSO penalized regression).
+     - Utilize high-weight predictive covariates as a data-driven feedback loop into the TAXIS knowledge graph traversal:
+       - *Positive predictive covariates* not captured in initial criteria are cross-referenced with high-lift, high-consensus graph edges (e.g., confirmatory laboratory tests or specific therapies) to expand or refine inclusion logic.
+       - *Negative predictive covariates* or features associated with false positives are evaluated against differential diagnosis and mimic edges (`EXCLUSIONARY_MIMIC`, `DIFFERENTIAL_DIAGNOSIS`) to calibrate rule-out criteria.
+     - Enable an iterative, closed-loop cycle of phenotype refinement that harmonizes algorithmic graph traversal with empirical CDM predictive modeling.
 
 4. **Feedback Loop, Quality Ranking & Community Review**:
    - **Multi-Dimensional Quality Ranking**: Establish a transparent quality scoring rubric for candidate phenotypes incorporating:
