@@ -238,7 +238,6 @@ Patients who interact frequently with the healthcare system accumulate more diag
 Under statistical independence, $\text{Lift} \approx 1.0$ (or $\log(\text{Lift}) \approx 0$). Comparing unadjusted lift to stratified lift provides direct empirical measurement of the confounding reduction achieved by utilization deciles.
 
 ### 6.5 Two-Stage Screen-and-Code Knowledge Graph Ensemble
-### 6.5 Two-Stage Screen-and-Code Knowledge Graph Ensemble
 
 To convert massive observational associations into a computable, typed clinical knowledge graph, TAXIS couples statistical prefiltering with a **Two-Stage Screen-and-Code Ensemble**:
 
@@ -253,24 +252,24 @@ To convert massive observational associations into a computable, typed clinical 
                                     │ Filtered Candidate Pairs
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│  Phase B, Stage 1: LLM Existence Screening (Binary Consensus)          │
-│  • 4-Model LLM Ensemble Evaluator                                      │
-│  • Independent zero-shot / few-shot prompts with clinical rubrics      │
-│  • Strict consensus threshold: ≥ 3 of 4 models agreeing on edge        │
+│  Phase B, Stage 1: Two-Stage LLM Screen (Functional Class Screening)   │
+│  • Screen candidate pairs into 5 Top-Level Clinical Classes (CPT-6):    │
+│    - Class I: Causal & Etiologic (24 codes / 7 families)               │
+│    - Class II: Diagnostic & Indicative (22 codes / 6 families)         │
+│    - Class III: Therapeutic & Interventional (26 codes / 8 families)   │
+│    - Class IV: Prognostic & Disease Evolution (20 codes / 6 families)  │
+│    - Class V: Associational & Phenotypic (20 codes / 5 families)       │
+│  • Multi-Model Consensus Ensemble (triplicate sampling, kappa ≥ 0.85)  │
 └───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Confirmed Clinical Edges
+                                    │ Classified Clinical Pairs
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│  Phase B, Stage 2: Clinical Pair Taxonomy (CPT-6 Multi-Class Coding)   │
-│  • 112 Standardized Clinical Relationship Codes                        │
-│  • 32 Clinical Families under 5 Top-Level Clinical Classes:            │
-│    1. Manifestations (symptoms, signs, acute presentations)            │
-│    2. Indicated Treatments (first-line, second-line, surgical)         │
-│    3. Diagnostic Tests / Measurements (confirmatory, monitoring)       │
-│    4. Etiologic & Risk Factors (predispositions, causal antecedents)   │
-│    5. Course & Complications (sequelae, chronic progressions)          │
-│  • Directionality Enforcement: DR ≥ 1.50 for directional causal edges   │
-│  • Blinded Physician Adjudication (Overhage & Grannis ledger)          │
+│  Phase B, Stage 2: Precision Relation Coding (112 Standardized Codes)  │
+│  • Fine-grained relation code assignment from selected class catalog   │
+│  • Strict Inverse Relation symmetry for bidirectional graph navigation  │
+│  • Directionality Precedence: DR ≥ 1.50 (forward), DR ≤ 0.67 (reverse), │
+│    [0.67, 1.50] (balanced precedence; distinct from same-day ties N_A=B)│
+│  • Blinded Physician Adjudication (Overhage & Grannis sample ledger)   │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ Graded, Typed Clinical Edges
                                     ▼

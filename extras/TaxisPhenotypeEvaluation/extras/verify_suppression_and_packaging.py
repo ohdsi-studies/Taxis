@@ -14,6 +14,7 @@ import sys
 import tempfile
 import zipfile
 import shutil
+import re
 
 def apply_cohort_overlap_suppression(taxis_count, library_count, intersect_count, union_count, taxis_only, library_only, min_cell_count=5):
     taxis_suppressed = (0 < taxis_count < min_cell_count)
@@ -170,14 +171,36 @@ def test_packaging():
             if os.path.exists(p):
                 files_to_zip.append((p, rel))
 
-        # Inspect diagnostic zip
+        # Inspect diagnostic zip and column headers (rejecting quoted and unquoted forbidden identifiers)
         if os.path.exists(valid_diag_zip):
             with zipfile.ZipFile(valid_diag_zip, "r") as z:
                 contents = z.namelist()
-            unapproved = [m for m in contents if os.path.basename(m).lower() not in approved_diag_members
-                          or any(k in m.lower() for k in ["log", "scratch", "person", "patient", "subject"])]
-            if not unapproved:
+                unapproved = [m for m in contents if os.path.basename(m).lower() not in approved_diag_members
+                              or any(k in m.lower() for k in ["log", "scratch", "person", "patient", "subject"])]
+                has_forbidden_cols = False
+                if not unapproved:
+                    for m in contents:
+                        if m.lower().endswith(".csv"):
+                            header_line = z.open(m).readline().decode("utf-8")
+                            clean_cols = [re.sub(r'^["\']|["\']$', '', c).strip().lower() for c in re.split(r"[,;\t]", header_line)]
+                            forbidden_ids = ["subject_id", "person_id", "patient_id", "mrn", "ssn"]
+                            if any(c in forbidden_ids for c in clean_cols):
+                                has_forbidden_cols = True
+                                break
+            if not unapproved and not has_forbidden_cols:
                 files_to_zip.append((valid_diag_zip, os.path.join("diagnostics", f"Results_{db_id}.zip")))
+
+        # Test REC-029-1 counterexample: diagnostic archive member with QUOTED forbidden column
+        quoted_decoy_zip = os.path.join(diag_dir, "Results_QUOTED_DECOY.zip")
+        with zipfile.ZipFile(quoted_decoy_zip, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("cohort_count.csv", '"subject_id","cohort_id","cohort_entries"\n"123","1","10"\n')
+
+        with zipfile.ZipFile(quoted_decoy_zip, "r") as z:
+            quoted_header = z.open("cohort_count.csv").readline().decode("utf-8")
+            quoted_clean_cols = [re.sub(r'^["\']|["\']$', '', c).strip().lower() for c in re.split(r"[,;\t]", quoted_header)]
+            assert "subject_id" in quoted_clean_cols, "Failed to normalize quoted subject_id!"
+            quoted_rejected = any(c in ["subject_id", "person_id"] for c in quoted_clean_cols)
+            assert quoted_rejected, "PackageResults failed to detect and reject quoted forbidden header!"
 
         # Check relative path allowlist
         allowed_rel_paths = set(approved_top_level + [os.path.join("diagnostics", f"Results_{db_id}.zip")])
@@ -207,7 +230,7 @@ def test_packaging():
         assert not any("nested_folder" in m for m in members), "Nested directory was packaged!"
         assert not any(m.endswith(".txt") for m in members), "Log file was packaged!"
 
-        print("  [PASS] REC-026-1 & REC-026-2 Verified: Valid diagnostics archive included, decoys/unapproved members excluded!")
+        print("  [PASS] REC-026-1, REC-026-2 & REC-029-1 Verified: Valid diagnostics archive included, quoted & unquoted decoys excluded!")
 
     finally:
         shutil.rmtree(temp_dir)

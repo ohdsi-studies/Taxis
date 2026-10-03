@@ -89,11 +89,24 @@ packageResults <- function(outputFolder,
         for (m in zipContents) {
           csvPath <- file.path(tempExtractDir, m)
           if (file.exists(csvPath) && !dir.exists(csvPath)) {
-            firstLine <- readLines(csvPath, n = 1, warn = FALSE)
-            cols <- tolower(strsplit(firstLine, "[,;\t]")[[1]])
-            if (any(cols %in% c("subject_id", "person_id", "patient_id", "mrn", "ssn"))) {
+            # Deliberate CSV parser: read header tokens without altering case or formatting
+            headerDf <- tryCatch(
+              utils::read.csv(csvPath, header = TRUE, nrows = 1, check.names = FALSE, stringsAsFactors = FALSE),
+              error = function(e) NULL
+            )
+            if (is.null(headerDf)) {
+              ParallelLogger::logWarn(sprintf("Unable to parse CSV header from diagnostics member %s. Excluding archive from export.", m))
+              hasForbiddenCols <- TRUE
+              break
+            }
+            # Normalize headers: strip quotes, whitespace, and lowercase
+            cleanCols <- tolower(trimws(gsub('^[\"']|[\"']$', '', names(headerDf))))
+            forbiddenIdentifiers <- c("subject_id", "person_id", "patient_id", "mrn", "ssn")
+            matchedForbidden <- intersect(cleanCols, forbiddenIdentifiers)
+            if (length(matchedForbidden) > 0) {
               ParallelLogger::logWarn(sprintf(
-                "Diagnostics archive member %s contains forbidden identifier column(s). Excluding archive from export.", m
+                "Diagnostics archive member %s contains forbidden identifier column(s) [%s]. Excluding archive from export per data governance.",
+                m, paste(matchedForbidden, collapse = ", ")
               ))
               hasForbiddenCols <- TRUE
               break
