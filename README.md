@@ -241,7 +241,7 @@ TAXIS operates strictly under an **aggregate-only, code-to-data** federated para
 3. **Sensitive Pair Protection**: Raw concept-concept co-occurrence tables remain strictly local. Only aggregate cohort overlap indices (Jaccard) and PheValuator ROC statistics are exported in `Results_<db>.zip`.
 4. **Complementary Cell Protection**: Mathematical checks prevent algebraic reconstruction of small cell counts from published summary ratios.
 
-Review the formal [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md), the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md), and the [Concept AB Association Mining Engine (v57) Specifications](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md) for complete study design, institutional governance, and SQL pipeline specifications.
+Review the formal [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md), the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md), the [Concept AB Association Mining Engine (v57) Specifications](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md), the [TAXIS Clinical Pair Taxonomy v6.0](docs/knowledge_graph/Clinical_Pair_Taxonomy_6.md), and the [Two-Stage LLM Semantic Classification Framework](examples/taxonomy/prompts_and_examples.md) for complete study design, institutional governance, SQL pipeline specifications, and semantic taxonomy catalogs.
 
 ---
 
