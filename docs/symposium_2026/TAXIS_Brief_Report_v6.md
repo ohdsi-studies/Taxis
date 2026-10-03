@@ -109,7 +109,9 @@ In accordance with rigorous evidence accounting standards, TAXIS explicitly sepa
 
 | Evidence Category | Analytical Target | Denominator / Dataset | Comparator / Standard | Empirical Metric | Status |
 |---|---|---|---|---|:---:|
-| **Semantic Graph Concordance (EVID-01)** | Clinical relevance & edge typing | 1,000 sampled concept pairs | Expert Clinical Adjudication Panel | **AUC 0.81** (95% CI: 0.79–0.83); **88.3%** broad group concordance | Completed |
+| **Semantic Edge Relevance (EVID-01)** | Edge existence classification | 1,000 clinically curated pairs | ClinVec Physician Panel Ratings | **AUC 0.81** (95% CI: 0.79–0.83) | Completed |
+| **Temporal Precedence (EVID-02)** | Directional chronology ($DR$) | 100 PACES guideline pairs | Clinical Practice Guidelines | **99.0%** Directional Concordance | Completed |
+| **Blinded Physician Review (EVID-03)** | 112-code taxonomy typing | 291 sampled INPC pairs | Dual Internist Review (Overhage & Grannis) | **88.3%** broad group ($\kappa=0.84$); **58.1%** exact code ($\kappa=0.54$) | Completed |
 | **Empirical Cohort Overlap: T2DM (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 143,528$) | OHDSI Phenotype Library Cohort #1032 | **99.5%** Jaccard Overlap ($142,810 / 143,528$); **99.8%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: CKD (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 70,383$) | OHDSI Phenotype Library Cohort #1191 | **97.2%** Jaccard Overlap ($68,412 / 70,383$); **98.6%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: COPD (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 52,042$) | OHDSI Phenotype Library Cohort #1263 | **98.4%** Jaccard Overlap ($51,209 / 52,042$); **98.9%** Sensitivity | Completed |
@@ -134,10 +136,10 @@ In accordance with rigorous evidence accounting standards, TAXIS explicitly sepa
 Across 2.16M longitudinal INPC patient records, the mining engine evaluated over 3.2 million candidate concept pairs. Application of the $\ge 365$-day observation wash-in and incident manifestation rule eliminated 44.8% of co-occurrences that represented prevalent chronic co-management. Healthcare utilization decile stratification attenuated lift by an average of 42.1% across high-utilizer deciles, successfully filtering out encounter-frequency artifacts. A final catalog of over 52,000 high-confidence clinical relationship edges met all statistical gates.
 
 ### 3.2 Automated Phenotype Recreation Concordance
-On the Indiana Network for Patient Care (INPC) OMOP CDM v5.4 (2.16M patients, 11.3M person-years), phenotypes compiled by `build_1032.py` achieved high concordance with official OHDSI Phenotype Library definitions:
-- **Type 2 Diabetes Mellitus** (Anchor Concept ID: 201826 vs. OPL Cohort 1032): Mined first-line pharmacotherapies (Metformin, Sulfonylureas) and diagnostic labs (HbA1c $\ge 6.5\%$) reproduced the OHDSI definition with a Jaccard index of **99.5%** ($142,810 / 143,528$) and sensitivity of **99.8%**.
-- **Chronic Kidney Disease (Stage 3+)** (Anchor Concept ID: 46271022 vs. OPL Cohort 1191): Incorporation of staged eGFR lab thresholds and albuminuria indicators achieved a Jaccard index of **97.2%** ($68,412 / 70,383$) and sensitivity of **98.6%**.
-- **Chronic Obstructive Pulmonary Disease** (Anchor Concept ID: 255573 vs. OPL Cohort 1263): Inclusion of spirometry indicators and bronchodilator rescue therapies achieved a Jaccard index of **98.4%** ($51,209 / 52,042$) and sensitivity of **98.9%**.
+On the Indiana Network for Patient Care (INPC) OMOP CDM v5.4 (2.16M patients, 11.3M person-years), phenotypes compiled by `build_1032.py` achieved high concordance with official OHDSI Phenotype Library definitions, matching canonical IDs in `inst/settings/PhenotypePairs.csv`:
+- **Type 2 Diabetes Mellitus** (Anchor Concept ID: 201826, TAXIS Cohort ID: `1798326` vs. OPL Cohort 1032): Mined first-line pharmacotherapies (Metformin, Sulfonylureas) and diagnostic labs (HbA1c $\ge 6.5\%$) reproduced the OHDSI definition with a Jaccard index of **99.5%** ($142,810 / 143,528$) and sensitivity of **99.8%**.
+- **Chronic Kidney Disease (Stage 3+)** (Anchor Concept ID: 46271022, TAXIS Cohort ID: `1798324` vs. OPL Cohort 1191): Incorporation of staged eGFR lab thresholds and albuminuria indicators achieved a Jaccard index of **97.2%** ($68,412 / 70,383$) and sensitivity of **98.6%**.
+- **Chronic Obstructive Pulmonary Disease** (Anchor Concept ID: 255573, TAXIS Cohort ID: `1798322` vs. OPL Cohort 1263): Inclusion of spirometry indicators and bronchodilator rescue therapies achieved a Jaccard index of **98.4%** ($51,209 / 52,042$) and sensitivity of **98.9%**.
 Across all three evaluation targets, automated Circe phenotype synthesis achieves $> 97\%$ Jaccard overlap (0.972 to 0.995).
 
 ---

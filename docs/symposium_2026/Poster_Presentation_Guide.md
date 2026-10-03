@@ -106,7 +106,9 @@ Strict separation of evidence tiers per `REC-003-1`:
 
 | Evidence Category | Analytical Target | Dataset & Denominator | Comparator / Benchmark | Observed Empirical Result | Status |
 |---|---|---|---|---|:---:|
-| **Semantic Graph Concordance (EVID-01)** | Clinical plausibility & typing | 1,000 sampled concept pairs | Expert Clinical Adjudication Panel | **AUC 0.81** (95% CI: 0.79–0.83); **88.3%** broad group concordance | Completed |
+| **Semantic Edge Relevance (EVID-01)** | Edge existence classification | 1,000 clinically curated pairs | ClinVec Physician Panel Ratings | **AUC 0.81** (95% CI: 0.79–0.83) | Completed |
+| **Temporal Precedence (EVID-02)** | Directional chronology ($DR$) | 100 PACES guideline pairs | Clinical Practice Guidelines | **99.0%** Directional Concordance | Completed |
+| **Blinded Physician Review (EVID-03)** | 112-code taxonomy typing | 291 sampled INPC pairs | Dual Internist Review (Overhage & Grannis) | **88.3%** broad group ($\kappa=0.84$); **58.1%** exact code ($\kappa=0.54$) | Completed |
 | **Empirical Cohort Overlap: T2DM (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 143,528$) | OHDSI Phenotype Library Cohort #1032 | **99.5%** Jaccard Overlap ($142,810 / 143,528$); **99.8%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: CKD (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 70,383$) | OHDSI Phenotype Library Cohort #1191 | **97.2%** Jaccard Overlap ($68,412 / 70,383$); **98.6%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: COPD (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 52,042$) | OHDSI Phenotype Library Cohort #1263 | **98.4%** Jaccard Overlap ($51,209 / 52,042$); **98.9%** Sensitivity | Completed |
