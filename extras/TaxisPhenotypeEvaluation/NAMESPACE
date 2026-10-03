@@ -1,6 +1,7 @@
 export(execute)
 export(createCohorts)
 export(computeCohortOverlap)
+export(applyCohortOverlapSuppression)
 export(runDiagnostics)
 export(runPheValuator)
 export(packageResults)

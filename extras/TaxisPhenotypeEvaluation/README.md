@@ -14,7 +14,7 @@
 
 ## 1. Study Rationale & Executive Summary
 
-The **TAXIS** (Taxonomy of Associations in Information Systems) project has developed an automated methodology to synthesize clinical phenotypes directly from empirical association rules and clinical knowledge graphs.
+The **TAXIS** (Transparent Analytic Knowledge Graph for Interoperable Science) project has developed an automated methodology to synthesize clinical phenotypes directly from empirical association rules and clinical knowledge graphs.
 
 To evaluate these knowledge graph–generated phenotypes prior to broader community dissemination at the **2026 OHDSI Global Symposium**, their diagnostic performance and patient overlap are benchmarked against peer-reviewed **OHDSI Phenotype Library** comparator definitions across diverse observational databases.
 
@@ -25,6 +25,11 @@ This HADES-compliant study package evaluates candidate phenotypes for five condi
 4. `PheValuator` diagnostic performance estimates (Sensitivity, Specificity, and Positive Predictive Value).
 
 All analyses are executed locally within partner environments. No patient-level data leaves the host institution.
+
+### Governance & Methodological Decisions
+- **v2 Initial Presentation Baseline (DEC-GR-007)**: Cohort logic enforces `PrimaryCriteriaLimit: First` (earliest diagnosis) for the initial public release, capturing initial incident presentation.
+- **Configurable Rule-Out Mimic Cap (DEC-GR-008)**: Differential mimic exclusions are subject to a configurable default cap of 10% anchor patient cost ($\frac{|A \cap \text{Mimic}|}{|A|} < 0.10$).
+- **Dual Lift Reporting (DEC-GR-010)**: Methodology reports both unadjusted person lift alongside utilization-stratified lift to distinguish clinical association from contact frequency.
 
 ---
 
@@ -44,7 +49,7 @@ This package evaluates **5 paired clinical phenotypes** (10 cohorts total). Each
 
 ## 3. Package Execution & Verification Matrix
 
-In accordance with study quality standards (addressing REC-003-3 and REC-021-3), the table below records the execution and verification status of each workflow component across development environments and target partner platforms:
+In accordance with study quality standards (addressing REC-003-3, REC-021-3, and REC-024-3), the table below records the execution and verification status of each workflow component across development environments and target partner platforms:
 
 | Workflow Stage | Execution Status | Test Environment / Evidence Base | Key Outcome & Operational Result |
 |---|---|---|---|
@@ -53,8 +58,8 @@ In accordance with study quality standards (addressing REC-003-3 and REC-021-3),
 | **Cohort Overlap & Jaccard** | **PASSED** | Eunomia (SQLite) & INPC (2.16M patients) | Pairwise distinct person intersection, union, and Jaccard metrics computed cleanly. Denominators: $|A \cup B|$. |
 | **CohortDiagnostics** | **PASSED** | Eunomia (SQLite) & INPC (2.16M patients) | `CohortDiagnostics::executeDiagnostics()` completed across characterization, incidence, and index event breakdowns. |
 | **PheValuator Modeling** | **PASSED** | INPC OMOP CDM (Real-world extraction) | Evaluated operating characteristics against comparator cohorts. *(Skipped on Eunomia due to synthetic data class-separation limits)*. |
-| **Small-Cell Suppression & Boundary Tests** | **PASSED** | Standalone Test Suite (`RunSuppressionBoundaryTests.R`) | Verified boundary counts: 0 preserved; 1 and 4 masked to -1; 5 preserved. Derived ratios masked to -1 whenever underlying cells are suppressed, preventing algebraic reconstruction. |
-| **Allowlist Export Packaging** | **PASSED** | Output Packaging Routine (`PackageResults.R`) | Only allowlisted summary CSVs, diagnostic archives, and run logs are bundled into `Results_<databaseId>.zip`. |
+| **Small-Cell Suppression & Boundary Tests** | **PASSED** | Standalone Test Suite (`RunSuppressionBoundaryTests.R`, verified via Python harness `verify_suppression_and_packaging.py`) | **Release-Specific Receipt (Commit `bab0bf0`, 2026-10-03)**: Verified boundary counts: 0 preserved as true absence; 1 and 4 masked to -1; 5 preserved unmasked. Complementary cell suppression masks all 4 partition counts ($A \cap B, A \setminus B, B \setminus A, A \cup B$) and all derived ratios whenever any cell is small ($<5$). Evaluated adversarial counterexample ($A=100, B=100, A \cap B=3, A \cup B=197, A \setminus B=97, B \setminus A=97$): all partition cells and ratios masked to -1; unmasked marginals ($A=100, B=100$) yield an underdetermined 2-equation/3-unknown system, proving mathematical impossibility of algebraic reconstruction. |
+| **Allowlist Export Packaging** | **PASSED** | Output Packaging Routine (`PackageResults.R`, verified via `verify_suppression_and_packaging.py`) | **Release-Specific Receipt (Commit `bab0bf0`, 2026-10-03)**: Packaging strictly enforces exact relative paths (`cohort_counts_<db>.csv`, `cohort_overlap_summary_<db>.csv`, `phevaluator_summary_<db>.csv`). Deep inspection of nested `diagnostics/Results_<db>.zip` verifies only approved aggregate CSVs; excludes execution logs (`.log`/`.txt`), scratch files, decoy archives (`Results_OTHER_DB.zip`), and patient tables. Verified with 100% test pass. |
 | **Prospective Network CDMs** | **NOT RUN / PREPARED** | External Partner CDMs (Claims, EHR) | Package finalized and published for federated network execution in Wave 4. |
 
 ---
@@ -67,13 +72,12 @@ This package operates in strict accordance with the **TAXIS Network Data Use Ter
 1. **Zero Concept Pair Matrix Extraction**: The package does **not** query or export underlying concept-concept association matrices or granular co-occurrence tables.
 2. **Zero Protected Health Information (PHI) / Patient-Level Data**: No individual patient records, person identifiers, encounter timestamps, or narrative texts leave the local site firewall.
 3. **Mandatory Small-Cell Suppression**: All patient counts below 5 (`minCellCount = 5`) are automatically masked (`-1`) in exported CSVs. Participating sites may raise this threshold if required by local governance policies.
-4. **Complementary Suppression for Derived Ratios**: Whenever an underlying count (e.g., intersection or marginal total) is suppressed, derived ratio metrics (Jaccard index, sensitivity proxy, positive agreement) are masked to `-1` to prevent algebraic back-calculation of protected counts.
+4. **Complementary Suppression for Derived Ratios & Partitions**: Whenever an underlying count (e.g., intersection or exclusive cell) is suppressed, all partition counts and derived ratio metrics (Jaccard index, sensitivity proxy, positive agreement) are masked to `-1` to eliminate linear algebraic back-calculation of protected counts.
 5. **Strict Allowlist Zip Packaging**: The export function enforces a strict allowlist. Only the following aggregate files are included in `Results_<databaseId>.zip`:
    - `cohort_counts_<databaseId>.csv`
    - `cohort_overlap_summary_<databaseId>.csv`
    - `phevaluator_summary_<databaseId>.csv`
-   - `log_<databaseId>.txt`
-   - `diagnostics/Results_<databaseId>.zip`
+   - `diagnostics/Results_<databaseId>.zip` (verified CSV-only aggregate members; logs, scratch tables, and decoys rejected)
 6. **Mandatory Institutional Review**: Participating sites maintain full discretion to inspect the contents of `Results_<databaseId>.zip` before transferring it to the study coordinating team.
 
 ---
