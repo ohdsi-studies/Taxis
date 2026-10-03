@@ -88,12 +88,12 @@ TAXIS evaluates 5 target clinical phenotypes generated directly from graph trave
 
 ## 5. Collaborator Showcase Deliverables (Due October 9, 2026)
 
-All submission materials are pre-compiled and available in the companion monograph:
+Submission and dissemination deliverables for Collaborator Showcase Entry #127:
 
-1. **4-Page Brief Report Manuscript**: Adhering to OHDSI author guidelines, delivered to Craig Sachson (`sachson@ohdsi.org`) via Dropbox. Located at [`06_symposium_showcase_deliverables.md`](../../local-private/symposium_2026/06_symposium_showcase_deliverables.md).
-2. **Digital Poster Suite (48" x 36" Horizontal)**: Visual diagrams detailing the Concept AB association mining pipeline, Two-Stage Screen-and-Code Ensemble, and the 5-Phenotype evaluation framework.
-3. **Network Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package prepared for network evaluation across partner OMOP CDMs. Located at [`local-private/packages/TaxisPhenotypeEvaluation/`](../../local-private/packages/TaxisPhenotypeEvaluation/).
-4. **Network Data Governance Term Sheet**: Authoritative 1-page privacy policy guaranteeing aggregate-only results and $<5$ cell suppression. Located at [`TAXIS_NETWORK_DATA_USE_TERM_SHEET.md`](../../local-private/documentation/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
+1. **4-Page Brief Report Manuscript**: Adhering to OHDSI author guidelines, submitted for the 2026 Collaborator Showcase proceedings. Covers clinical knowledge graph construction, validation benchmarks (ClinVec, PACES, INPC blinded adjudication), and phenotype recreation performance.
+2. **Digital Poster Suite (48" x 36" Horizontal)**: Visual diagrams detailing the Concept AB association mining pipeline, the Two-Stage Screen-and-Code Ensemble (112-code clinical taxonomy), and the 5-Phenotype evaluation framework.
+3. **Network Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package prepared for multi-database evaluation across partner OMOP CDMs (scheduled for public release in Wave 4).
+4. **Network Data Governance Term Sheet**: Institutional privacy specification guaranteeing local aggregate-only execution, zero patient-level data export, and $<5$ small-cell suppression (scheduled for public release in Wave 2).
 
 ---
 

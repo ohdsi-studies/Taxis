@@ -186,7 +186,7 @@ TAXIS operates strictly under an **aggregate-only, code-to-data** federated para
 3. **Sensitive Pair Protection**: Raw concept-concept co-occurrence tables remain strictly local. Only aggregate cohort overlap indices (Jaccard) and PheValuator ROC statistics are exported in `Results_<db>.zip`.
 4. **Complementary Cell Protection**: Mathematical checks prevent algebraic reconstruction of small cell counts from published summary ratios.
 
-Review the complete [Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md) for institutional IRB and governance specifications.
+Review the *TAXIS Network Data Use Term Sheet* (scheduled for publication in Wave 2 of the repository release) for institutional IRB and governance specifications.
 
 ---
 
