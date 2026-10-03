@@ -108,6 +108,8 @@ TAXIS is designed to explore applications across four areas of observational res
 - **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable continuous algorithmic refinement:
   - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and detect **orphan concepts** omitted from initial concept sets.
   - **PheValuator (Model Covariates Feedback Loop)**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV) using predictive regression models. High-weight predictive covariates identified by the models serve as an empirical feedback loop back into the TAXIS knowledge graph traversal to iteratively refine concept sets and cohort logic criteria.
+- **Dynamic Knowledge Engine for Autonomous Phenotyping Agents**: Emerging community frameworks in autonomous cohort engineering (such as `PhenotypingAgent`, implemented as a LangGraph state machine) automate cohort development from clinical definitions through iterative design, Capr code generation, cohort measurement, and profile evaluation. While autonomous agents typically rely on pre-computed concept sets or manual single-concept lookups, TAXIS provides a computable clinical knowledge layer that supplies structured, multi-domain concept sets (anchor conditions, confirmatory labs, indicated medications, and exclusionary mimics) across 1.9M graded edges. Furthermore, during agent error-profile diagnosis, TAXIS's typed clinical relationships provide the clinical mechanism explaining observed discrepancies, informing grounded cohort refinement.
+- **Algorithmic Concept Set Condensation & Optimization**: Observational association mining can identify extensive concept sets across OMOP vocabularies. Downstream integration with concept set optimization tools (such as `ConceptSetCondenser`) enables finding the shortest, most parsimonious Circe concept set expression (combining `includeDescendants = TRUE` and explicit exclusions) that covers *exactly* the specified concepts without changing cohort membership, producing clean, human-auditable definitions for the OHDSI Phenotype Library and ATLAS.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -233,7 +235,7 @@ Review the *TAXIS Network Data Use Term Sheet* (scheduled for publication in Wav
 
 ```
 2024 ──────────► Sep 2025 ──────────► Q1-Q2 2026 ────────► Jul-Aug 2026 ───────► Oct 2026 ────────► 2026–2027 (Parallel Tracks)
-Foundational     Network Protocol     INPC 2.16M Mining    Automated Circe       OHDSI Symposium     Track A: Library 3.0, PHOEBE, Diagnostics & PheValuator
+Foundational     Network Protocol     INPC 2.16M Mining    Automated Circe       OHDSI Symposium     Track A: Library 3.0, PHOEBE, Agents & Diagnostics
 Hierarchies      v0.5 Published       Taxonomy v6.0        Phenotype Builder     Showcase #127       Track B: Controls, Confounder Balance & Calib.
 ```
 
@@ -274,7 +276,11 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
        - *Negative predictive covariates* or features associated with false positives are evaluated against differential diagnosis and mimic edges (`EXCLUSIONARY_MIMIC`, `DIFFERENTIAL_DIAGNOSIS`) to calibrate rule-out criteria.
      - Enable an iterative, closed-loop cycle of phenotype refinement that harmonizes algorithmic graph traversal with empirical CDM predictive modeling.
 
-4. **Feedback Loop, Quality Ranking & Community Review**:
+4. **Autonomous Agentic Phenotyping & Concept Set Condensation**:
+   - **Autonomous Cohort Engineering Integration**: Connect TAXIS clinical relationship queries into autonomous phenotyping agents (such as `PhenotypingAgent`) via Model Context Protocol (MCP) services. TAXIS replaces static, pre-computed concept sets with dynamic, multi-domain graph traversals across anchor conditions, confirmatory labs, indicated medications, and exclusionary mimics, while providing the clinical mechanism rationale required during agent error-profile diagnostic routines.
+   - **Optimal Concept Set Expressions**: Pair TAXIS candidate concept generation with algorithmic set-covering optimization (such as `ConceptSetCondenser`) to synthesize minimal, performant Circe expressions that cover target concepts exactly without changing cohort membership, ensuring readability and computational efficiency for ATLAS and the Phenotype Library.
+
+5. **Feedback Loop, Quality Ranking & Community Review**:
    - **Multi-Dimensional Quality Ranking**: Establish a transparent quality scoring rubric for candidate phenotypes incorporating:
      - *Graph Evidence Grade*: Confidence weighting of underlying clinical edges (Strong/Moderate consensus).
      - *Network Feasibility*: PHOEBE empirical prevalence across diverse network CDMs.
@@ -283,16 +289,16 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
    - **Workgroup Peer Review**: Support human-in-the-loop review within the **OHDSI Phenotype Development and Evaluation Workgroup**, providing clinicians and epidemiologists with structured rationale and validation data to evaluate candidate definitions for official library adoption.
 
 #### Track B: Causal Study Design, Negative Controls & Error Calibration
-5. **Empirical Negative Control Synthesis & Error Calibration**:
+6. **Empirical Negative Control Synthesis & Error Calibration**:
    - **Candidate Negative Control Identification**: Systematically identify candidate negative control outcomes by screening concept pairs with verified zero statistical lift, neutral temporal directionality ($0.67 < DR < 1.50$), and confirmed absence of pathophysiologic mechanism.
    - **Empirical Calibration Batteries**: Generate reproducible, graph-audited candidate negative control sets to support empirical p-value and confidence interval calibration across OHDSI network comparative studies.
 
-6. **Confounder Identification & Confounder Balance Evaluation**:
+7. **Confounder Identification & Confounder Balance Evaluation**:
    - **Informing Study Design Choices**: Leverage explicit clinical relationship semantics (causal, manifestation, contraindication) to assist investigators in identifying true common-cause confounders when defining cohort inclusion and baseline covariate criteria.
    - **Protecting Intermediate Mediators & Colliders**: Use directional relationship data to differentiate intermediate variables on the causal pathway (preventing over-adjustment bias) and avoid collider conditioning.
    - **Evaluating Confounder Balance & Residual Confounding**: Complement causal inference workflows by using clinical relationship graphs to inspect whether recognized clinical confounders achieve empirical balance across treatment arms, and inform sensitivity analyses for residual unmeasured confounding.
 
-7. **Network Evidence Adjudication & Bias Evaluation**:
+8. **Network Evidence Adjudication & Bias Evaluation**:
    - **Contextualizing Distributed Findings**: Provide a structured clinical knowledge layer to assist investigators in evaluating observed associations across data networks.
    - **Adjudicating Alternative Explanations**: Distinguish genuine therapeutic effects from confounding by indication, protopathic bias (early manifestations treated prior to formal diagnosis), or detection artifacts.
 
@@ -330,6 +336,8 @@ If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packa
 5. **Rao GA.** *OHDSI Phenotype Library Version 3.0: An Agentic Architecture for Autonomous Governance*. 2026 OHDSI Global Symposium Collaborator Showcase, New Brunswick, NJ, October 2026.
 6. **Ostropolets A, Hripcsak G, Ryan PB, Reich C.** *PHOEBE: a data-driven framework for phenotype recommendation and evaluation*. *JAMIA Open*. 2022;5(3):ooac070.
 7. **Swerdel JN, Hripcsak G, Ryan PB.** *PheValuator: Development and evaluation of a phenotype evaluation tool*. *J Biomed Inform*. 2019;99:103294.
+8. **Schuemie MJ.** *PhenotypingAgent: Autonomous Cohort Development via LangGraph State Machine*. OHDSI Community GitHub Repository, 2026.
+9. **Schuemie MJ.** *ConceptSetCondenser: Optimal Concept Set Expression Generation*. OHDSI Community GitHub Repository, 2025.
 
 ---
 
@@ -338,3 +346,4 @@ If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packa
 - **OHDSI Forums**: [TAXIS Study Discussion](https://forums.ohdsi.org/u/TAXIS)
 - **Workgroups**: OHDSI Phenotype & Vocabulary Workgroups
 - **Issue Tracker**: Propose enhancements or report issues via [GitHub Issues](https://github.com/ohdsi-studies/Taxis/issues).
+
