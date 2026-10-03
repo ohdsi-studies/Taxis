@@ -29,7 +29,69 @@ TAXIS investigates whether empirical association rule mining combined with struc
 ### Initial Focus on Phenotyping & Closed-Loop Evaluation
 While structured clinical knowledge graphs may have applications across multiple stages of observational research—including candidate negative control identification, study design, and evaluating residual bias—**TAXIS focuses initially on phenotyping** as its primary application.
 
-Cohort definition is foundational for observational research: population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Furthermore, phenotyping provides established community evaluation frameworks (`CohortDiagnostics` as part of phenotype development and characterization, and `PheValuator` to quantitatively assess operating characteristics and iteratively refine definitions based on predictive model covariates) to assess clinical validity before exploring broader applications.
+- **Differentiating Clinical Intent from Computable Logic**: The OHDSI Phenotype Development and Evaluation Workgroup establishes a vital distinction between a **Clinical Definition** (*"what it is"*—clinical presentation, confirmatory findings, first-line treatments, and differential diagnoses) and a **Phenotype Algorithm** (*"how to find it in data"*—Circe JSON criteria, temporal windows, and exclusion rules).
+- **Automating Phenotype Construction**: In standard practice, translating clinical descriptions and PHOEBE concept sets into multi-domain Circe logic is a manual, labor-intensive bottleneck. TAXIS automates this translation by traversing 1.9M graded clinical edges to populate Circe criteria slots (confirmatory labs, indicated medications, and exclusionary mimics capped at $<10\%$ anchor patient cost).
+- **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Standardized execution of `CohortDiagnostics` (characterization, incidence rates, orphan concept detection) paired with `PheValuator` diagnostic predictive models creates a closed-loop feedback mechanism: high-weight model covariates and orphan concepts are fed back to iteratively refine concept sets and cohort logic.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│               TAXIS IN THE OHDSI PHENOTYPE DEVELOPMENT & EVALUATION LIFECYCLE          │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+               ┌────────────────────────────┴────────────────────────────┐
+               ▼                                                         ▼
+    ┌───────────────────────┐                                 ┌───────────────────────┐
+    │  Researcher Question  │                                 │ Clinical Definition   │
+    │  Structured T/C/I/O   │────────────────────────────────►│ "What it is"          │
+    │  Intake Templates     │                                 │ Clinical intent       │
+    └───────────────────────┘                                 └───────────┬───────────┘
+                                                                          │
+         ┌────────────────────────────────────────────────────────────────┴───────┐
+         ▼                                                                        ▼
+┌──────────────────────────────┐                                ┌──────────────────────────────┐
+│ PHOEBE Network Concept Info  │                                │ TAXIS Knowledge Graph        │
+│ • Empirical CDM prevalence   │                                │ • 112-code clinical taxonomy │
+│ • Co-occurrence statistics   │                                │ • 1.9M graded clinical edges │
+│ • Vocabulary roll-up counts  │                                │ • Directional ratios (DR)    │
+└──────────────┬───────────────┘                                └──────────────┬───────────────┘
+               │                                                               │
+               └──────────────────────────────┬────────────────────────────────┘
+                                              │
+                                              ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Designer           │
+                                │ (TAXIS Circe Synthesis)      │
+                                │ • Confirmatory labs & drugs  │
+                                │ • Rule-out mimics (<10% cap) │
+                                └──────────────┬───────────────┘
+                                               │
+                                               ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Algorithm (Circe)  │
+                                │ Executable cohort definition │
+                                └──────────────┬───────────────┘
+                                               │
+               ┌───────────────────────────────┴───────────────────────────────┐
+               ▼                                                               ▼
+┌──────────────────────────────┐                                ┌──────────────────────────────┐
+│ CohortDiagnostics            │                                │ PheValuator                  │
+│ • Multi-CDM characterization │                                │ • Diagnostic predictive model│
+│ • Orphan concept detection   │                                │ • ROC-AUC, sensitivity, PPV  │
+│ • Index event breakdown      │                                │ • Non-zero model covariates  │
+└──────────────┬───────────────┘                                └──────────────┬───────────────┘
+               │                                                               │
+               └──────────────────────────────┬────────────────────────────────┘
+                                              │
+                                              ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Critic Feedback    │
+                                │ • Matches covariates to graph│
+                                │ • Evaluates orphan concepts  │
+                                │ • Iterates Circe definition  │
+                                └──────────────┬───────────────┘
+                                               │
+                                               └──────── (Iterative Loop) ─────────►
+```
 
 ---
 

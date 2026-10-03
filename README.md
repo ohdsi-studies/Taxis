@@ -103,31 +103,70 @@ TAXIS is designed to explore applications across four areas of observational res
 
 TAXIS focuses its initial evaluation on cohort definition and phenotyping:
 - **Foundational Step in Observational Studies**: Population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Evaluating whether computable clinical knowledge can assist cohort construction provides a clear, practical test case.
-- **Addressing Multi-Domain Criteria**: While single-concept sets are common, incorporating confirmatory laboratory results or medication requirements into cohort logic often requires manual specification. Evaluating whether mined relationships can identify relevant multi-domain criteria addresses an active community need.
-- **Established Evaluation Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable rigorous, multi-database assessment during phenotype development and evaluation:
-  - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` as part of phenotype development and evaluation to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and identify orphan concepts across network CDMs.
-  - **PheValuator (Model Covariates Feedback Loop)**: Quantitatively evaluates diagnostic operating characteristics (sensitivity, specificity, PPV) using predictive models. High-weight predictive covariates identified by `PheValuator` models serve as an empirical feedback loop back into the TAXIS knowledge graph traversal to iteratively refine concept sets and cohort logic criteria.
+- **Differentiating Clinical Intent from Computable Logic**: The OHDSI Phenotype Development and Evaluation Workgroup establishes a vital distinction between a **Clinical Definition** (*"what it is"*—clinical presentation, confirmatory findings, first-line treatments, and differential diagnoses) and a **Phenotype Algorithm** (*"how to find it in data"*—Circe JSON criteria, temporal windows, and exclusion rules).
+- **Automating Phenotype Construction**: In standard practice, translating clinical descriptions and PHOEBE concept sets into multi-domain Circe logic is a manual, labor-intensive bottleneck. TAXIS automates this translation by traversing 1.9M graded clinical edges to populate Circe criteria slots (confirmatory labs, indicated medications, and exclusionary mimics capped at $<10\%$ anchor patient cost).
+- **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable continuous algorithmic refinement:
+  - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and detect **orphan concepts** omitted from initial concept sets.
+  - **PheValuator (Model Covariates Feedback Loop)**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV) using predictive regression models. High-weight predictive covariates identified by the models serve as an empirical feedback loop back into the TAXIS knowledge graph traversal to iteratively refine concept sets and cohort logic criteria.
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│        CLOSED-LOOP PHENOTYPE DEVELOPMENT & EVALUATION LIFECYCLE        │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-    ┌───────────────────────────────┴───────────────────────────────┐
-    ▼                                                               ▼
-┌──────────────────────────────┐              ┌──────────────────────────────┐
-│ 1. TAXIS Knowledge Graph     │              │ 2. Circe Cohort Generation   │
-│ Multi-domain edge traversal  │─────────────►│ Standardized JSON definition │
-│ (Disorders, Labs, Drugs)     │              │ with rule-out mimics (<10%)  │
-└──────────────────────────────┘              └──────────────┬───────────────┘
-              ▲                                              │
-              │                                              ▼
-┌─────────────┴────────────────┐              ┌──────────────────────────────┐
-│ 4. PheValuator Iteration     │              │ 3. CohortDiagnostics         │
-│ Inspect model covariates &   │◄─────────────┤ Multi-CDM characterization,  │
-│ predictive weights to refine │              │ orphan concept detection,    │
-│ graph traversal & criteria   │              │ index event breakdown        │
-└──────────────────────────────┘              └──────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│               TAXIS IN THE OHDSI PHENOTYPE DEVELOPMENT & EVALUATION LIFECYCLE          │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+               ┌────────────────────────────┴────────────────────────────┐
+               ▼                                                         ▼
+    ┌───────────────────────┐                                 ┌───────────────────────┐
+    │  Researcher Question  │                                 │ Clinical Definition   │
+    │  Structured T/C/I/O   │────────────────────────────────►│ "What it is"          │
+    │  Intake Templates     │                                 │ Clinical intent       │
+    └───────────────────────┘                                 └───────────┬───────────┘
+                                                                          │
+         ┌────────────────────────────────────────────────────────────────┴───────┐
+         ▼                                                                        ▼
+┌──────────────────────────────┐                                ┌──────────────────────────────┐
+│ PHOEBE Network Concept Info  │                                │ TAXIS Knowledge Graph        │
+│ • Empirical CDM prevalence   │                                │ • 112-code clinical taxonomy │
+│ • Co-occurrence statistics   │                                │ • 1.9M graded clinical edges │
+│ • Vocabulary roll-up counts  │                                │ • Directional ratios (DR)    │
+└──────────────┬───────────────┘                                └──────────────┬───────────────┘
+               │                                                               │
+               └──────────────────────────────┬────────────────────────────────┘
+                                              │
+                                              ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Designer           │
+                                │ (TAXIS Circe Synthesis)      │
+                                │ • Confirmatory labs & drugs  │
+                                │ • Rule-out mimics (<10% cap) │
+                                └──────────────┬───────────────┘
+                                               │
+                                               ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Algorithm (Circe)  │
+                                │ Executable cohort definition │
+                                └──────────────┬───────────────┘
+                                               │
+               ┌───────────────────────────────┴───────────────────────────────┐
+               ▼                                                               ▼
+┌──────────────────────────────┐                                ┌──────────────────────────────┐
+│ CohortDiagnostics            │                                │ PheValuator                  │
+│ • Multi-CDM characterization │                                │ • Diagnostic predictive model│
+│ • Orphan concept detection   │                                │ • ROC-AUC, sensitivity, PPV  │
+│ • Index event breakdown      │                                │ • Non-zero model covariates  │
+└──────────────┬───────────────┘                                └──────────────┬───────────────┘
+               │                                                               │
+               └──────────────────────────────┬────────────────────────────────┘
+                                              │
+                                              ▼
+                                ┌──────────────────────────────┐
+                                │ Phenotype Critic Feedback    │
+                                │ • Matches covariates to graph│
+                                │ • Evaluates orphan concepts  │
+                                │ • Iterates Circe definition  │
+                                └──────────────┬───────────────┘
+                                               │
+                                               └──────── (Iterative Loop) ─────────►
 ```
 
 ---
