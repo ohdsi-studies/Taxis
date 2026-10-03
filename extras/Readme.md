@@ -1,7 +1,10 @@
-# TAXIS
+# TAXIS: Extras & Execution Packages
 
 ## Overview
-The **CONCEPT_CF_AB** package computes frequent, statistically significant person-level co-occurrences (within ±30 days) among OMOP clinical finding concepts and materializes a final output table, `concept_ab_step_5`. These pairs are subsequently reviewed and categorized by relationship type using a Large Language Model (LLM). The pipeline is portable across OMOP instances: parameterized, SqlRender-compatible SQL is orchestrated in R, keeping control flow outside SQL and enabling translation to supported DBMSs.
+This directory contains portable database execution packages and driver scripts supporting the TAXIS study:
+
+- **[`TaxisPhenotypeEvaluation/`](./TaxisPhenotypeEvaluation/README.md)**: Standardized HADES R study package for evaluating 5 target clinical phenotypes (COPD, Obesity, CKD, Hyperkalemia, Type 2 Diabetes Mellitus) across federated partner OMOP CDM databases.
+- **`CONCEPT_CF_AB` Association Pipeline**: The **CONCEPT_CF_AB** routines compute frequent, statistically significant person-level co-occurrences (within ±30 days) among OMOP clinical finding concepts and materialize the candidate co-occurrence tables. The pipeline is portable across OMOP instances: parameterized, SqlRender-compatible SQL is orchestrated in R, keeping control flow outside SQL and enabling translation to supported DBMSs.
 
 At a high level:
 - **Reads from**: `condition_occurrence`, `concept`, `concept_relationship`, and `concept_ancestor` tables.

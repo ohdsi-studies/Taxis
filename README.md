@@ -102,9 +102,19 @@ TAXIS is designed to explore applications across four areas of observational res
 ### Phenotyping Workflow Optimization: Closed-Loop Lifecycle & Evaluation
 
 **Phenotyping workflow optimization using TAXIS represents one conceptual application of computable clinical knowledge.** TAXIS focuses its initial evaluation on cohort definition and phenotyping because:
-- **Foundational Step in Observational Studies**: Population-level estimation and patient-level prediction both depend on well-defined cohort criteria. Evaluating whether computable clinical knowledge can assist cohort construction provides a clear, practical test case.
-- **Differentiating Clinical Intent from Computable Logic**: The OHDSI Phenotype Development and Evaluation Workgroup establishes a vital distinction between a **Clinical Definition** (*"what it is"*—clinical presentation, confirmatory findings, first-line treatments, and differential diagnoses) and a **Phenotype Algorithm** (*"how to find it in data"*—Circe JSON criteria, temporal windows, and exclusion rules).
-- **Automating Phenotype Construction**: In standard practice, translating clinical descriptions and PHOEBE concept sets into multi-domain Circe logic is a manual, labor-intensive bottleneck. TAXIS automates this translation by traversing 1.9M graded clinical edges to populate Circe criteria slots (confirmatory labs, indicated medications, and exclusionary mimics capped at $<10\%$ anchor patient cost).
+- **Resolving the Phenotype Reproducibility Crisis**: Systematic evaluations of published observational literature across complex diseases have revealed dramatic heterogeneity in phenotype algorithms, with independent research teams producing up to a **tenfold difference in cohort sizes** for the identical target condition (Shoaibi et al., AMIA 2024).
+- **Clinical Descriptions as Semantic Anchors**: To eliminate subjective ambiguity, the OHDSI community established that an *a priori* written **Clinical Description** across standardized domains (presentation, assessment, confirmatory labs, differential diagnoses/exclusions, indicated treatments) must serve as the **semantic anchor** before translating clinical intent into computable queries (Shoaibi, Ostropolets, Murphy, Rao, et al.).
+- **The Neuro-Symbolic Proposer-Validator Framework**: Drawing on cognitive architecture principles (Kahneman System 1 vs. System 2) formalized for clinical informatics (Rao et al., 2026), TAXIS operationalizes a **Neuro-Symbolic Proposer-Validator Framework**:
+  - **Neural / Associative Proposer (System 1)**: Traverses empirical co-occurrences mined across 2.16M longitudinal patients in the INPC OMOP CDM paired with the two-stage screen-and-code LLM ensemble (112-code taxonomy) to discover and type candidate multi-domain clinical associations while avoiding generative hallucinations.
+  - **Symbolic Deterministic Validator (System 2)**: Translates candidate edges into formal, rule-governed Circe JSON cohort definitions structured by the Clinical Description semantic anchor, verified deterministically across partner CDMs using `CohortDiagnostics` and `PheValuator`.
+- **Harmonized Prompt-to-Circe Slot Mapping**: Directly ingests the OHDSI Phenotype Workgroup's standard Clinical Description schema (`clinicalDescriptionPromptBriefWithExclusions.txt`), mapping clinical prompt sections 1-to-1 into computable Circe criteria blocks:
+  - *Condition Overview & Presentation* $\rightarrow$ Primary Anchor Disorder (`PrimaryCriteria.CriteriaList`).
+  - *Laboratory Tests & Diagnostic Values* $\rightarrow$ Confirmatory Labs (`InclusionRules` with `Measurement` domain criteria, guideline cutoffs, and $[-7, +30]$ day windows).
+  - *Medications Usually Given* $\rightarrow$ Indicated Drug Exposures (`InclusionRules` with `DrugExposure` criteria: acute $\le 24\text{h}$, chronic $\le 30\text{d}$).
+  - *Differential Diagnoses & Excluded Conditions* $\rightarrow$ Rule-Out Mimics (`InclusionRules` with Occurrence = 0 or `CensoringCriteria`, strictly capped at $<10\%$ anchor patient cost).
+  - *Comorbid Conditions* $\rightarrow$ Baseline Patient Characterization & Covariate Balance (explicitly segregated to prevent false exclusions).
+  - *Prognosis & Follow-up* $\rightarrow$ Post-Index Observation Windows (`PostDays`) and persistence logic.
+  - *References* $\rightarrow$ Circe Definition Metadata & Provenance Tags.
 - **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable continuous algorithmic refinement:
   - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and detect **orphan concepts** omitted from initial concept sets.
   - **PheValuator (Model Covariates Feedback Loop)**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV) using predictive regression models. High-weight predictive covariates identified by the models serve as an empirical feedback loop back into the TAXIS knowledge graph traversal to iteratively refine concept sets and cohort logic criteria.
@@ -207,7 +217,7 @@ TAXIS is designed to explore applications across four areas of observational res
 - **10% Anchor Patient Rule-Out Cap**: Sourced from INPC co-occurrence counts to prevent overly aggressive exclusionary criteria from eliminating valid patient populations.
 - **Integration with CohortDiagnostics (Phenotype Development & Evaluation)**: Executes `CohortDiagnostics` across OMOP CDMs to evaluate orphan concepts, index event breakdowns, time distributions, and inclusion rule attrition as an integral step in phenotype development and evaluation.
 - **Iterative Refinement via PheValuator Model Covariates**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV). Evaluates non-zero predictive model covariates from `PheValuator` diagnostic models as an empirical feedback loop back into the TAXIS knowledge graph traversal, identifying omitted clinical criteria or refining rule-out boundaries.
-- **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate 5 target phenotypes (COPD, Obesity, CKD, Hyperkalemia, Type 2 Diabetes) against established OHDSI Phenotype Library definitions across partner OMOP CDM databases.
+- **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate 5 target phenotypes (COPD, Obesity, CKD, Hyperkalemia, Type 2 Diabetes) against comparator cohorts from the OHDSI Phenotype Library across partner OMOP CDM databases. Located in [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/README.md).
 
 ---
 
@@ -342,6 +352,9 @@ If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packa
 7. **Swerdel JN, Hripcsak G, et al.** *PheValuator: Development and evaluation of a phenotype evaluation tool*. *J Biomed Inform*. 2019;99:103294.
 8. **Schuemie MJ.** *PhenotypingAgent: Autonomous Cohort Development via LangGraph State Machine*. OHDSI Community GitHub Repository, 2026.
 9. **Schuemie MJ.** *ConceptSetCondenser: Optimal Concept Set Expression Generation*. OHDSI Community GitHub Repository, 2025.
+10. **Shoaibi A, Ostropolets A, Weaver J, Rao G, et al.** *Variation in phenotype definitions in observational clinical research: a review of three conditions*. *AMIA Annu Symp Proc*. 2024.
+11. **Shoaibi A, Ostropolets A, Murphy JD, Rao GA, et al.** *Clinical Descriptions as Semantic Anchors: A Best Practice in OHDSI Phenotype Development*. *OHDSI Phenotype Development and Evaluation Workgroup Consensus Statement*; 2025.
+12. **Rao GA, et al.** *Neuro-Symbolic Conceptual Workflows for Phenotyping in Observational Research: The Proposer-Validator Architecture*. *OHDSI Phenotype Development and Evaluation Workgroup*; 2026.
 
 ---
 
