@@ -182,7 +182,7 @@ def test_packaging():
                     for m in contents:
                         if m.lower().endswith(".csv"):
                             header_line = z.open(m).readline().decode("utf-8")
-                            clean_cols = [re.sub(r'^["\']|["\']$', '', c).strip().lower() for c in re.split(r"[,;\t]", header_line)]
+                            clean_cols = [c.replace('"', '').replace("'", "").strip().lower() for c in re.split(r"[,;\t]", header_line)]
                             forbidden_ids = ["subject_id", "person_id", "patient_id", "mrn", "ssn"]
                             if any(c in forbidden_ids for c in clean_cols):
                                 has_forbidden_cols = True
@@ -197,7 +197,7 @@ def test_packaging():
 
         with zipfile.ZipFile(quoted_decoy_zip, "r") as z:
             quoted_header = z.open("cohort_count.csv").readline().decode("utf-8")
-            quoted_clean_cols = [re.sub(r'^["\']|["\']$', '', c).strip().lower() for c in re.split(r"[,;\t]", quoted_header)]
+            quoted_clean_cols = [c.replace('"', '').replace("'", "").strip().lower() for c in re.split(r"[,;\t]", quoted_header)]
             assert "subject_id" in quoted_clean_cols, "Failed to normalize quoted subject_id!"
             quoted_rejected = any(c in ["subject_id", "person_id"] for c in quoted_clean_cols)
             assert quoted_rejected, "PackageResults failed to detect and reject quoted forbidden header!"

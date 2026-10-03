@@ -100,7 +100,7 @@ packageResults <- function(outputFolder,
               break
             }
             # Normalize headers: strip quotes, whitespace, and lowercase
-            cleanCols <- tolower(trimws(gsub('^[\"']|[\"']$', '', names(headerDf))))
+            cleanCols <- tolower(trimws(gsub("[\"']", "", names(headerDf))))
             forbiddenIdentifiers <- c("subject_id", "person_id", "patient_id", "mrn", "ssn")
             matchedForbidden <- intersect(cleanCols, forbiddenIdentifiers)
             if (length(matchedForbidden) > 0) {
