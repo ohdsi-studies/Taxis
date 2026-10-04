@@ -124,7 +124,7 @@ Strict separation of evidence tiers per `REC-003-1`:
 - **OHDSI Phenotype Library 3.0**: Algorithmic phenotype generator for the new autonomous governance lifecycle (intake, redundancy classification via Jaccard metrics, and longitudinal drift monitoring).
 - **PHOEBE 2.0 Integration**: Balances clinical relationship semantics with real-world network concept prevalence.
 - **Autonomous Agent Integration**: Operates as an MCP clinical knowledge server for `schuemie/PhenotypingAgent`; pairs with `schuemie/ConceptSetCondenser` for set-covering Circe compression.
-- **Causal Study Design**: Informs Pearlian DAG structural causal models by distinguishing confounders (Class I) from intermediate mediators and colliders (Class IV).
+- **Principled Confounder Selection**: Distinguishes true baseline confounders (Class I) from downstream complications and treatment effects (Class IV) to prevent over-adjustment bias in study design.
 
 ---
 

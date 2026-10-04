@@ -41,7 +41,7 @@ Currently, observational research platforms leave these clinical associations la
 - **The Reproducibility Bottleneck & Cohort Variation**: Systematic reviews of published literature across clinical indications (e.g., Alzheimer's disease, major depressive disorder, rheumatoid arthritis) have revealed striking heterogeneity in phenotype algorithms, with independent research teams producing up to a **tenfold difference in cohort sizes** for the identical target condition (Shoaibi et al., AMIA 2024).
 - **Subjectivity & Missing Clinical Anchors**: To establish reproducibility across study teams, the OHDSI community established that an *a priori* written **Clinical Description** across standardized domains (presentation, assessment, confirmatory labs, differential diagnoses/exclusions, indicated treatments) must serve as the **semantic anchor** before translating clinical intent into computable queries (Shoaibi, Ostropolets, Murphy, Rao, et al.).
 - **Variable Phenotype Quality**: The OHDSI Phenotype Library contains over 1,100 cohort definitions, yet approximately two-thirds are single-code lists without temporal or multi-domain logic, and only ~2% incorporate laboratory criteria.
-- **Inadvertent Bias in Study Design**: Hand-curated covariate selection can unintentionally adjust for intermediate mediators (inducing over-adjustment bias) or condition on common effects (collider stratification).
+- **Inadvertent Bias in Study Design**: Hand-picked confounder lists can accidentally adjust for intermediate side effects or complications caused by the treatment, introducing bias instead of controlling for it.
 
 ### 2.2 The Empirical 0.4% Terminology Coverage Benchmark
 Standard clinical terminologies were engineered primarily for administrative billing, medical recording, and hierarchical ontology. In an empirical audit of an audited sample of 26,901 frequently co-occurring concept pairs ($N_{AB} \ge 100$) mined from electronic health records in the Indiana Network for Patient Care (INPC):
@@ -316,7 +316,7 @@ To convert massive observational associations into a computable, typed clinical 
 - **Decoupling Causal Nulls from Observational Conditioning**: Rather than conditioning negative control eligibility on observed statistical nulls in evaluation data (which discards the very confounding bias empirical calibration seeks to measure), TAXIS provides causal-null candidates for independent clinician and literature review. Baseline observational metrics ($\text{Lift}$, $DR$) are reported as characterization diagnostics. Pre-specified negative control batteries are then evaluated across partner CDMs to construct empirical null distributions for systematic error calibration.
 
 #### 3. Confounder Identification & Balance Evaluation
-- **Informing Study Design**: Utilizes explicit relationship semantics (causal, manifestation, contraindication) to help investigators distinguish true common-cause confounders from intermediate mediators (avoiding over-adjustment) and colliders.
+- **Informing Study Design**: Uses explicit relationship semantics to help investigators distinguish true baseline confounders from downstream complications or treatment side effects, preventing over-adjustment bias.
 - **Confounder Balance**: Provides a clinical basis to evaluate whether essential confounders achieve balance across treatment cohorts.
 
 ### 6.7 Independent Development vs. Final Evaluation Boundary Protocol

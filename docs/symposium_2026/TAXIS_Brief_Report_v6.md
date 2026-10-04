@@ -64,18 +64,23 @@ To eliminate acute artifactual co-occurrences and healthcare contact confounding
 - **Same-Day Tie Handling**: Same-day co-occurrences ($N_{A=B}$) were recorded as independent counts and strictly excluded from directional ordering calculations.
 
 ### 2.2 Dual Lift Architecture & Utilization Stratification
-In observational healthcare data, patients with high healthcare utilization (e.g., hospitalized patients or multi-morbid elderly individuals) receive disproportionately more diagnoses, laboratory tests, and medications. Simple crude co-occurrence metrics severely conflate true clinical mechanisms with healthcare utilization frequency.
+Patients who visit doctors frequently (such as hospitalized or multi-morbid elderly patients) accumulate disproportionately more diagnoses, lab tests, and medications across all domains. Without adjustment, simple co-occurrence metrics falsely inflate associations between unrelated conditions simply because very sick patients receive more care.
 
 In compliance with project design directive `DEC-GR-010`, TAXIS computes and reports both unadjusted crude lift and healthcare utilization-stratified lift:
 - **Crude Lift**: Quantifies overall co-occurrence relative to marginal independence across the entire cohort.
-- **Stratified Lift ($Lift_{\text{util}}$)**: Patients are stratified into ten deciles of annualized healthcare contact volume ($U_1, \dots, U_{10}$) measured during the baseline wash-in period. Expected joint co-occurrences are computed within each utilization stratum and aggregated via Cochran-Mantel-Haenszel (CMH) weighting. Lift attenuation (the ratio of crude lift to stratified lift) serves as an empirical diagnostic indicator of contact confounding. Pairs were gated on stratified lift ($Lift_{\text{util}} \ge 1.50$, CMH $p < 0.001$).
+- **Stratified Lift ($Lift_{\text{util}}$)**: Patients are grouped into ten deciles of baseline healthcare contact volume ($U_1, \dots, U_{10}$). Expected joint co-occurrences are computed within each utilization stratum and aggregated via Cochran-Mantel-Haenszel (CMH) weighting. Lift attenuation (the ratio of crude lift to stratified lift) serves as an empirical diagnostic indicator of contact confounding. Pairs were gated on stratified lift ($Lift_{\text{util}} \ge 1.50$, CMH $p < 0.001$).
 
 ### 2.3 Temporal Precedence & Binomial Directionality Testing
 To establish empirical temporal ordering between concept pairs $(A, B)$, TAXIS computes a continuity-corrected Directionality Ratio ($DR$):
 
 $$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$$
 
-where $N_{A \to B}$ represents the count of patients where Concept A predates Concept B within prospective observation windows ($[+1, +30]$, $[+1, +90]$, $[+1, +365]$, or $[+1, +730]$ days), and $N_{B \to A}$ represents the count of patients where Concept B predates Concept A. Directional asymmetry was formally tested against the binomial null hypothesis of equal temporal probability ($H_0: p = 0.5$) with a significance cutoff of $p < 0.01$. Pairs failing statistical significance remain categorized as balanced or indeterminate ($0.67 < DR < 1.50$).
+where $N_{A \to B}$ represents the count of patients where Concept A predates Concept B within prospective observation windows ($[+1, +30]$, $[+1, +90]$, $[+1, +365]$, or $[+1, +730]$ days), and $N_{B \to A}$ represents the count of patients where Concept B predates Concept A. Directional asymmetry was formally tested against the binomial null hypothesis of equal temporal probability ($H_0: p = 0.5$) with a significance cutoff of $p < 0.01$:
+- $DR \ge 1.50$: Concept A empirically precedes Concept B (e.g., Acute Myocardial Infarction precedes Percutaneous Coronary Intervention).
+- $DR \le 0.67$: Concept B empirically precedes Concept A.
+- $0.67 < DR < 1.50$: Events occur concurrently or with balanced temporal ordering.
+
+*Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While valuable for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (e.g., diagnostic delays or medications prescribed before formal diagnostic coding).
 
 ### 2.4 Clinical Knowledge Graph & Two-Stage LLM Semantic Taxonomy
 Pairs meeting statistical significance criteria ($N_{AB} \ge 100$, $Lift_{\text{util}} \ge 1.50$, CMH $p < 0.001$, Binomial $p < 0.01$) were processed by the **Clinical Pair Taxonomy v6.0**. The taxonomy establishes **112 standardized relation codes** organized into **32 relation families** across **5 broad clinical classes**:
@@ -157,8 +162,8 @@ TAXIS establishes a knowledge backend for emerging autonomous agent frameworks i
 - **Dynamic Knowledge Provider for `PhenotypingAgent`**: In LangGraph state machines (such as `schuemie/PhenotypingAgent`), TAXIS acts as a Model Context Protocol (MCP) server providing structured clinical mechanisms during error-profile sampling and iterative logic refinement.
 - **Syntactic Minimization via `ConceptSetCondenser`**: Pairing TAXIS's substantive clinical association discovery with Martijn Schuemie's `ConceptSetCondenser` enables set-covering optimization that produces minimal, human-auditable Circe expressions without altering patient cohort membership.
 
-### 4.4 Causal Inference & Pearlian DAG Covariate Selection
-Beyond phenotyping, the TAXIS clinical relationship layer supports rigorous causal study design. By distinguishing primary etiologies (Class I) and intermediate complications (Class IV) from diagnostic indicators (Class II) and symptomatic treatments (Class III), TAXIS assists epidemiologists in identifying true baseline confounders while preventing conditioning on post-baseline intermediate mediators or collider variables.
+### 4.4 Causal Inference & Confounder Selection
+Beyond phenotyping, the TAXIS clinical relationship layer supports rigorous study design. By distinguishing underlying causes and presenting symptoms from downstream treatments and complications, TAXIS helps researchers identify true baseline confounders (present before treatment) and avoid accidentally adjusting for intermediate steps or side effects caused by the treatment.
 
 ---
 
