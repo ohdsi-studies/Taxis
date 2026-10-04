@@ -64,6 +64,10 @@ packageMiningResults <- function(connectionDetails,
   ParallelLogger::logInfo(sprintf("Small-Cell Suppression Threshold: %d", minCellCount))
   ParallelLogger::logInfo("=====================================================================")
 
+  oldOpt <- getOption("databaseConnectorInteger64AsNumeric")
+  options(databaseConnectorInteger64AsNumeric = FALSE)
+  on.exit(options(databaseConnectorInteger64AsNumeric = oldOpt), add = TRUE)
+
   # 1. Dedicated isolated clean staging directory (purging any leftover/stale files)
   exportDir <- file.path(outputFolder, sprintf("export_%s", databaseId))
   if (dir.exists(exportDir)) {

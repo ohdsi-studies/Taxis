@@ -30,19 +30,11 @@
 
 ---
 
-## 1. Executive Summary & Workgroup Mandate
+## 1. Theoretical Foundations from the OHDSI Phenotype Development & Evaluation Workgroup
 
-During the multi-year deliberations of the **OHDSI Phenotype Development & Evaluation Workgroup**—spanning the annual *Phenotype Phebruary* campaigns, the regular workgroup updates ([Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940)), and the dedicated *Phenotype Aphril 2026* intensive series ([Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158))—the international community established a comprehensive set of Objectives and Key Results (OKRs):
+In observational health research, computable phenotyping transforms raw electronic health records and administrative claims into scientifically valid, reproducible study cohorts. Through regular scientific discourse within the OHDSI Phenotype Development and Evaluation Workgroup ([Forum Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940)) and collaborative working sessions including *Phenotype Phebruary in Aphril 2026* ([Forum Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158)), the community has addressed a central methodological problem: the lack of standardized, empirically grounded phenotyping frameworks.
 
-- **KR 1.1**: Benchmark an iterative, empirically grounded, AI-assisted phenotyping workflow collaboratively across diverse Real-World Data (RWD) network sources.
-- **KR 1.2**: Finalize and submit the landmark collaborative manuscript *"Minds Meet Machines: Human-AI Collaboration for Computable Phenotype Engineering"* to a leading medical informatics journal.
-- **KR 1.3**: Establish an objective diagnostic standard for phenotype stability across calendar time and network data sources.
-- **KR 1.4**: Overcome the foundational **Phenotyping Input Bottleneck**: replace bespoke, manual concept curation with an automated, neuro-symbolic pipeline linking clinical knowledge graphs and large language models with deterministic OMOP CDM validators.
-- **KR 1.5**: Populate the OHDSI Phenotype Library with $\ge 100$ newly validated phenotypes for the 2026 Global Symposium (Demonstrated in Collaborator Showcase #127).
-
-### The Book of OHDSI (2025 Edition) 4-Stage Phenotyping Loop
-
-A pivotal consensus reached within the Workgroup and codified in the updated *Book of OHDSI (2025 Edition)* phenotyping chapter is that phenotyping is not a single linear coding step, but rather a **4-stage iterative development loop**:
+The *Book of OHDSI (2025 Edition)* formalizes phenotyping as a continuous, iterative 4-stage feedback loop (*Idea $\to$ Implementation $\to$ Iteration $\to$ Trust*):
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -67,80 +59,59 @@ A pivotal consensus reached within the Workgroup and codified in the updated *Bo
     └───────────────────────────────┘                                     └───────────────────────────────┘
 ```
 
-1. **Idea (Clinical Description)**: Defining disease boundaries through standardized clinical descriptions structured into six clinical dimensions (symptoms, labs, procedures, interventions, complications, mimics).
-2. **Implementation (Circe Logic)**: Mapping clinical concepts into computable OMOP CDM concept sets and temporal inclusion criteria.
-3. **Iteration (Diagnostic Levers)**: Utilizing `CohortDiagnostics` and `CohortDiagnostics Lite` *during design* as iterative engineering tools (evaluating index event breakdown, visit context, prior observation, and incidence trends) rather than as a post-hoc grading hurdle.
-4. **Trust (Validation & Stability)**: Establishing empirical credibility via objective temporal stability testing, diagnostic error estimation (`PheValuator`), and clinical adjudication before depositing versioned artifacts into the OHDSI Phenotype Library.
+1. **The Idea (Clinical Description)**: Establish a comprehensive clinical description specifying the pathophysiological mechanism, presenting clinical signs and symptoms, diagnostic criteria and confirmatory biomarkers, standard-of-care pharmacotherapies and procedural interventions, and differential diagnoses requiring explicit exclusion.
+2. **Implementation (Circe Logic)**: Translate clinical specifications into executable OMOP CDM cohort criteria utilizing standardized concept set expressions and deterministic temporal logic.
+3. **Iteration (Diagnostic Levers)**: Employ diagnostic packages (`CohortDiagnostics` and `CohortDiagnostics Lite`) concurrently during cohort specification. Evaluate patient accrual, temporal incidence stability, care setting distributions (inpatient vs. ambulatory), and orphan concept prevalence.
+4. **Trust (Empirical Evaluation)**: Evaluate phenotype performance across federated health systems using objective Poisson spline stability diagnostics and probabilistic phenotyping (`PheValuator`) to estimate sensitivity, specificity, and positive predictive value prior to versioned publication in the OHDSI Phenotype Library.
 
-TAXIS directly operationalizes this 4-stage cycle by coupling Dr. Stephen H. Bandeian's 40-batch Concept AB Mining Engine (Pipeline v57 across 2.16M longitudinal patients) with the 112-code clinical relationship taxonomy, the 6-bucket slot architecture, and automated HADES package generators.
+TAXIS provides the foundational empirical data to support this 4-stage cycle. To be clear, we are not shipping a production cohort algorithm builder or a negative control selector in this repository. Our primary focus is building out, releasing, and maintaining TAXIS as an OHDSI network study. By running this study across diverse data partner sources, we compute comprehensive datasets of concept A–B pair summaries—capturing observed co-occurrences, temporal precedence, and utilization-stratified lift—and publish them as an open public resource. 
+
+In this repository, we share a crude proof of concept illustrating how future applications can build on this foundation. Specifically, we demonstrate how TAXIS concept pair summaries can help researchers structure standard Circe cohort expressions that match OHDSI Clinical Descriptions.
 
 ---
 
-## 2. The Neuro-Symbolic Proposer-Validator Framework & RWD Error Taxonomy
+## 2. Epidemiological Artefacts and Phenotypic Misclassification in Real-World Data
 
-### 2.1 Proposer-Validator Neuro-Symbolic Architecture
+### 2.1 Neuro-Symbolic Synergy: Generative Clinical Proposers and Deterministic OMOP Validators
 
-Discussions in Topic 25158 emphasized that neither pure large language models (LLMs) nor pure manual rule-crafting can resolve the clinical phenotyping bottleneck alone:
-- **LLMs as Creative Proposers**: LLMs excel at semantic expansion, clinical terminology translation, and identifying obscure clinical synonyms, diagnostic mimics, and guideline nuances. However, unconstrained LLMs suffer from hallucination, lack awareness of local vocabulary mapping idiosyncrasies, and cannot guarantee deterministic execution.
-- **TAXIS & Circe as Deterministic Validators**: The OMOP Common Data Model, SQL/Circe rules, and the Concept AB association matrix act as the rigid, symbolic validator. The validator tests whether proposed concepts actually exist in real patient data, enforces temporal boundaries, calculates empirical association lift, and executes reproducible cohort generation.
+Workgroup deliberations established that neither heuristic generative models nor manual rule specification in isolation resolves the phenotype engineering bottleneck:
+- **Generative Clinical Proposers**: Large language models excel at lexical synthesis, semantic expansion of clinical synonyms, and extracting guideline-recommended diagnostic modalities. However, ungrounded generative models lack calibration to real-world healthcare delivery and routinely hallucinate invalid vocabulary identifiers or propose clinical associations with negligible observational support.
+- **Deterministic OMOP Validators**: The OMOP Common Data Model, Circe cohort compiler, and the TAXIS empirical association matrix provide deterministic grounding. They substantiate whether proposed concepts demonstrate adequate empirical prevalence and temporal precedence in longitudinal patient data, compiling reproducible, audit-compliant Circe cohort expressions.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                              NEURO-SYMBOLIC PROPOSER-VALIDATOR ARCHITECTURE                            │
+│                              PROPOSER-VALIDATOR COLLABORATIVE ARCHITECTURE                             │
 └───────────────────────────────────────────────────┬────────────────────────────────────────────────────┘
                                                     │
                  ┌──────────────────────────────────┴──────────────────────────────────┐
                  ▼                                                                     ▼
     ┌───────────────────────────────┐                                     ┌───────────────────────────────┐
-    │ NEURAL PROPOSER               │                                     │ SYMBOLIC VALIDATOR            │
-    │ (LLM / Clinical Agent)        │                                     │ (TAXIS Engine / Circe / CDM)  │
+    │ CLINICAL AI PROPOSER          │                                     │ OMOP / TAXIS VALIDATOR        │
+    │ (LLM / Medical Informatician) │                                     │ (Empirical Engine & Circe)    │
     │                               │                                     │                               │
-    │ • Clinical Description Parser │                                     │ • Concept AB Association Graph│
-    │ • Synonym & Code Generator    │────────────────────────────────────►│ • Empirical Lift & Direction  │
-    │ • Mimic & Biomarker Proposer  │      Candidate Concept Vectors      │ • OMOP CDM Vocabulary Anchor  │
-    │ • 6D Slot Assignment          │                                     │ • Circe JSON Compiler         │
+    │ • Parses Clinical Description │                                     │ • Concept AB Association Graph│
+    │ • Brainstorms Synonyms & Labs │────────────────────────────────────►│ • Empirical Lift & Direction  │
+    │ • Flags Mimics & Biomarkers   │      Candidate Concept Vectors      │ • OMOP CDM Vocabulary Anchor  │
+    │ • Organizes into 6 Slots      │                                     │ • Circe JSON Compiler         │
     └───────────────────────────────┘                                     └───────────────┬───────────────┘
                  ▲                                                                        │
                  │                     Empirical Feedback & Diagnostics                   │
                  └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 Real-World Data (RWD) Cardiology Error Taxonomy
+### 2.2 Limitations of Unconstrained Diagnostic Codes in Observational Healthcare Data
 
-Empirical chart reviews and interactive workgroup sessions (Topic 25158, Slides 16–48) revealed that relying strictly on primary diagnosis codes induces severe systematic error:
+Clinical chart review and validation studies establish that cohort definitions relying exclusively on unconstrained diagnostic billing codes incur substantial systematic error. In acute emergency settings, diagnostic evaluations frequently generate provisional rule-out diagnostic billing codes. For example, a patient presenting with acute chest pain may receive an acute myocardial infarction billing code solely because cardiac enzymes and electrocardiography were ordered; if serial biomarkers are normal and the patient is discharged with gastroesophageal reflux disease, the provisional diagnosis persists in administrative records as an unconfirmed false positive. Similarly, active problem lists in electronic health records frequently replicate historical diagnoses longitudinally across years due to documentation inertia and clinical note copy-forwarding, confounding incident event identification with historical prevalence.
 
-```text
-┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                REAL-WORLD DATA CARDIOLOGY ERROR TAXONOMY                               │
-└───────────────────────────────────┬───────────────────────────────────┬────────────────────────────────┘
-                                    │                                   │
-                                    ▼                                   ▼
-             ┌──────────────────────────────────────────────┐ ┌──────────────────────────────────────────────┐
-             │ FALSE POSITIVE DRIVERS (Specificity Deficits)│ │ FALSE NEGATIVE DRIVERS (Sensitivity Deficits)│
-             ├──────────────────────────────────────────────┤ ├──────────────────────────────────────────────┤
-             │ 1. Emergency Department "Rule-Out" Codes:    │ │ 1. Physician "Click Fatigue":                │
-             │    Provisional billing codes assigned during │ │    During emergency resuscitation, providers │
-             │    acute chest pain evaluations where enzyme │ │    often select generic "chest pain" or      │
-             │    biomarkers and angiography are normal.    │ │    "CAD" codes while AMI is in text notes.   │
-             │                                              │ │                                              │
-             │ 2. Problem-List "Copy-Forward" Macros:       │ │ 2. Surgical & Procedural Silos:              │
-             │    Historical AMI diagnoses duplicated       │ │    Post-operative infarcts occurring during  │
-             │    automatically into outpatient encounter   │ │    CABG or non-cardiac surgery are often     │
-             │    diagnoses years after the acute event.    │ │    coded solely as surgical complications.   │
-             │                                              │ │                                              │
-             │ 3. Isolated Biomarker Elevations:            │ │ 3. Out-of-Hospital / Pre-Arrival Death:      │
-             │    Troponin leaks due to renal failure or    │ │    Fatal acute events where patients expire  │
-             │    sepsis (myocardial injury, not infarct).  │ │    prior to hospital admission or lab draw.  │
-             └──────────────────────────────────────────────┘ └──────────────────────────────────────────────┘
-```
+Conversely, requiring highly specific diagnostic codes introduces profound false-negative misclassification. During critical care resuscitations, providers frequently enter non-specific symptom codes (e.g., chest pain) or general chronic condition codes (e.g., coronary atherosclerosis) rather than definitive acute infarction codes, with definitive clinical confirmation documented only in narrative clinical notes. Perioperative myocardial infarctions during coronary artery bypass graft surgery may be recorded exclusively as non-specific surgical complications, and catastrophic out-of-hospital events where patients expire prior to formal admission frequently lack diagnostic billing records entirely.
 
-To neutralize these error modes, TAXIS structures phenotyping logic into six distinct clinical element slots.
+To demonstrate how empirical data can assist downstream tools in addressing both misclassification modes, our proof-of-concept pipeline organizes clinical logic into six functional element slots.
 
 ---
 
 ## 3. The 6-Bucket Clinical Element Slot Architecture
 
-TAXIS translates the 6-dimensional clinical element framework formulated in Topic 25158 into deterministic computable slots. Each bucket maps directly to TAXIS empirical association pairs, temporal precedence ratios ($DR$), and standard Circe criteria blocks:
+Rather than treating a phenotype as a single flat list of diagnosis codes, our proof-of-concept architecture organizes clinical concepts into six functional buckets based on how medical care is delivered. Each bucket maps directly to TAXIS empirical concept pairs, directional precedence ratios ($DR$), and standard Circe criteria blocks:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -164,9 +135,9 @@ TAXIS translates the 6-dimensional clinical element framework formulated in Topi
                                │                                         │
                                ▼                                         ▼
                     ┌────────────────────────┐                ┌────────────────────────┐
-                    │ BUCKET 6:              │                │ SYNTHESIS ENGINE:      │
+                    │ BUCKET 6:              │                │ PROOF-OF-CONCEPT:      │
                     │ ALTERNATIVE DIAGNOSES  │                │ MULTI-TIERED CIRCE     │
-                    │ & EXCLUSIONARY MIMICS  │                │ COHORT DEFINITIONS     │
+                    │ & EXCLUSIONARY MIMICS  │                │ DEMONSTRATIONS         │
                     │                        │                │                        │
                     │ • Competing causes     │                │ • Tier 1: Strict       │
                     │ • Rule-out diagnoses   │                │ • Tier 2: Surveillance │
@@ -174,49 +145,35 @@ TAXIS translates the 6-dimensional clinical element framework formulated in Topi
                     └────────────────────────┘                └────────────────────────┘
 ```
 
-### 3.1 Bucket Mapping Matrix
-
-| Bucket # | Clinical Element Definition | TAXIS Association RelCodes | OMOP CDM Domain | Circe Criteria Placement | Temporal Window ($\Delta t$) |
-|---|---|---|---|---|---|
-| **Bucket 1** | **Diagnosis of Interest (Primary Anchor)** | Self-concept (`PrimaryCriteria`) | Condition | `PrimaryCriteria.CriteriaList` | Index Day ($t = 0$) |
-| **Bucket 2** | **Symptoms & Clinical Findings** | `ASSOC_SYMPTOM`, `ASSOC_SIGN` | Condition, Observation | `InclusionRules` (Corroborating) | $[-7, +1]$ days |
-| **Bucket 3** | **Diagnostic Labs & Testing Procedures** | `DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED` | Measurement, Procedure | `InclusionRules` (Confirmatory) | $[-1, +3]$ days |
-| **Bucket 4** | **Therapeutic Interventions (Rx & Proc)** | `THER_FIRST_LINE`, `THER_INTERVENTION_PROC` | DrugExposure, Procedure | `InclusionRules` (Infarct/Event Therapy) | $[0, +2]$ days |
-| **Bucket 5** | **Acute & Downstream Complications** | `PROG_COMPLICATION` | Condition | Characterization / Secondary Covariates | $[+1, +30]$ days |
-| **Bucket 6** | **Alternative Diagnoses & Rule-Out Mimics** | `ASSOC_MIMIC`, `DIAG_RULE_OUT` | Condition | `CensoringCriteria` or Exclusion Rules | $[0, +7]$ days |
+1. **Bucket 1 (Primary Anchor)**: The core condition of interest that defines index presentation, requiring at least 365 days of continuous prior observation to confirm incident onset.
+2. **Bucket 2 (Symptoms and Presentation)**: Cardinal signs and presenting complaints that typically appear immediately antecedent to or on the index date ($[-7, +1]$ days).
+3. **Bucket 3 (Diagnostic Labs and Procedures)**: Confirmatory biomarker measurements and diagnostic imaging ordered during clinical evaluation ($[-1, +3]$ days).
+4. **Bucket 4 (Therapeutic Interventions)**: First-line pharmacotherapies and definitive procedural interventions administered once a clinical diagnosis is established ($[0, +2]$ days). Because clinicians infrequently administer invasive procedures or initiate acute disease-specific pharmacotherapies during provisional rule-out evaluations, this bucket provides the most robust empirical discrimination for true clinical cases.
+5. **Bucket 5 (Complications and Progression)**: Downstream sequelae and acute organ failure developing in the weeks following the index event ($[+1, +30]$ days).
+6. **Bucket 6 (Alternative Diagnoses and Look-Alikes)**: Competing conditions that present with overlapping symptomatology and must be evaluated as differential exclusions or censoring criteria ($[0, +7]$ days).
 
 ---
 
-## 4. Multi-Tiered Circe Phenotype Generation Engine & Measurement Error
+## 4. Demonstrating Multi-Tiered Cohort Strategies
 
-### 4.1 Measurement Error Sensitivity (James Weaver Analysis)
+### 4.1 Phenotypic Heterogeneity and Sensitivity in Observational Research
 
-Workgroup presentations by James Weaver ([Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940)) demonstrated that small, unstandardized variations in phenotype logic induce massive divergence in epidemiological metrics:
-- In an empirical evaluation of **Major Depressive Disorder (MDD)** across network databases, varying phenotype criteria (inpatient vs. outpatient settings, 1 code vs. 2 codes within 30 days, requiring concurrent antidepressant prescriptions) resulted in an astounding **40-fold variation in calculated incidence rates**.
-- If causal inference or comparative safety analyses are conducted without anchoring definitions to explicit specificity and sensitivity tiers, the resulting hazard ratios reflect phenotype selection bias rather than true pharmacological effect.
+During workgroup presentations, James Weaver demonstrated that minor, unstandardized variations in cohort operational criteria induce substantial discrepancies across observational study findings. In an evaluation of Major Depressive Disorder (MDD) across multiple healthcare databases, altering phenotypic criteria—such as restricting to inpatient versus outpatient care settings, requiring single versus recurrent diagnostic code instances, or mandating concurrent antidepressant therapy—yielded a 40-fold variation in calculated incidence rates.
 
-To resolve this, TAXIS systematically synthesizes **three coordinated cohort tiers** for every clinical concept:
+When observational researchers conduct comparative safety or causal inference studies without defining explicit target cohort specifications, observed associations frequently reflect phenotypic selection bias rather than genuine pharmacological effects. To illustrate how empirical association mining informs phenotype engineering, our proof-of-concept framework operationalizes three coordinated cohort tiers:
 
-### 4.2 Tier 1: Strict / Epidemiologic Cohort (High Specificity — Comparative Safety & Trials)
-- **Design Target**: Positive Predictive Value $\ge 92\%$, Specificity $\ge 98\%$.
-- **Methodological Design**: Treatment-enriched design structured to eliminate Emergency Department rule-outs and diagnostic evaluations from active-comparator cohorts. While clinical consensus definitions (e.g., the Fourth Universal Definition of MI) classify infarcts pathologically regardless of procedural intervention, requiring invasive revascularization or acute pharmacological therapy serves as an indispensable design filter for observational studies.
-- **Anchor Criteria**: Inpatient hospitalization or Emergency Department visit with primary diagnosis of interest.
-- **Intervention Gate**: Requires at least one definitive therapeutic procedure (`THER_INTERVENTION_PROC`) OR acute disease-specific pharmacotherapy (`THER_FIRST_LINE`) within $[0, +2]$ days of index.
-- **Methodological Conditioning Guardrail**: Requiring $[0, +2]$ day interventions and 90-day secondary prevention persistence conditions on post-index events. For comparative-safety or causal studies, immortal time and post-index selection must be formally addressed (e.g., via landmark designs or time-dependent confounding adjustments) rather than treating raw Tier 1 as an unadjusted causal baseline.
-- **Confirmatory Testing**: Requires at least one confirmatory laboratory biomarker or diagnostic procedure (`DIAG_LAB_CONFIRMATORY`) within $[-1, +2]$ days.
-- **Mimic Exclusions**: Excludes patients with primary competing diagnoses coded concurrently without definitive interventional therapy.
+### 4.2 Tier 1: High-Specificity Cohorts for Comparative Safety and Causal Inference
+In comparative safety investigations and active-comparator cohort designs, maximizing phenotypic specificity ($\ge 98\%$) and positive predictive value ($\ge 92\%$) by eliminating false-positive misclassification and transient rule-out diagnostic encounters constitutes a paramount methodological requirement. In our proof-of-concept pipeline, a Tier 1 cohort anchors on acute inpatient or emergency presentations, requires objective confirmatory diagnostic testing (Bucket 3), and mandates definitive therapeutic procedures or disease-specific pharmacotherapies (Bucket 4) within two days of index event presentation. Because clinicians restrict definitive interventions to patients with established diagnostic certainty, this treatment-enriched phenotype logic effectively purges single-day rule-out evaluations. When implementing post-index criteria in causal inference protocols, investigators must apply formal landmark or target trial emulation methods to avoid conditioning on post-baseline events and introducing immortal time bias.
 
-### 4.3 Tier 2: Broad / Surveillance Cohort (High Sensitivity — Incidence & Natural History)
-- **Design Target**: Sensitivity $\ge 95\%$, Specificity $\ge 88\%$.
-- **Anchor Criteria**: Inpatient, Emergency Department, or intensive outpatient encounter with diagnosis of interest in any position (primary or secondary).
-- **Testing Requirement**: Requires at least one diagnostic procedure or laboratory measurement order within $[-7, +7]$ days, confirming clinical suspicion.
-- **Intervention Gate**: Optional (does not mandate invasive procedures, ensuring elderly, frail, palliative, or conservatively managed patients are preserved).
+### 4.3 Tier 2: High-Sensitivity Cohorts for Disease Surveillance and Natural History
+When estimating disease incidence, prevalence, or natural history trajectories, mandating procedural or pharmacological interventions would systematically exclude frail, elderly, or conservatively managed patients. A Tier 2 surveillance cohort relaxes therapeutic requirements, capturing clinical presentations across all care settings corroborated by diagnostic testing (Bucket 3) within a fourteen-day window ($\pm 7$ days) to confirm diagnostic evaluation while maintaining high sensitivity ($\ge 95\%$).
 
-### 4.4 Tier 3: Diagnostic Evaluators & Probabilistic Phenotyping (Joel Swerdel Benchmarks)
-- **Extremely Specific Cohort (`xSpec`)**: Tier 1 + positive biomarker result + secondary prevention persistence $\ge 90$ days. Serves as noisy positive training set for `PheValuator::createEvaluationCohort`.
-- **Extremely Sensitive Cohort (`xSens`)**: Formulated strictly in accordance with OHDSI `PheValuator` methodology as a **broad non-case exclusion zone**. Encompasses any patient presenting with suggestive symptoms, related diagnostic codes, or work-up orders within $\pm 30$ days. During predictive model training, any patient inside the `xSens` boundary who is not in `xSpec` is **excluded from the negative training set**, preventing plausible, mild, or conservatively managed cases from contaminating the noisy control pool.
-- **Covariate Exclusion Contract**: Label-defining diagnosis, procedure, drug, and laboratory measurement features are strictly excluded from predictive covariates during model fitting. Full model calibration additionally requires empirical prevalence calibration and validation on held-out test splits.
-- **Clinical Trial Concordance (Joel Swerdel Findings)**: In rigorous empirical benchmarking against published clinical trial results presented in Topic 20940, **probabilistic phenotyping (L1-regularized LASSO logistic regression on noisy labels) achieved 77% concordance with trial confidence intervals**, compared to only **23% concordance for traditional deterministic rule-based phenotypes**. This establishes the critical value of TAXIS Tier 3 automated evaluator generation for predictive phenotyping.
+### 4.4 Tier 3: Evaluator Sets for Diagnostic Modeling (`PheValuator`)
+To evaluate phenotype performance across network databases without relying on expensive manual chart review, OHDSI developed `PheValuator`, which trains regularized predictive models using noisy training labels:
+- **The Extremely Specific Set (`xSpec`)**: Built on Tier 1 criteria plus positive lab biomarkers and long-term secondary prevention persistence ($\ge 90$ days), providing a high-confidence noisy positive set.
+- **The Sensitive Non-Case Boundary (`xSens`)**: Defines a broad exclusion zone encompassing any patient presenting with suggestive symptoms, related codes, or workup orders within $\pm 30$ days. Patients inside `xSens` who are not in `xSpec` are excluded from the negative training pool, preventing plausible, mild cases from contaminating the control group.
+
+In empirical benchmarks presented in the workgroup, probabilistic models trained on these automated evaluator sets achieved 77% concordance with published clinical trial confidence intervals, compared to only 23% concordance for traditional rule-based algorithms. This demonstrates the potential value of using TAXIS concept pair summaries to inform diagnostic evaluator designs.
 
 ---
 

@@ -1,12 +1,15 @@
 Sys.setenv(JAVA_HOME = "C:/Program Files/DBeaver/jre")
+options(databaseConnectorInteger64AsNumeric = FALSE)
 library(DatabaseConnector)
 library(SqlRender)
+library(digest)
 
 cat("====================================================================\n")
 cat(" CONCEPT_AB Mining Engine v57 - Bounded Minimal PostgreSQL Run\n")
 cat("====================================================================\n")
 
 startTime <- Sys.time()
+runId <- paste0("run_", format(Sys.time(), "%Y%m%d_%H%M%S"))
 
 # Configuration
 dbHost <- "localhost"
@@ -33,39 +36,62 @@ receiptPath <- "c:/files/git/github/ohdsi-studies/Taxis/extras/pipeline_v57_run_
 phaseResults <- list()
 tableCounts <- list()
 
-# Connect
-cat("--> Connecting to PostgreSQL at", paste0(dbHost, ":", dbPort, "/", dbName), "...\n")
-connectionDetails <- createConnectionDetails(
-  dbms = "postgresql",
-  server = paste0(dbHost, "/", dbName),
-  port = dbPort,
-  user = dbUser,
-  password = dbPass,
-  pathToDriver = jarFolder
+# Calculate dynamic digests of the SQL files actually executed
+initPath  <- file.path(sqlDir, "concept_ab_init.sql")
+batchPath <- file.path(sqlDir, "concept_ab_batch.sql")
+finPath   <- file.path(sqlDir, "concept_ab_finalize.sql")
+
+if (!file.exists(initPath) || !file.exists(batchPath) || !file.exists(finPath)) {
+  stop("FATAL: Required SQL files not found in ", sqlDir)
+}
+
+sqlHashes <- list(
+  concept_ab_init_sha256     = digest::digest(file = initPath, algo = "sha256"),
+  concept_ab_batch_sha256    = digest::digest(file = batchPath, algo = "sha256"),
+  concept_ab_finalize_sha256 = digest::digest(file = finPath, algo = "sha256")
 )
 
-conn <- tryCatch({
-  connect(connectionDetails)
-}, error = function(e) {
-  cat("FATAL: Failed to connect to PostgreSQL:", e$message, "\n")
-  quit(status = 1, save = "no")
-})
-cat("    Connected successfully.\n")
+cat("--> Verified SQL digests:\n")
+cat("    init.sql    :", sqlHashes$concept_ab_init_sha256, "\n")
+cat("    batch.sql   :", sqlHashes$concept_ab_batch_sha256, "\n")
+cat("    finalize.sql:", sqlHashes$concept_ab_finalize_sha256, "\n")
 
-# Ensure results schema exists
-cat("--> Ensuring results schema '", resultsSchema, "' exists...\n", sep = "")
-executeSql(conn, paste0("CREATE SCHEMA IF NOT EXISTS ", resultsSchema, ";"), progressBar = FALSE)
+# Pre-invalidate prior success by writing an initial RUNNING receipt (REC-063-1)
+preReceipt <- list(
+  run_id = runId,
+  run_timestamp = strftime(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+  status = "RUNNING",
+  total_duration_seconds = 0,
+  tool_versions = list(
+    r_version = R.version.string,
+    sqlrender_version = as.character(packageVersion("SqlRender")),
+    databaseconnector_version = as.character(packageVersion("DatabaseConnector")),
+    digest_version = as.character(packageVersion("digest"))
+  ),
+  sql_hashes = sqlHashes,
+  parameters = list(
+    dbms = "postgresql",
+    database = dbName,
+    cdm_schema = cdmSchema,
+    project_reference_schema = projectRefSchema,
+    results_schema = resultsSchema,
+    batch_count = batchCount,
+    batch_number = batchNumber,
+    window_days = windowDays,
+    threshold_support_count = 10,
+    threshold_support_fraction = 0.001,
+    threshold_pair_count = 5
+  )
+)
+writeLines(as.character(jsonlite::toJSON(preReceipt, pretty = TRUE, auto_unbox = TRUE)), receiptPath)
+cat("--> Pre-wrote RUNNING receipt to invalidate prior state (run_id:", runId, ")\n")
 
-# Helper function to render, translate, dump, and execute SQL
-executePhase <- function(phaseName, sqlFileName, paramList) {
+# Helper function to render, translate, and execute SQL with statement-splitting
+executePhase <- function(connection, phaseName, sqlFileName, paramList) {
   cat("\n--------------------------------------------------------------------\n")
   cat(" Starting Phase:", phaseName, "(", sqlFileName, ")\n")
   cat("--------------------------------------------------------------------\n")
   sqlPath <- file.path(sqlDir, sqlFileName)
-  if (!file.exists(sqlPath)) {
-    stop("SQL file does not exist: ", sqlPath)
-  }
-  
   rawSql <- paste(readLines(sqlPath, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
   
   cat("--> Rendering SQL with SqlRender...\n")
@@ -73,14 +99,6 @@ executePhase <- function(phaseName, sqlFileName, paramList) {
   
   cat("--> Translating to PostgreSQL dialect...\n")
   translatedSql <- translate(renderedSql, targetDialect = "postgresql")
-  
-  # Dump rendered SQL (optional debug)
-  dumpDebugSql <- FALSE
-  if (dumpDebugSql) {
-    debugFile <- file.path("c:/files/git/github/ohdsi-studies/Taxis/extras", paste0("rendered_", phaseName, ".sql"))
-    writeLines(translatedSql, debugFile)
-    cat("    Saved rendered/translated SQL to:", debugFile, "\n")
-  }
   
   cat("--> Splitting SQL statements and filtering empty blocks...\n")
   statements <- splitSql(translatedSql)
@@ -90,7 +108,7 @@ executePhase <- function(phaseName, sqlFileName, paramList) {
   t0 <- Sys.time()
   pb <- txtProgressBar(min = 0, max = length(statements), style = 3)
   for (i in seq_along(statements)) {
-    executeSql(conn, statements[i], progressBar = FALSE)
+    executeSql(connection, statements[i], progressBar = FALSE)
     setTxtProgressBar(pb, i)
   }
   close(pb)
@@ -100,13 +118,55 @@ executePhase <- function(phaseName, sqlFileName, paramList) {
   return(list(status = "PASS", duration_seconds = as.numeric(elapsedSecs)))
 }
 
-# Main Execution Flow
+# Main Execution Flow wrapped completely in tryCatch
 executionFailed <- FALSE
 errorMessage <- ""
+conn <- NULL
 
 tryCatch({
+  # Connect to PostgreSQL
+  cat("--> Connecting to PostgreSQL at", paste0(dbHost, ":", dbPort, "/", dbName), "...\n")
+  connectionDetails <- createConnectionDetails(
+    dbms = "postgresql",
+    server = paste0(dbHost, "/", dbName),
+    port = dbPort,
+    user = dbUser,
+    password = dbPass,
+    pathToDriver = jarFolder
+  )
+  conn <- connect(connectionDetails)
+  cat("    Connected successfully.\n")
+
+  # Ensure results schema exists
+  cat("--> Ensuring results schema '", resultsSchema, "' exists...\n", sep = "")
+  executeSql(conn, paste0("CREATE SCHEMA IF NOT EXISTS ", resultsSchema, ";"), progressBar = FALSE)
+
+  # Create and bind run receipt table in results schema to track identified run
+  receiptDdl <- paste0(
+    "CREATE TABLE IF NOT EXISTS ", resultsSchema, ".taxis_run_receipt (\n",
+    "  run_id VARCHAR(64) PRIMARY KEY,\n",
+    "  run_timestamp TIMESTAMP WITH TIME ZONE,\n",
+    "  status VARCHAR(32),\n",
+    "  batch_count INT,\n",
+    "  window_days INT,\n",
+    "  init_sha256 VARCHAR(64),\n",
+    "  batch_sha256 VARCHAR(64),\n",
+    "  finalize_sha256 VARCHAR(64)\n",
+    ");"
+  )
+  executeSql(conn, receiptDdl, progressBar = FALSE)
+
+  # Insert in-flight run record
+  insertReceiptSql <- sprintf(
+    "INSERT INTO %s.taxis_run_receipt (run_id, run_timestamp, status, batch_count, window_days, init_sha256, batch_sha256, finalize_sha256) VALUES ('%s', clock_timestamp(), 'RUNNING', %d, %d, '%s', '%s', '%s') ON CONFLICT (run_id) DO UPDATE SET status = 'RUNNING';",
+    resultsSchema, runId, batchCount, windowDays, sqlHashes$concept_ab_init_sha256, sqlHashes$concept_ab_batch_sha256, sqlHashes$concept_ab_finalize_sha256
+  )
+  executeSql(conn, insertReceiptSql, progressBar = FALSE)
+  cat("    Bound identified run to database table:", paste0(resultsSchema, ".taxis_run_receipt"), "\n")
+
   # Phase 1: INIT
   resInit <- executePhase(
+    connection = conn,
     phaseName = "init",
     sqlFileName = "concept_ab_init.sql",
     paramList = list(
@@ -122,6 +182,7 @@ tryCatch({
   
   # Phase 2: BATCH (Partition 1 of 1)
   resBatch <- executePhase(
+    connection = conn,
     phaseName = "batch_1",
     sqlFileName = "concept_ab_batch.sql",
     paramList = list(
@@ -142,6 +203,7 @@ tryCatch({
   
   # Phase 3: FINALIZE
   resFinal <- executePhase(
+    connection = conn,
     phaseName = "finalize",
     sqlFileName = "concept_ab_finalize.sql",
     paramList = list(
@@ -173,9 +235,17 @@ tryCatch({
   for (t in tables$table_name) {
     cntQuery <- paste0("SELECT COUNT(*) AS cnt FROM ", resultsSchema, ".", t, ";")
     cnt <- querySql(conn, cntQuery)
-    tableCounts[[t]] <- as.integer(cnt$cnt[1])
-    cat(sprintf("  %-35s : %10d rows\n", paste0(resultsSchema, ".", t), cnt$cnt[1]))
+    cntVal <- as.numeric(cnt$cnt[1])
+    tableCounts[[t]] <- cntVal
+    cat(sprintf("  %-35s : %10.0f rows\n", paste0(resultsSchema, ".", t), cntVal))
   }
+
+  # Update database run receipt to SUCCESS
+  updateReceiptSql <- sprintf(
+    "UPDATE %s.taxis_run_receipt SET status = 'SUCCESS' WHERE run_id = '%s';",
+    resultsSchema, runId
+  )
+  executeSql(conn, updateReceiptSql, progressBar = FALSE)
   
 }, error = function(e) {
   cat("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
@@ -184,30 +254,40 @@ tryCatch({
   cat("Message:\n", e$message, "\n")
   executionFailed <<- TRUE
   errorMessage <<- e$message
+
+  if (!is.null(conn)) {
+    tryCatch({
+      failSql <- sprintf(
+        "UPDATE %s.taxis_run_receipt SET status = 'FAILED' WHERE run_id = '%s';",
+        resultsSchema, runId
+      )
+      executeSql(conn, failSql, progressBar = FALSE)
+    }, error = function(e2) {})
+  }
 }, finally = {
-  disconnect(conn)
-  cat("\nConnection closed.\n")
+  if (!is.null(conn)) {
+    disconnect(conn)
+    cat("\nConnection closed.\n")
+  }
 })
 
 # Compute overall execution receipt
 endTime <- Sys.time()
 totalElapsed <- as.numeric(round(difftime(endTime, startTime, units = "secs"), 2))
 
-# Write run receipt JSON
-receiptList <- list(
-  run_timestamp = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ"),
+# Write final run receipt JSON
+finalReceipt <- list(
+  run_id = runId,
+  run_timestamp = strftime(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
   status = if (executionFailed) "FAILED" else "SUCCESS",
   total_duration_seconds = totalElapsed,
   tool_versions = list(
     r_version = R.version.string,
     sqlrender_version = as.character(packageVersion("SqlRender")),
-    databaseconnector_version = as.character(packageVersion("DatabaseConnector"))
+    databaseconnector_version = as.character(packageVersion("DatabaseConnector")),
+    digest_version = as.character(packageVersion("digest"))
   ),
-  sql_hashes = list(
-    concept_ab_init_sha256 = "b6afbf6133882220d91d803ad8f51a7be8e70a58f47f2db8a2ba7433827ee595",
-    concept_ab_batch_sha256 = "d4e833dccfc6eb3bd5768e146ebbb6242c730e1df07412f1db95e6834d8583fb",
-    concept_ab_finalize_sha256 = "b0c5e6f2d8b63d9bd33c467aebaa2a4ec29124237198bb602c385f02bc6e71ef"
-  ),
+  sql_hashes = sqlHashes,
   parameters = list(
     dbms = "postgresql",
     database = dbName,
@@ -216,7 +296,10 @@ receiptList <- list(
     results_schema = resultsSchema,
     batch_count = batchCount,
     batch_number = batchNumber,
-    window_days = windowDays
+    window_days = windowDays,
+    threshold_support_count = 10,
+    threshold_support_fraction = 0.001,
+    threshold_pair_count = 5
   ),
   phase_results = phaseResults,
   table_count = length(tableCounts),
@@ -224,9 +307,7 @@ receiptList <- list(
   error_message = if (executionFailed) errorMessage else NULL
 )
 
-# Convert to JSON and save using jsonlite
-jsonText <- jsonlite::toJSON(receiptList, pretty = TRUE, auto_unbox = TRUE)
-writeLines(as.character(jsonText), receiptPath)
+writeLines(as.character(jsonlite::toJSON(finalReceipt, pretty = TRUE, auto_unbox = TRUE)), receiptPath)
 cat("Execution receipt saved to:", receiptPath, "\n")
 
 if (executionFailed) {

@@ -116,6 +116,15 @@ runConceptMining <- function(connectionDetails,
   # Determine dialect-appropriate timestamp expression
   nowExpr <- if (tolower(connectionDetails$dbms) == "postgresql") "clock_timestamp()" else "CURRENT_TIMESTAMP"
 
+  # Ensure results schema exists
+  if (tolower(connectionDetails$dbms) %in% c("postgresql", "redshift", "sql server")) {
+    try(DatabaseConnector::executeSql(conn, sprintf("CREATE SCHEMA IF NOT EXISTS %s;", resultsDatabaseSchema), progressBar = FALSE), silent = TRUE)
+  }
+
+  oldOpt <- getOption("databaseConnectorInteger64AsNumeric")
+  options(databaseConnectorInteger64AsNumeric = FALSE)
+  on.exit(options(databaseConnectorInteger64AsNumeric = oldOpt), add = TRUE)
+
   # Determine finalization batch upper limit
   if (is.null(maxBatchNumber) || is.na(maxBatchNumber) || maxBatchNumber < 1L) {
     maxBatchNumber <- partialRunBatchLimit

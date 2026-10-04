@@ -1,16 +1,18 @@
 {
-  "run_timestamp": "2026-10-04T10:40:48Z",
+  "run_id": "run_20261004_111323",
+  "run_timestamp": "2026-10-04T15:13:49Z",
   "status": "SUCCESS",
-  "total_duration_seconds": 27.61,
+  "total_duration_seconds": 25.94,
   "tool_versions": {
     "r_version": "R version 4.6.1 (2026-06-24 ucrt)",
     "sqlrender_version": "1.19.7",
-    "databaseconnector_version": "8.0.0"
+    "databaseconnector_version": "8.0.0",
+    "digest_version": "0.6.39"
   },
   "sql_hashes": {
-    "concept_ab_init_sha256": "b6afbf6133882220d91d803ad8f51a7be8e70a58f47f2db8a2ba7433827ee595",
-    "concept_ab_batch_sha256": "d4e833dccfc6eb3bd5768e146ebbb6242c730e1df07412f1db95e6834d8583fb",
-    "concept_ab_finalize_sha256": "b0c5e6f2d8b63d9bd33c467aebaa2a4ec29124237198bb602c385f02bc6e71ef"
+    "concept_ab_init_sha256": "b6afbf6133882220f3eb507f5ddb7de19036f6b0a8bea3171f99ed55b3e9bc33",
+    "concept_ab_batch_sha256": "d4e833dccfc6eb3bed41353201adf32267675a91da26cb5eb2aa995870382930",
+    "concept_ab_finalize_sha256": "b0c5e6f2d8b63d9bf9fbbc453f5b7d90919981942bd8797309a1e63ec9031079"
   },
   "parameters": {
     "dbms": "postgresql",
@@ -20,23 +22,26 @@
     "results_schema": "work_cab_test",
     "batch_count": 1,
     "batch_number": 1,
-    "window_days": 35
+    "window_days": 35,
+    "threshold_support_count": 10,
+    "threshold_support_fraction": 0.001,
+    "threshold_pair_count": 5
   },
   "phase_results": {
     "init": {
       "status": "PASS",
-      "duration_seconds": 0.74
+      "duration_seconds": 0.62
     },
     "batch_1": {
       "status": "PASS",
-      "duration_seconds": 14.01
+      "duration_seconds": 13.72
     },
     "finalize": {
       "status": "PASS",
-      "duration_seconds": 10.04
+      "duration_seconds": 8.88
     }
   },
-  "table_count": 43,
+  "table_count": 44,
   "table_counts": {
     "all_persons_batch": 2694,
     "cab_person_attr": 2694,
@@ -58,13 +63,13 @@
     "cab_s13_strat_cum": 10,
     "cab_s20_marginal_all": 615,
     "cab_s20_marginal_cum": 615,
-    "cab_s23_strat_all": 1832,
-    "cab_s23_strat_cum": 1832,
+    "cab_s23_strat_all": 1834,
+    "cab_s23_strat_cum": 1834,
     "cab_s30_all": 14653,
     "cab_s30_cum": 14653,
     "cab_s33_mh_all": 4192,
-    "cab_s33_strat_all": 11467,
-    "cab_s33_strat_cum": 11467,
+    "cab_s33_strat_all": 11453,
+    "cab_s33_strat_cum": 11453,
     "cab_s37_lag_all": 405,
     "cab_s37_lag_cum": 405,
     "cab_s38_profile_all": 166,
@@ -80,7 +85,8 @@
     "meas_obs_attribute_s36_all": 228,
     "meas_obs_attribute_s36_cum": 228,
     "meas_obs_profile_s35_all": 76,
-    "meas_obs_profile_s35_cum": 76
+    "meas_obs_profile_s35_cum": 76,
+    "taxis_run_receipt": 4
   },
   "error_message": {}
 }

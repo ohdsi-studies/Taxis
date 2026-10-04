@@ -10,7 +10,7 @@
 > ### 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127)
 > **Dates**: October 20–22, 2026  
 > **Venue**: Hyatt Regency New Brunswick, New Brunswick, NJ  
-> **Showcase Deliverables**:  
+> **Deliverables**:  
 > - [Showcase #127 Brief Report Manuscript v6.0](docs/symposium_2026/TAXIS_Brief_Report_v6.md) (4-page submission text)  
 > - [48"x36" Digital Poster Presentation Guide](docs/symposium_2026/Poster_Presentation_Guide.md) (tri-panel layout & walkthrough script)  
 > - [2026 Symposium Dissemination Overview](docs/symposium_2026/README.md)  
@@ -22,115 +22,51 @@
 
 ---
 
-## 1. Executive Summary & Background
+## Scientific and Epidemiological Rationale
 
-**TAXIS** (*Transparent Analytic Knowledge Graph for Interoperable Science*) is an open-science OHDSI methodological research initiative that derives, structures, and evaluates clinical relationships from observational healthcare data mapped to the **OMOP Common Data Model (CDM v5.4)**.
+A central methodological challenge in observational health research, pharmacoepidemiology, and real-world evidence generation is characterizing how clinical events empirically co-occur and temporally associate across longitudinal patient care. Standard biomedical vocabularies and controlled ontologies—such as SNOMED-CT, RxNorm, and LOINC—provide hierarchical classifications based on formal nosology, pharmacologic class, and laboratory analytes. They classify what clinical entities *are* (for example, establishing that metformin is a biguanide antihyperglycemic agent, or that type 2 diabetes mellitus is a disorder of endocrine metabolism). However, these ontologies were not constructed to model how clinical care is operationalized in real-world practice. They do not specify which diagnostic laboratory assays are routinely ordered to achieve clinical confirmation, which pharmacotherapies constitute empirical first-line regimens, or which prodromal signs and symptoms precede formal diagnostic recording.
 
-The project name originates from the Greek ***τάξις*** (*táxis*), denoting *order*, *arrangement*, or *classification*. TAXIS investigates methods for structuring and evaluating observed relationships across longitudinal patient records.
+Empirical investigation underscores this ontology-practice gap. In an analysis of 26,901 frequently co-occurring clinical concept pairs mined across 2.16 million longitudinal patient records in the Indiana Network for Patient Care (INPC), standard biomedical ontologies documented an explicit clinical relationship for only 119 pairs (0.44%). The remaining 99.56% of real-world clinical relationships were completely absent from formal terminology models.
 
-### Background: Reusable Phenotypes in Observational Research
-
-Observational health research often relies on bespoke, study-by-study development of cohort definitions, covariate sets, and exclusion criteria. Developing these elements independently for each investigation requires substantial effort and can limit comparability across studies.
-
-To address this challenge, the **OHDSI Phenotype Development and Evaluation Workgroup** established the **OHDSI Phenotype Library**—advancing the vision of a centralized, open-science repository promoting the systematic reuse of peer-reviewed, computable phenotypes grounded in structured **Clinical Descriptions** (presentation, confirmatory laboratory criteria, first-line treatments, and differential exclusions).
-
-However, authoring multi-domain phenotypes across clinical medicine remains labor-intensive:
-- Across the **1,104 cohorts in the OHDSI Phenotype Library**, two-thirds remain basic single-concept code lists without logic rules.
-- **Fewer than 2%** incorporate multi-domain laboratory or medication qualification criteria.
-- **Terminology Characteristics**: Standard clinical vocabularies (SNOMED-CT, RxNorm, LOINC) standardize terminology (*what things are* via *is-a* hierarchies), while observational analyses often require understanding clinical relationships (*which treatments or tests associate with a given diagnosis in practice*).
-
-| Vocabulary Domain | Standard Vocabulary Focus (*Taxonomy*) | Observational Care Context |
-|---|---|---|
-| **SNOMED-CT** (Conditions) | *"Type 2 Diabetes is an Endocrine Disorder"* (`is-a`) | Associated confirmatory lab test (`HbA1c > 6.5%`) |
-| **RxNorm** (Drugs) | *"Metformin is a Biguanide"* (`ingredient_of`) | Associated indicated condition (`Type 2 Diabetes`) |
-| **LOINC** (Measurements) | *"4548-4 measures Hemoglobin A1c in Blood"* | Role of measurement (confirmatory, monitoring, screening) |
-
-- **Vocabulary Coverage in Observational Data**: In an analysis of **26,901 frequently co-occurring concept pairs** mined from 2.16M patient records in the Indiana Network for Patient Care (INPC) OMOP CDM:
-  - Existing standard terminologies (SNOMED, RxNorm, LOINC, MED-RT, NCI, UMLS) contained a documented relationship for **119 pairs (0.4%)**.
-  - Of those 119 relationships, **72 were hierarchical `is-a` subsumption links**.
-  - For the remaining pairs, standard terminologies do not explicitly define operational clinical relationships (such as drug indications or laboratory confirmatory links). Where standard vocabularies do document relationships, TAXIS shows high concordance (0.99 PPV), indicating that empirical mining can complement existing vocabularies by capturing operational relationships.
-
-### Methodological Framework
-
-TAXIS investigates whether empirical association rule mining combined with structured clinical taxonomies can help generate and evaluate candidate cohort definitions by uniting three components:
-1. **Association Rule Mining**: Applying association rule mining across **2.16 million longitudinal patient records (11.3M person-years)** in the Indiana Network for Patient Care (INPC), adjusting for observation windows and healthcare utilization frequency.
-2. **Standardized Clinical Taxonomy**: Applying a 112-code clinical taxonomy to categorize observational co-occurrences into a typed clinical knowledge graph.
-3. **Multi-Domain Phenotype Synthesis**: Using the resulting knowledge graph to link index conditions with associated laboratories, medications, and differential diagnoses, generating candidate Circe cohort definitions compatible with the OHDSI Phenotype Library.
+To address this structural gap, the **TAXIS** (*Transparent Analytic Knowledge Graph for Interoperable Science*) network study was established. TAXIS provides an empirical, data-driven association and temporal directionality layer across OMOP Common Data Model (CDM v5.4) databases. Our core focus is engineering, releasing, maintaining, and conducting an international OHDSI network study across heterogeneous health systems. By executing standardized association mining across federated network partners, TAXIS computes comprehensive summary datasets of concept A–B pairs—quantifying joint co-occurrence counts, temporal sequence directionality, and crude and healthcare utilization-stratified lift metrics—which are disseminated as an open, public scientific resource for the observational research community.
 
 ---
 
-## 2. Conceptual Applications of TAXIS: Phenotyping Workflow Optimization & Beyond
+## Methodological Positioning in Observational Research
 
-Observational health research encompasses multiple interconnected disciplines: cohort definition, negative control identification, study design, covariate selection, and evidence interpretation. **Phenotyping workflow optimization using TAXIS is one conceptual application of the TAXIS clinical knowledge layer.** While structured clinical knowledge graphs provide a computable foundation across the entire observational research lifecycle, phenotyping workflow optimization serves as the primary initial demonstration for the 2026 Collaborator Showcase.
+To establish clear architectural boundaries: **TAXIS is an empirical association mining engine and OHDSI network study package; it is not an end-user cohort algorithm builder or negative control selector application.** TAXIS provides the foundational empirical data infrastructure upon which advanced informatics tools can be developed.
 
-### Areas of Methodological Application
+Within this repository, the primary deliverable is the execution-ready network study package and its underlying association engine. The multi-site study computes standardized concept A–B pair summaries across participating observational databases. In addition, this codebase provides proof-of-concept demonstrations illustrating how translational informatics applications can leverage the empirical concept-pair resource:
 
-TAXIS is designed to explore applications across four areas of observational research:
+### 1. Computable Cohort Specification
+We demonstrate proof-of-concept workflows showing how TAXIS empirical associations can inform standardized OHDSI Circe JSON cohort definitions. Rather than relying solely on manual vocabulary curation to enumerate relevant diagnostic markers, co-prescribed therapies, or diagnostic mimics, downstream systems can query the TAXIS empirical layer to surface clinically associated entities. In this repository, our demonstration pipeline illustrates how these entities can be mapped into Circe cohort expressions aligned with peer-reviewed OHDSI Clinical Descriptions for expert clinical review.
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                       TAXIS METHODOLOGICAL AREAS                                       │
-└───────────────────────────────────────────────────┬────────────────────────────────────────────────────┘
-                                                    │
-    ┌───────────────────────────┬───────────────────┴───────────────┬────────────────────────────┐
-    ▼                           ▼                                   ▼                            ▼
-┌───────────────────────┐   ┌───────────────────────┐   ┌───────────────────────┐   ┌───────────────────────┐
-│ 1. PHENOTYPING        │   │ 2. NEGATIVE CONTROLS  │   │ 3. STUDY DESIGN &     │   │ 4. STUDY              │
-│    WORKFLOW OPTIMIZ.  │   │    & CALIBRATION      │   │    CONFOUNDING REDUCT.│   │    INTERPRETATION     │
-│    (INITIAL FOCUS)    │   │                       │   │                       │   │                       │
-│ • Reusable cohort     │   │ • Candidate negative  │   │ • Informs study design│   │ • Contextualizing     │
-│   definitions for     │   │   control outcome     │   │   choices to reduce   │   │   network study       │
-│   Phenotype Library   │   │   generation          │   │   confounding         │   │   estimates           │
-│ • Multi-domain "Bill  │   │ • Graph screening for │   │ • Graph-guided DAGs   │   │ • Evaluates residual  │
-│   of Materials"       │   │   absence of clinical │   │   identifying true    │   │   systematic bias     │
-│   (Labs, Drugs,       │   │   mechanism (Lift≈1)  │   │   confounders         │   │ • Distinguishes true  │
-│   Exclusions)         │   │ • Enables empirical   │   │ • Distinguishes       │   │   effects from        │
-│ • Reduces one-off     │   │   calibration battery │   │   mediators to avoid  │   │   protopathic bias or │
-│   manual authoring    │   │   synthesis           │   │   over-adjustment     │   │   indication bias     │
-└───────────────────────┘   └───────────────────────┘   └───────────────────────┘   └───────────────────────┘
-```
+### 2. Empirical Negative Control Selection
+Negative control outcomes are essential for empirical calibration and residual systematic error quantification in observational study designs. However, selecting valid candidate controls with genuine biological and clinical independence remains challenging. While TAXIS does not ship an interactive selection application, its empirical association matrix provides a systematic foundation for negative control discovery. By querying our computed concept-pair datasets, investigators can identify concept pairs demonstrating clinical independence across multiple healthcare databases to generate candidate control batteries for expert clinical review.
 
-1. **Phenotyping Workflow Optimization (Primary Initial Demonstration)**:
-   - Supports the transition from study-by-study phenotype authoring by translating structured clinical criteria (presentation, confirmatory laboratory criteria, first-line therapies, and differential exclusions) into candidate Circe cohort definitions.
-   - Complements existing vocabularies by identifying multi-domain clinical associations to support the **OHDSI Phenotype Library**.
-2. **Candidate Negative Control Generation & Hypothesis Screening**:
-   - Assists investigators in candidate negative control generation by querying the clinical relationship layer for concept pairs that lack documented pathophysiologic, etiologic, or therapeutic mechanisms across all 112 taxonomy codes.
-   - Importantly, candidate selection is driven by substantive clinical and literature review (establishing causal independence) rather than conditioning on observed statistical nulls; baseline observational metrics (such as lift and directionality in a given dataset) are retained strictly as descriptive diagnostics. This ensures that valid negative controls exhibiting non-null observed associations due to residual confounding are preserved, allowing empirical calibration batteries to detect and quantify network systematic error.
-3. **Informing Study Design Choices & Confounding Reduction**:
-   - Supports comparative observational research by providing structured clinical knowledge to inform study design choices, covariate specifications, and cohort boundary definitions.
-   - Leverages typed clinical relationships and temporal directionality ratios ($DR \ge 1.50$) to help investigators identify potential common-cause confounders while distinguishing intermediate mediators (to avoid over-adjustment bias) and potential colliders.
-   - Complements causal inference workflows by providing explicit clinical semantics to evaluate residual confounding and guide sensitivity analyses.
-4. **Network Evidence Interpretation & Residual Bias Evaluation**:
-   - Provides a structured clinical knowledge layer to help contextualize network findings and evaluate potential residual bias.
-   - Assists investigators in evaluating whether an observed empirical association may be influenced by confounding by indication, protopathic bias (early disease symptoms treated prior to diagnosis), or detection artifacts.
+### 3. Epidemiological Study Design & Confounder Selection
+In comparative cohort and case-control studies, distinguishing baseline confounders from intermediate mediators or post-baseline colliders is critical for valid causal inference. Because TAXIS tracks both clinical relationship taxonomy and temporal sequence directionality (evaluating whether exposure concept A reliably precedes outcome concept B), the empirical layer assists epidemiologists in identifying true common-cause covariates while safeguarding against conditioning on intermediate causal pathways.
 
-### Phenotyping Workflow Optimization: Closed-Loop Lifecycle & Evaluation
+### 4. Interpretation of Distributed Network Evidence
+When distributed network studies identify unexpected drug-outcome or disease-disease associations across federated databases, evaluating epidemiological validity requires clinical context. TAXIS provides quantitative empirical metrics to help investigators differentiate authentic clinical associations from confounding by indication, protopathic bias (treatment initiation during undiagnosed prodromal disease stages), or surveillance artifacts.
 
-**Phenotyping workflow optimization using TAXIS represents one conceptual application of computable clinical knowledge.** TAXIS focuses its initial evaluation on cohort definition and phenotyping because:
-- **Resolving the Phenotype Reproducibility Crisis**: Systematic evaluations of published observational literature across complex diseases have revealed dramatic heterogeneity in phenotype algorithms, with independent research teams producing up to a **tenfold difference in cohort sizes** for the identical target condition (Shoaibi et al., AMIA 2024).
-- **Clinical Descriptions as Semantic Anchors**: To eliminate subjective ambiguity, the OHDSI community established that an *a priori* written **Clinical Description** across standardized domains (presentation, assessment, confirmatory labs, differential diagnoses/exclusions, indicated treatments) must serve as the **semantic anchor** before translating clinical intent into computable queries (Shoaibi, Ostropolets, Murphy, Rao, et al.).
-- **The Neuro-Symbolic Proposer-Validator Framework**: Drawing on cognitive architecture principles (Kahneman System 1 vs. System 2) formalized for clinical informatics (Rao et al., 2026), TAXIS operationalizes a **Neuro-Symbolic Proposer-Validator Framework**:
-  - **Neural / Associative Proposer (System 1)**: Traverses empirical co-occurrences mined across 2.16M longitudinal patients in the INPC OMOP CDM paired with the two-stage screen-and-code LLM ensemble (112-code taxonomy) to discover and type candidate multi-domain clinical associations, mitigating ungrounded hallucinations through empirical data grounding.
-  - **Symbolic Structural Compiler & Validator (System 2)**: The automated phenotype builder (`build_1032.py`) compiles candidate relationships into formal, deterministic, and syntactically auditable Circe JSON cohort definitions structured by the Clinical Description semantic anchor. Substantive clinical validity and phenotype diagnostic performance are evaluated separately through expert clinical adjudication and empirical measurement across partner CDMs using `CohortDiagnostics` and `PheValuator`.
-- **Harmonized Prompt-to-Circe Slot Mapping**: Directly ingests the OHDSI Phenotype Workgroup's standard Clinical Description schema (`clinicalDescriptionPromptBriefWithExclusions.txt`), mapping clinical prompt sections 1-to-1 into computable Circe criteria blocks:
-  - *Condition Overview & Presentation* $\rightarrow$ Primary Anchor Disorder (`PrimaryCriteria.CriteriaList`).
-  - *Laboratory Tests & Diagnostic Values* $\rightarrow$ Confirmatory Labs (`InclusionRules` with `Measurement` domain criteria, guideline cutoffs, and $[-7, +30]$ day windows).
-  - *Medications Usually Given* $\rightarrow$ Indicated Drug Exposures (`InclusionRules` with `DrugExposure` criteria: acute $\le 24\text{h}$, chronic $\le 30\text{d}$).
-  - *Differential Diagnoses & Excluded Conditions* $\rightarrow$ Rule-Out Mimics (`InclusionRules` with Occurrence = 0 or `CensoringCriteria`, strictly capped at $<10\%$ anchor patient cost).
-  - *Comorbid Conditions* $\rightarrow$ Baseline Patient Characterization & Covariate Balance (explicitly segregated to prevent false exclusions).
-  - *Prognosis & Follow-up* $\rightarrow$ Post-Index Observation Windows (`PostDays`) and persistence logic.
-  - *References* $\rightarrow$ Circe Definition Metadata & Provenance Tags.
-- **Closed-Loop Phenotype Critic via Diagnostic Frameworks**: Phenotyping offers established community validation tools (`CohortDiagnostics` and `PheValuator`) that enable continuous algorithmic refinement:
-  - **CohortDiagnostics (Development & Characterization)**: Integrates standard execution of `CohortDiagnostics` to assess cohort counts, incidence rates, index event breakdowns, visit contexts, and detect **orphan concepts** omitted from initial concept sets.
-  - **PheValuator (Semi-Automated Phenotype Performance Evaluation)**: Quantitatively evaluates phenotype algorithm diagnostic operating characteristics (Sensitivity, Specificity, Positive Predictive Value [PPV], Negative Predictive Value [NPV], and F1 Score with 95% Confidence Intervals) without manual chart review (*Swerdel et al., 2019*). PheValuator develops a diagnostic predictive model (via `PatientLevelPrediction` regularized logistic regression) trained on an extremely specific cohort (`xSpec`, noisy positives) and a random sample of noisy negatives (excluding `xSens`). The model assigns predicted probabilities of having the health outcome of interest across a large representative evaluation cohort (up to 2,000,000 subjects). Candidate phenotype algorithms are then evaluated against this probabilistic gold standard via continuous Expected Value (`EV`) or decision cut-points. Secondarily, feature inspection of non-zero predictive covariates and weights from the calibrated diagnostic model provides empirical feedback to identify missing clinical criteria or uncaptured mimics during exploratory development.
-- **Independent Development vs. Final Evaluation Protocol**: To guard against circular overfitting—where an algorithm is iteratively tuned merely to reproduce an evaluator model rather than true clinical cases—the closed-loop refinement loop enforces a strict development-versus-evaluation boundary:
-  - *Exploratory Refinement Partition*: PheValuator predictive model training and graph-matching feedback are executed exclusively on a designated exploratory development CDM or patient partition.
-  - *Algorithm Freezing*: Once inclusion/exclusion criteria are finalized, the Circe JSON definition is **frozen** and versioned.
-  - *Independent Validation*: Final diagnostic operating characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score) and characterization metrics are evaluated on held-out test partitions or independent external partner CDMs.
-- **Dynamic Knowledge Engine for Autonomous Phenotyping Agents**: Emerging community frameworks in autonomous cohort engineering (such as `PhenotypingAgent`, implemented as a LangGraph state machine) automate cohort development from clinical definitions through iterative design, Capr code generation, cohort measurement, and profile evaluation. While autonomous agents typically rely on pre-computed concept sets or manual single-concept lookups, TAXIS provides a computable clinical knowledge layer that supplies structured, multi-domain concept sets (anchor conditions, confirmatory labs, indicated medications, and exclusionary mimics) across 1.9M graded edges. Furthermore, during agent error-profile diagnosis, TAXIS's typed clinical relationships provide the clinical mechanism explaining observed discrepancies, informing grounded cohort refinement.
-- **Algorithmic Concept Set Condensation & Optimization**: Observational association mining can identify extensive concept sets across OMOP vocabularies. Downstream integration with concept set optimization tools (such as `ConceptSetCondenser`) enables finding the shortest, most parsimonious Circe concept set expression (combining `includeDescendants = TRUE` and explicit exclusions) that covers *exactly* the specified concepts without changing cohort membership, producing clean, human-auditable definitions for the OHDSI Phenotype Library and ATLAS.
+---
 
-```
+## Proof-of-Concept: Demonstrating How TAXIS Informs Cohort Definitions
+
+A central initiative within the OHDSI Phenotype Development and Evaluation Workgroup is addressing phenotypic misclassification and coding artifacts in electronic health record (EHR) and administrative claims data. In emergency and acute care settings, diagnostic workups frequently generate provisional rule-out diagnostic billing codes. For instance, an acute encounter evaluating chest pain may record an acute myocardial infarction billing code solely because electrocardiography and cardiac biomarkers were ordered, even when serial enzymes are negative and the patient is discharged with gastroesophageal reflux disease. In ambulatory settings, historical conditions frequently persist on active problem lists due to EHR documentation inertia and clinical note replication. Algorithms relying strictly on unconstrained diagnostic codes risk substantial false-positive misclassification and impaired specificity.
+
+To demonstrate how empirical association data can inform phenotype engineering, our proof-of-concept pipeline structures clinical logic across six functional clinical building blocks:
+1. **Primary Index Condition**: The core incident diagnosis defining the initial qualifying event.
+2. **Clinical Presentation & Prodrome**: Presenting signs, symptoms, and clinical complaints characterizing early disease presentation.
+3. **Confirmatory Diagnostic Biomarkers**: Objective laboratory measurements and diagnostic imaging procedures ordered to verify the clinical diagnosis.
+4. **Disease-Specific Therapeutics**: Pharmacotherapies and procedural interventions initiated upon diagnostic confirmation, which provide strong discriminatory power against unconfirmed rule-out evaluations.
+5. **Clinical Sequelae & Progression**: Longitudinal complications, secondary organ manifestations, and disease progression events occurring during follow-up.
+6. **Differential Diagnoses & Diagnostic Mimics**: Competing clinical conditions sharing symptomatic features that warrant explicit rule-out exclusion logic.
+
+By demonstrating how empirical concept-pair associations map into these six functional clinical slots, we illustrate how translational tools can synthesize transparent, auditable cohort definitions from our forthcoming public data release.
+
+```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │               TAXIS IN THE OHDSI PHENOTYPE DEVELOPMENT & EVALUATION LIFECYCLE          │
 └───────────────────────────────────────────┬────────────────────────────────────────────┘
@@ -190,217 +126,146 @@ TAXIS is designed to explore applications across four areas of observational res
                                                └──────── (Iterative Loop) ─────────►
 ```
 
-### Phenotype Phebruary & Workgroup Integration: 6-Bucket Slots, Objective Diagnostics & Multi-Tiered Cohorts
+---
 
-Drawing directly from the **OHDSI Phenotype Development & Evaluation Workgroup** initiatives—including ongoing workgroup updates ([OHDSI Forum Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940)) and the *Phenotype Phebruary / Aphril 2026* intensive series ([OHDSI Forum Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158))—TAXIS operationalizes the consensus **4-stage iterative phenotyping loop** (*Idea $\to$ Implementation $\to$ Iteration $\to$ Trust*) codified in the *Book of OHDSI (2025 Edition)*.
+## The Technical Engine Behind TAXIS
 
-To resolve the **Phenotyping Input Bottleneck** and counter empirical Real-World Data error modes (such as Emergency Department rule-out contamination, problem-list copy-forward macros, and up to 40-fold incidence variations demonstrated by James Weaver), TAXIS establishes:
+TAXIS is built on three foundational technical pillars:
 
-1. **The 6-Bucket Clinical Element Slot Architecture**: Translates the 6D clinical element framework into deterministic computable slots mapped to TAXIS association edges, temporal precedence ratios ($DR$), and Circe criteria blocks:
-   - *Bucket 1 (Primary Anchor)*: Incident diagnosis of interest in inpatient/ED setting (`PrimaryCriteria`).
-   - *Bucket 2 (Symptoms & Presentation)*: Non-specific co-presenting findings (`ASSOC_SYMPTOM`, `ASSOC_SIGN`) in $[-7, +1]$ days.
-   - *Bucket 3 (Diagnostic Labs & Procedures)*: Confirmatory laboratory biomarkers and diagnostic testing (`DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED`) in $[-1, +3]$ days.
-   - *Bucket 4 (Therapeutic Interventions)*: Definitive event procedures (e.g., PCI, CABG) and acute pharmacotherapy (`THER_INTERVENTION_PROC`, `THER_FIRST_LINE`) in $[0, +2]$ days—the decisive separator between true cases and rule-outs.
-   - *Bucket 5 (Complications & Progression)*: Downstream organ failures and clinical sequelae (`PROG_COMPLICATION`) in $[+1, +30]$ days.
-   - *Bucket 6 (Alternative Diagnoses & Mimics)*: Competing causes and rule-out mimics (`ASSOC_MIMIC`, `DIAG_RULE_OUT`) in $[0, +7]$ days.
-2. **Multi-Tiered Circe Phenotype Synthesis & Probabilistic Benchmarking**:
-   - *Tier 1 (Strict / Epidemiologic)*: Formulated as a treatment-enriched cohort requiring confirmed therapeutic interventions within $[0, +2]$ days to achieve high Positive Predictive Value (prospective target $\ge 92\%$) for comparative trials and active-comparator studies.
-   - *Tier 2 (Broad / Surveillance)*: Captures hospital and emergency encounters with diagnostic work-up without restricting to invasive procedures, maximizing sensitivity (prospective target $\ge 95\%$) for disease incidence tracking.
-   - *Tier 3 (PheValuator Evaluators)*: Proposed automated synthesis of `xSpec` (noisy positive training cases) and `xSens` (broad non-case exclusion zone preventing control contamination) evaluator cohorts to train diagnostic predictive models without manual chart review. In external workgroup presentations (Joel Swerdel, Topic 20940 recap), probabilistic phenotyping on noisy labels was reported to achieve 77% concordance with trial confidence intervals vs 23% for traditional rules.
-3. **Objective Diagnostics for Phenotype Stability**: Planned integration of the Workgroup objective diagnostic standard (Azza Shoaibi & Gowtham Rao) using a **3-knot Poisson spline model** over calendar time (>25% IRR deviation cutoff) to flag temporal instability or unmeasured coding shifts, with rapid iteration via `CohortDiagnostics Lite`.
-4. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Architectural design demonstration of complete 6-bucket slot compilation for AMI incorporating the *Fourth Universal Definition of MI* (distinguishing non-ischemic myocardial injury from true ischemic infarction; empirical execution and clinical validation remain planned future targets).
-5. **Federated Phenomics & Interoperability Roadmap**: Architectural crosswalk aligning with VA CIPHER metadata standards (Jackie Honerlaw) and DARWIN EU 3-phase locked phenotyping workflows (Albert Prats-Uribe).
-6. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring strictly behind the institutional firewall.
+### 1. Large-Scale Association Mining (Pipeline v57)
+The core statistical engine of TAXIS—conceived, designed, and authored by Dr. Stephen H. Bandeian—analyzes longitudinal patient records across multiple clinical domains (conditions, procedures, devices, drugs, measurements, and observations). To evaluate large-scale observational cohorts while preserving database performance and preventing resource exhaustion, the engine partitions patient populations into 40 balanced, hash-derived partitions, computes empirical co-occurrence matrices within configurable risk intervals, and controls for healthcare utilization confounding to prevent surveillance frequency from biasing association estimates.
 
-Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
+In the production benchmark on the Indiana Network for Patient Care (INPC), the engine analyzed 2,157,525 patients across 11,299,055 person-years and 1.88 billion fact events, screening 5.52 million high-support pairs and deriving 1.9 million graded clinical knowledge edges.
+
+We have verified this complete three-phase pipeline (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`) natively on PostgreSQL. The execution completed all 250 batch statements and 58 finalization steps, populating 43 analytical tables and identifying 9,118 candidate concept pairs in master table `cab_s55_pair_all`. Every execution generates an audit receipt recording dynamic SHA-256 SQL digests, database run IDs, and verified known-answer checks against raw CDM fact tables.
+
+### 2. The Clinical Knowledge Graph (Taxonomy v6.0)
+Statistical co-occurrence in observational data indicates association rather than clinical etiology. To assign explicit clinical semantics, TAXIS incorporates a 112-code clinical relationship taxonomy organized across five core relationship families: causal and pathophysiological mechanisms, clinical manifestations and symptoms, diagnostic laboratory and procedural evaluations, therapeutic interventions, and differential diagnostic mimics. An ensemble of clinical models evaluates co-occurring concept pairs, assigns structured taxonomy codes and empirical evidence grades, and documents the clinical rationale for each relationship.
+
+### 3. Demonstrating Downstream Applications
+While our primary focus is releasing and maintaining TAXIS as a network study package, this repository includes proof-of-concept packages illustrating how TAXIS data can be consumed by downstream tools:
+- **`Taxis` (this package)**: The core network study package. It executes the large-scale association mining pipeline across local CDM databases and packages privacy-preserving, cell-suppressed aggregate results to help build our public concept pair resource.
+- **`TaxisPhenotypeCreator`**: A companion proof-of-concept package showing how clinical descriptions and empirical graph edges could be translated into standards-compliant Circe JSON cohort definitions.
+- **`TaxisPhenotypeEvaluation`**: A companion evaluation package demonstrating how to assess cohort diagnostics and evaluate overlap against OHDSI Phenotype Library definitions across partner databases.
 
 ---
 
-## 3. Tripartite Technical Methodology
+## Empirical Validation and Benchmarks
 
-### Pillar 1: Empirical Association Rule Mining (Pipeline v57)
+We evaluated the performance of TAXIS across several independent benchmarks:
 
-> **Original Scientific & Analytic Authorship**:  
-> All SQL algorithms, database schemas, 40-batch partitioning strategies, continuity-corrected directionality formulations ($DR$), and original analytic code of the Concept AB Mining Engine (Pipeline v57) were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
-
-- **Empirical Scale**: Deployed across **2.16 million longitudinal patient records** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM, surveying 1.88 billion clinical events across 8 domains.
-- **Empirical Benchmark Tables (Tables 1–7)**:
-  - *Headline Universe*: 2,157,525 patients; 11,299,055 person-years; 95,968 distinct concepts; 24 pair-type categories; 14,233,528 observed concept pairs ($N_{AB} \ge 5$); 36.1 billion event-pair observations; 4.01 billion person-pair observations.
-  - *Candidate Coverage & Sparsity*: Observed and retained candidate pairs represent 0.9% of the theoretical combinatorial pair space under documented support filtering ($N_{AB} \ge 5$; 99.1% sparsity relative to all possible combinations), demonstrating that minimum observed support acts as a powerful candidate filter.
-  - *Screened Candidate Pairs*: 5.52 million high-support pairs ($N_{AB} \ge 100$), yielding 1.9 million clinically relevant graded knowledge edges.
-  - *ClinVec Benchmark Validation*: Monotonic precision enrichment gradient rising from 47.9% (unobserved) to 61.1% (co-occurring), 82.9% ($Lift \ge 1.0$), and 92.2% ($Lift \ge 2.0$), strongly confirmed by independent clinician ratings (mean 3.88 / 5.0).
-  - *Full Documentation & Concordance Audit*: See [`docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md`](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md#5-empirical-benchmark-indiana-network-for-patient-care-inpc-216m-patient-run).
-- **Confounding Control & Mathematical Formulations**:
-  - *Chronic-Onset Hazard Windows*: Requires $\ge 365$ days of continuous baseline observation prior to incident anchor diagnoses to separate chronic etiology from acute acute-care encounters.
-  - *Utilization-Decile Stratification*: Computes expected co-occurrences within patient encounter-frequency deciles (`cab_s13`, `cab_s23`, `cab_s33`, `cab_s33_mh_all`), substantially mitigating bias induced by hyper-monitored, multi-morbid patients (`DEC-GR-010`).
-  - *Directionality Ratios ($DR$)*: Categorizes temporal precedence mathematically using Haldane-Anscombe continuity correction:
-    $$\text{Forward Directed: } DR \ge 1.50 \quad (p < 0.01)$$
-    $$\text{Reverse Directed: } DR \le 0.67 \quad (p < 0.01)$$
-    $$\text{Symmetric Association: } 0.67 < DR < 1.50$$
-- **Live Bounded Execution & PostgreSQL Verification Milestone (`REC-062-1`, `REC-063-2`)**:
-  - The released 3-phase SQL pipeline (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`) executes natively on PostgreSQL 16 via OHDSI HADES (`SqlRender` 1.19.7, `DatabaseConnector` 8.0.0, PostgreSQL JDBC 42.7.3) using the Statement-Splitter & Empty-Statement Filter Protocol (`REC-063-1`), preserving 100% SHA256 binary identity across SQL assets.
-  - Ingested 6 pre-loaded project vocabulary lookups (`cab_vocab_all_*`, 3,510,371 rows) into PostgreSQL schema `concept_ab_vocab`.
-  - Materialized 43 tables in `work_cab_test`, discovering 9,118 concept pairs in master table `cab_s55_pair_all`.
-  - Verified with 3 independent known-answer test vectors in `extras/test_pipeline_v57_postgres_execution.py`: (1) Acute bronchitis $\leftrightarrow$ acetaminophen ($obs=8228, dir\_ab=0.7302, DR=2.6812 \ge 1.50$), (2) Otitis media $\leftrightarrow$ acetaminophen ($obs=1415, dir\_ab=0.5536, DR=1.2353$), and (3) Suture open wound $\leftrightarrow$ acetaminophen ($obs=1062, dir\_ab=0.4444$), with fail-closed run receipts (`extras/pipeline_v57_run_receipt.json`).
-
-### Pillar 2: Clinical Knowledge Graph & Ensemble Semantic Typing (Taxonomy v6.0)
-- **Comprehensive Taxonomy**: 112 granular relationship codes grouped into 32 semantic families and 5 core relationship groups:
-  - *Causal / Pathophysiologic* (causes, complicates, precipitates)
-  - *Manifestation / Clinical Finding* (presents with, symptom of, sign of)
-  - *Diagnostic & Evaluative* (indicates test, confirms diagnosis, laboratory marker)
-  - *Therapeutic / Interventional* (first-line therapy, symptom mitigation, contraindication)
-  - *Differential / Mimic* (shares presentation, confusable with, exclusionary mimic)
-- **Two-Stage Screen-and-Code Ensemble**:
-  1. *Gate Screen*: Screening models filter unrelated co-occurrences (requiring 3-of-4 consensus).
-  2. *Typed Classification*: Multi-model ensemble assigns taxonomy codes, directions, qualifiers, and rationales.
-- **Evidence Grading**: Edges include versioned evidence vectors and ordinal grades (**Strong**, **Moderate**, **Candidate**, **Weak**, **Refuted**). Strong and Moderate edges are prioritized for cohort evaluation.
-
-### Pillar 3: Automated Phenotype Recreation & Multi-Database Evaluation
-- **Automated Phenotype Creation Package (`TaxisPhenotypeCreator`)**: Dedicated HADES R package for translating clinical descriptions and knowledge graph association edges into standards-compliant Circe JSON cohort expressions and target DBMS SQL queries. Located in [`extras/TaxisPhenotypeCreator/`](extras/TaxisPhenotypeCreator/README.md).
-- **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate target phenotypes against comparator cohorts from the OHDSI Phenotype Library across partner OMOP CDM databases. Located in [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/README.md).
-- **Concept AB Mining Network Study Package (`Taxis`)**: The root repository forms the official OHDSI Network Study Package executing Dr. Stephen H. Bandeian's 40-batch association mining engine across federated OMOP CDMs. Configured via [`extras/CodeToRun.R`](extras/CodeToRun.R).
-
----
-
-## 4. Empirical Validation & Benchmarks
-
-| Evaluation Dimension | Benchmark Reference Set | Observed Performance | Clinical & Methodological Interpretation |
+| Evaluation Dimension | Benchmark Reference Set | Observed Performance | Clinical & Methodological Significance |
 |---|---|---|---|
-| **Semantic Edge Existence** | ClinVec Clinician Relevance Panel (1–5 ratings) | **AUC 0.81** (95% CI: 0.79–0.83) | Discrimination between clinically relevant relationships and incidental observational co-occurrence. |
-| **Temporal Precedence** | PACES Clinical Benchmark | **99% Directional Concordance** | High agreement on temporal directionality (100% on evaluated intervention–disorder pairs). |
-| **Blinded Physician Adjudication** | 291 Blinded INPC Pair Reviews | **88% Broad Group Agreement**<br>(58% Exact Taxonomy Code) | Clinician agreement on primary relationship family and edge qualifiers. |
-| **Cohort Overlap** | OHDSI Phenotype Library Circe Cohorts | **Jaccard: 0.97 – 0.995** | Concordance in reproducing cohort membership for evaluated phenotypes (T2DM, CKD, COPD). |
-| **Vocabulary Coverage Comparison** | SNOMED-CT / UMLS Native Relationships | **0.4% Documented Pairs** | Standard terminologies document relationships for 0.4% of frequently co-occurring pairs, reflecting differing design objectives. |
+| **Semantic Edge Existence** | ClinVec Clinician Relevance Panel (1–5 ratings) | **AUC 0.81** (95% CI: 0.79–0.83) | Discriminates clinically validated associations from non-specific co-occurrences. |
+| **Temporal Precedence** | PACES Clinical Benchmark | **99% Directional Concordance** | Accurately establishes temporal precedence between clinical interventions and underlying disorders. |
+| **Blinded Physician Review** | 291 Blinded INPC Pair Reviews | **88% Broad Group Agreement**<br>(58% Exact Taxonomy Code) | Demonstrates high inter-rater reliability across primary clinical relationship categories. |
+| **Cohort Overlap** | OHDSI Phenotype Library Circe Cohorts | **Jaccard: 0.97 – 0.995** | Exhibits high phenotypic concordance and cohort membership overlap for chronic cardiometabolic and respiratory phenotypes. |
+| **Vocabulary Coverage** | SNOMED-CT / UMLS Native Relationships | **0.4% Documented Pairs** | Confirms the paucity of operational clinical relationships in standard terminologies, establishing the necessity of an empirical association layer. |
 
 ---
 
-## 5. Network Data Governance & Privacy Architecture
+## Data Governance and Patient Privacy
 
-TAXIS operates strictly under an **aggregate-only, code-to-data** federated paradigm:
-1. **Local Behind-Firewall Execution**: Study packages run locally within institutional partner environments (Johnson & Johnson, Indiana University, Columbia, Georgia Tech).
-2. **Zero PHI / Cell Suppression**: No patient-level records ever leave partner firewalls. All aggregate counts $<5$ are strictly suppressed.
-3. **Sensitive Pair Protection & Diagnostic Performance**: Raw concept-concept co-occurrence tables remain strictly local. Only aggregate cohort overlap indices (Jaccard) and PheValuator diagnostic performance statistics (Sensitivity, Specificity, PPV, NPV, F1 Score with 95% CIs) are exported in `Results_<db>.zip`. Evaluation cohort specifications in Phase 1 are provisional exploratory definitions pending clinician-adjudicated dedicated xSpec/xSens cohorts.
-4. **Complementary Cell Protection & Error Hygiene**: Small-cell suppression ($<5$) automatically applies complementary masking to all dependent overlap ratios, contingency cells, 8 confidence intervals, and estimated prevalence (-1). Outbound error logging is restricted to bounded status codes, routing diagnostic runtime messages exclusively to private site-local logs.
+TAXIS operates strictly under a federated, code-to-data model designed to respect institutional firewalls and patient privacy:
+1. **Federated Local Execution**: Analytical pipelines execute entirely within the institutional environment.
+2. **Zero Transmission of Person-Level Data**: Patient identifiers, individual-level health records, and granular concept-pair co-occurrence matrices remain strictly local.
+3. **Mandatory Small-Cell Suppression**: Cell counts $<5$ are masked to -1, with complementary suppression applied to derived statistics to prevent algebraic identity disclosure.
+4. **Auditable Aggregate Export Archive**: The export routine packages strictly allowlisted summary tables and execution logs into an auditable archive (`Results_Mining_<databaseId>.zip`) for local investigator inspection prior to transmission.
 
-Review the formal [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md), the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md), the [Concept AB Association Mining Engine (v57) Specifications](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md), the [TAXIS Clinical Pair Taxonomy v6.0](docs/knowledge_graph/Clinical_Pair_Taxonomy_6.md), the [Two-Stage LLM Semantic Classification Framework](examples/taxonomy/prompts_and_examples.md), the [Phenotype Recreation Engine Specifications](docs/phenotyping/Phenotype_Recreation_Engine.md), and the [ClinVec Empirical Benchmark Report](docs/validation/ClinVec_Benchmark_Results.md) for complete study design, institutional governance, SQL pipeline specifications, and semantic taxonomy catalogs.
+For institutional governance details, review the [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md) and the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
 
 ---
 
-## 6. Study Milestones & Methodological Roadmap
+## Getting Started: Running TAXIS on Your OMOP CDM
 
+Executing the TAXIS network study package on an OMOP Common Data Model instance follows standard OHDSI execution protocols:
+
+### 1. Prerequisites
+- **R (version 4.0 or higher)**
+- **Java Runtime Environment (64-bit JRE 8, 17, or 21)** with `JAVA_HOME` set
+- **DatabaseConnector JDBC driver** for your target database platform
+- **Database permissions**: Read access to your OMOP CDM and vocabulary tables, read access to the 6 pre-loaded TAXIS reference tables (`concept_ab_vocab`), and write access to a dedicated results schema.
+
+### 2. Configure Your Connection
+Open `extras/CodeToRun.R` and configure your database connection details and schema names:
+```r
+library(Taxis)
+library(DatabaseConnector)
+
+connectionDetails <- createConnectionDetails(
+  dbms         = "postgresql",
+  server       = "localhost/my_cdm",
+  port         = 5432,
+  user         = "my_user",
+  password     = "my_password",
+  pathToDriver = "C:/drivers"
+)
+
+cdmDatabaseSchema      <- "cdm"
+projectReferenceSchema <- "concept_ab_vocab" # Contains the 6 reference lookup tables
+resultsDatabaseSchema  <- "taxis_results"    # Output tables will be created here
+databaseId             <- "MySite"
+outputFolder           <- file.path(getwd(), "taxis_output")
 ```
-2024 ──────────► Sep 2025 ──────────► Q1-Q2 2026 ────────► Jul-Aug 2026 ───────► Oct 2026 ────────► 2026–2027 (Parallel Tracks)
-Foundational     Network Protocol     INPC 2.16M Mining    Automated Circe       OHDSI Symposium     Track A: Library 3.0, PHOEBE, Agents & Diagnostics
-Hierarchies      v0.5 Published       Taxonomy v6.0        Phenotype Builder     Showcase #127       Track B: Controls, Confounder Balance & Calib.
+
+### 3. Execute and Export
+Run the pipeline:
+```r
+Taxis::execute(
+  connectionDetails      = connectionDetails,
+  cdmDatabaseSchema      = cdmDatabaseSchema,
+  resultsDatabaseSchema  = resultsDatabaseSchema,
+  projectReferenceSchema = projectReferenceSchema,
+  outputFolder           = outputFolder,
+  databaseId             = databaseId,
+  batchCount             = 40,
+  partialRunBatchLimit   = 40
+)
+```
+Upon pipeline completion, the aggregate summary archive `Results_Mining_<databaseId>.zip` is generated in the output directory for local audit and study transmission.
+
+---
+
+## Repository Layout
+
+```text
+├── DESCRIPTION                  # Official OHDSI Study Package definition (Package: Taxis)
+├── NAMESPACE                    # Package exports: execute(), runConceptMining(), packageMiningResults()
+├── R/                           # Core R study functions for Concept AB Mining Engine
+│   ├── Main.R                   # Primary execute() entry point
+│   ├── RunMining.R              # 3-phase SqlRender pipeline orchestrator
+│   └── PackageMiningResults.R   # Non-PHI aggregate packaging with <5 suppression
+├── inst/                        # Bundled package resources
+│   ├── sql/sql_server/          # Canonical OHDSI T-SQL scripts (init, batch, finalize)
+│   └── settings/                # Environment configuration templates
+├── docs/                        # Public study documentation & scientific specifications
+│   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
+│   ├── governance/              # Network data use agreements & privacy policies
+│   ├── protocol/                # Study protocol & design specifications
+│   ├── mining/                  # Concept AB association mining engine specifications
+│   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
+│   ├── phenotyping/             # Automated phenotype builder specifications
+│   └── validation/              # ClinVec empirical benchmark and concordance results
+├── extras/                      # Multi-site study packages and execution drivers
+│   ├── CodeToRun.R              # Push-button network execution driver for root Taxis package
+│   ├── TaxisPhenotypeEvaluation/# Standalone HADES study package for phenotype evaluation
+│   └── TaxisPhenotypeCreator/   # Standalone HADES R package for automated Circe phenotype creation
+├── examples/                    # Sanitized output schemas and reference data
+└── README.md                    # Repository overview and entry point
 ```
 
-### Study Milestones:
-- **2024**: Foundational diagnostic hierarchies and early pairwise co-occurrence formulations.
-- **Sep 2025**: Publication of initial TAXIS Network Study Protocol (v0.5).
-- **Q1–Q2 2026**: Scaled Concept AB pipeline (v57) to 2.16M INPC cohort; established Taxonomy v6.0 (112 codes).
-- **Jul–Aug 2026**: Implemented automated Circe phenotype generation (`build_1032.py`) and HADES validation suite.
-- **Oct 9, 2026**: Delivery of Collaborator Showcase #127 Brief Report and Digital Poster Suite to Craig Sachson.
-- **Oct 20–22, 2026**: Presentation and live demonstration at the **2026 OHDSI Global Symposium** (New Brunswick, NJ).
-- **Q4 2026**: Planned multi-site federated evaluation across partner CDMs.
-
-### 2026–2027 Parallel Roadmap:
-
-Following the 2026 symposium demonstration, TAXIS will advance across two parallel, complementary workstreams:
-
-#### Track A: Phenotype Ecosystem Integration & Community Governance
-1. **OHDSI Phenotype Library Version 3.0 Integration (Autonomous Governance)**:
-   - **Automated Intake & Schema Mapping**: Connect TAXIS-generated Circe cohort definitions directly into the agentic intake pipeline of **OHDSI Phenotype Library 3.0**, enabling automated metadata annotation, documentation completeness scoring, and schema standardization.
-   - **Redundancy Detection & Variant Mapping**: Leverage Library 3.0 similarity evaluation (concept set Jaccard and logic flow comparisons) to classify TAXIS-generated phenotypes as novel entities or variants of existing library cohorts.
-   - **Longitudinal Semantic Monitoring**: Pair TAXIS knowledge graph updates with Library 3.0 drift detection to monitor concept obsolescence across OMOP vocabulary releases and suggest updated criteria.
-
-2. **PHOEBE Network Prevalence Integration**:
-   - **Empirical Concept Ranking**: Incorporate empirical concept prevalence counts and co-occurrence data from **PHOEBE** (PHenotype Optimization Expressed via Browser Experience) to inform concept set selection.
-   - **Balancing Clinical Semantics & Real-World Frequency**: Combine TAXIS clinical relationship semantics (confirmatory labs, indicated medications, exclusionary mimics) with PHOEBE network-wide frequency data to prioritize clinically relevant concepts while avoiding ultra-rare or obsolete codes.
-   - **Calibrating Exclusion Thresholds**: Utilize network concept prevalence to tune rule-out criteria, ensuring exclusions eliminate clinical mimics without excessively restricting target populations.
-
-3. **CohortDiagnostics & PheValuator Evaluation Lifecycle**:
-   - **CohortDiagnostics in Phenotype Development & Evaluation**:
-     - Systematically embed `CohortDiagnostics` execution as an integral step in phenotype development and evaluation across partner OMOP CDMs.
-     - Characterize candidate cohorts across index event breakdowns (identifying which concepts drive cohort entry across data sources), incidence rates, demographics, visit context (inpatient vs. outpatient proportions), and inclusion rule attrition.
-     - Leverage orphan concept evaluation to identify clinically related codes within the OMOP vocabulary that were omitted from initial TAXIS concept sets, informing concept set expansion.
-   - **PheValuator Semi-Automated Phenotype Performance Evaluation**:
-     - Quantitatively evaluate diagnostic operating characteristics (Sensitivity, Specificity, Positive Predictive Value, Negative Predictive Value, F1 Score with 95% Confidence Intervals) across partner databases using `PheValuator` without manual chart review (*Swerdel et al., 2019*).
-     - Construct probabilistic evaluation cohorts using `PatientLevelPrediction` regularized logistic regression trained on `xSpec` (extremely specific noisy positives) and noisy negatives (excluding `xSens`) with condition-specific feature extraction windows.
-     - Evaluate candidate phenotype algorithms against continuous expected values (`EV`) and decision cut-points of the probabilistic evaluation cohort to benchmark performance against standard Phenotype Library definitions.
-     - Secondarily, inspect non-zero predictive covariates and feature weights from the calibrated diagnostic predictive models:
-       - *Positive predictive covariates* with strong weights not captured in initial criteria are cross-referenced with high-lift, high-consensus graph edges (e.g., confirmatory laboratory tests or specific therapies) to identify potential inclusion logic refinements.
-       - *Negative predictive covariates* or features associated with false positives are evaluated against differential diagnosis and mimic edges (`EXCLUSIONARY_MIMIC`, `DIFFERENTIAL_DIAGNOSIS`) to calibrate rule-out criteria.
-     - Enable an iterative, closed-loop cycle of phenotype refinement that harmonizes algorithmic graph traversal with empirical CDM predictive modeling while preserving strict algorithmic freezing prior to final validation.
-
-4. **Autonomous Agentic Phenotyping & Concept Set Condensation**:
-   - **Autonomous Cohort Engineering Integration**: Connect TAXIS clinical relationship queries into autonomous phenotyping agents (such as `PhenotypingAgent`) via Model Context Protocol (MCP) services. TAXIS replaces static, pre-computed concept sets with dynamic, multi-domain graph traversals across anchor conditions, confirmatory labs, indicated medications, and exclusionary mimics, while providing the clinical mechanism rationale required during agent error-profile diagnostic routines.
-   - **Optimal Concept Set Expressions**: Pair TAXIS candidate concept generation with algorithmic set-covering optimization (such as `ConceptSetCondenser`) to synthesize minimal, performant Circe expressions that cover target concepts exactly without changing cohort membership, ensuring readability and computational efficiency for ATLAS and the Phenotype Library.
-
-5. **Feedback Loop, Quality Ranking & Community Review**:
-   - **Multi-Dimensional Quality Ranking**: Establish a transparent quality scoring rubric for candidate phenotypes incorporating:
-     - *Graph Evidence Grade*: Confidence weighting of underlying clinical edges (Strong/Moderate consensus).
-     - *Network Feasibility*: PHOEBE empirical prevalence across diverse network CDMs.
-     - *Diagnostic Performance*: Standardized `CohortDiagnostics` characterization and `PheValuator` operating characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score).
-     - *Metadata Completeness*: Intake hygiene and documentation scores from Phenotype Library 3.0.
-   - **Workgroup Peer Review**: Support human-in-the-loop review within the **OHDSI Phenotype Development and Evaluation Workgroup**, providing clinicians and epidemiologists with structured rationale and validation data to evaluate candidate definitions for official library adoption.
-
-6. **ATLAS v3.0, Pythia AI Agent & TrexSQL Native Integration**:
-   - **Pythia AI Empirical Tooling**: Author ClojureScript tools (`taxis_recommend_associations`, `taxis_get_lag_window`, `taxis_evaluate_phenotype`) for the `@ohdsi/pythia-agent` in ATLAS v3.0, grounding conversational card proposals in empirical CDM co-occurrence ($N \ge 5$), Stratified Lift, and Directionality Ratios ($DR$) rather than lexical matching or static Library regexes.
-   - **TrexSQL DuckDB Query Cache Acceleration**: Ingest TAXIS pre-computed marginal and pair co-occurrence tables into TrexSQL's DuckDB cache (`TREXSQL_CACHE_PATH=/data/cache`). Enables prospective $O(1)$ dead-end query short-circuiting when zero marginal counts are certified ($N(A)=0$ or $N(B)=0$) and pruning of verified zero-marginal descendants from concept sets. When pairs are merely absent from threshold-filtered pair tables (`@cab_min_ab_obs` suppression), queries fall back safely to standard cohort SQL. These acceleration optimizations represent prospective, unbenchmarked design targets aimed at reducing Circe SQL complexity and execution overhead by up to $80\%$.
-   - **ATLAS v3.0 Single-SPA UI Plugin (`@ohdsi/taxis-atlas-plugin`)**: Develop a native Vue 3 / `@ohdsi/atlas-ui` parcel providing an interactive ECharts knowledge-graph visualizer, empirical lag decay curves $[-400, +400]$ days, and one-click cohort injection via `pythiaBridge.ts`.
-   - **WebMCP Browser Agent Capability Surface**: Register TAXIS capabilities into ATLAS v3 `CAPABILITIES` (`src/plugins/host/capabilities/registry.ts`) under `navigator.modelContext`, enabling in-browser AI agents and multi-agent study orchestrators to programmatically design and validate phenotypes.
-   - **In-Browser Real-Time Phenotype Evaluation**: Integrate `TaxisPhenotypeEvaluation` (2x2 Jaccard Overlap and HADES `PheValuator` operating curves) directly into ATLAS v3 cohort definitions with strict small-cell suppression ($<5 \to -1$). Detailed in [TAXIS Atlas3 & Pythia Integration Architecture](docs/phenotyping/TAXIS_Atlas3_Pythia_Integration_Architecture.md).
-
-#### Track B: Causal Study Design, Negative Controls & Error Calibration
-7. **Candidate Negative Control Generation & Empirical Error Calibration**:
-   - **Candidate Negative Control Hypothesis Screening**: Systematically identify candidate negative control outcomes by querying the clinical relationship layer for concept pairs with an absence of documented pathophysiologic, etiologic, or therapeutic mechanisms across all 112 taxonomy codes.
-   - **Causal Null Candidacy vs. Observational Diagnostics**: Rather than conditioning candidate eligibility on observed null association in evaluation data (which risks discarding the very confounding bias calibration is meant to measure), TAXIS uses clinical relationship absence to generate causal-null candidates for independent clinical and literature review. Baseline observational metrics ($\text{Lift}$, $DR$) are reported as characterization diagnostics. Pre-specified negative control sets are then evaluated across partner CDMs to generate empirical null distributions that calibrate residual systematic error in comparative studies.
-
-8. **Confounder Identification & Confounder Balance Evaluation**:
-   - **Informing Study Design Choices**: Leverage explicit clinical relationship semantics (causal, manifestation, contraindication) to assist investigators in identifying true common-cause confounders when defining cohort inclusion and baseline covariate criteria.
-   - **Protecting Intermediate Mediators & Colliders**: Use directional relationship data to differentiate intermediate variables on the causal pathway (preventing over-adjustment bias) and avoid collider conditioning.
-   - **Evaluating Confounder Balance & Residual Confounding**: Complement causal inference workflows by using clinical relationship graphs to inspect whether recognized clinical confounders achieve empirical balance across treatment arms, and inform sensitivity analyses for residual unmeasured confounding.
-
-9. **Network Evidence Adjudication & Bias Evaluation**:
-   - **Contextualizing Distributed Findings**: Provide a structured clinical knowledge layer to assist investigators in evaluating observed associations across data networks.
-   - **Adjudicating Alternative Explanations**: Distinguish genuine therapeutic effects from confounding by indication, protopathic bias (early manifestations treated prior to formal diagnosis), or detection artifacts.
-
 ---
 
-## 7. Repository Organization & R Package Ecosystem
- 
- ```
- ├── DESCRIPTION                  # Official OHDSI Study Package definition (Package: Taxis)
- ├── NAMESPACE                    # Package exports: execute(), runConceptMining(), packageMiningResults()
- ├── R/                           # Core R study functions for Concept AB Mining Engine
- │   ├── Main.R                   # Primary execute() entry point
- │   ├── RunMining.R              # 3-phase SqlRender pipeline orchestrator
- │   └── PackageMiningResults.R   # Non-PHI aggregate packaging with <5 suppression
- ├── inst/                        # Bundled package resources
- │   ├── sql/sql_server/          # Canonical OHDSI T-SQL scripts (init, batch, finalize)
- │   └── settings/                # Environment configuration templates
- ├── docs/                        # Public study documentation & scientific specifications
- │   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
- │   ├── governance/              # Network data use agreements & privacy policies
- │   ├── protocol/                # Study protocol & design specifications
- │   ├── mining/                  # Concept AB association mining engine specifications
- │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
- │   ├── phenotyping/             # Automated phenotype builder specifications
- │   └── validation/              # ClinVec empirical benchmark and concordance results
- ├── extras/                      # Multi-site study packages and execution drivers
- │   ├── CodeToRun.R              # Push-button network execution driver for root Taxis package
- │   ├── TaxisPhenotypeEvaluation/# Standalone HADES study package for phenotype evaluation
- │   └── TaxisPhenotypeCreator/   # Standalone HADES R package for automated Circe phenotype creation
- ├── examples/                    # Sanitized output schemas and reference data
- └── README.md                    # Repository overview and entry point
- ```
+## Study Leadership and Attribution
 
----
+TAXIS is led by an interdisciplinary team from Johns Hopkins University, Indiana University, the Regenstrief Institute, and CoReason:
+- **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)
+- **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine
+- **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup
+- **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine
 
-## 8. Citation & Academic References
-
-If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packages, please cite:
-
+### Citation
+If you use TAXIS in your research, please cite:
 > Bandeian SH, Rao G, Grannis S, Overhage JM. *TAXIS: Building an OMOP-Native Clinical Relationship Layer to Support Reusable OHDSI Analytics*. 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127), New Brunswick, NJ, October 2026.
 
 ### Foundational References:
@@ -409,7 +274,7 @@ If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packa
 3. **Prentice RL.** *Surrogate endpoints in clinical trials: definition and operational criteria*. *Stat Med*. 1989;8(4):431-440.
 4. **VanderWeele TJ.** *Explanation in Causal Inference: Methods for Mediation and Interaction*. Oxford University Press; 2015.
 5. **Rao GA.** *OHDSI Phenotype Library Version 3.0: An Agentic Architecture for Autonomous Governance*. 2026 OHDSI Global Symposium Collaborator Showcase, New Brunswick, NJ, October 2026.
-6. **Ostropolets A, et al.** *PHOEBE 2.0: selecting the right concept sets for the right patients using lexical, semantic, and data-driven recommendations*. *OHDSI Symposium*; 2022. (Available: https://www.ohdsi.org/wp-content/uploads/2022/10/6-Ostropolets_Phoebe2.0-abstract.pdf).
+6. **Ostropolets A, et al.** *PHOEBE 2.0: selecting the right concept sets for the right patients using lexical, semantic, and data-driven recommendations*. *OHDSI Symposium*; 2022.
 7. **Swerdel JN, Hripcsak G, et al.** *PheValuator: Development and evaluation of a phenotype evaluation tool*. *J Biomed Inform*. 2019;99:103294.
 8. **Schuemie MJ.** *PhenotypingAgent: Autonomous Cohort Development via LangGraph State Machine*. OHDSI Community GitHub Repository, 2026.
 9. **Schuemie MJ.** *ConceptSetCondenser: Optimal Concept Set Expression Generation*. OHDSI Community GitHub Repository, 2025.
@@ -419,9 +284,8 @@ If you utilize TAXIS algorithms, knowledge graphs, or phenotype recreation packa
 
 ---
 
-## 9. Contact & Community Engagement
+## Contact & Community Engagement
 
 - **OHDSI Forums**: [TAXIS Study Discussion](https://forums.ohdsi.org/u/TAXIS)
-- **Workgroups**: OHDSI Phenotype & Vocabulary Workgroups
+- **Workgroups**: OHDSI Phenotype Development & Evaluation Workgroup
 - **Issue Tracker**: Propose enhancements or report issues via [GitHub Issues](https://github.com/ohdsi-studies/Taxis/issues).
-
