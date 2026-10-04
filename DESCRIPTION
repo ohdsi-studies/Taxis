@@ -2,19 +2,21 @@ Package: Taxis
 Title: Temporal Association eXploration for Clinical Inference Studies (TAXIS) Concept AB Mining Engine
 Version: 1.0.0
 Authors@R: c(
-    person("Gowtham", "Rao", email = "gowtham.rao@coreason.ai", role = c("aut", "cre")),
-    person("Stephen", "Bandeian", email = "sbandeian@gmail.com", role = "aut"),
-    person("Shaun", "Grannis", email = "sgrannis@regenstrief.org", role = "aut"),
-    person("J. Marc", "Overhage", email = "overhage@gmail.com", role = "aut")
+    person("Stephen", "Bandeian", email = "sbandeian@gmail.com", role = c("aut", "cph"), comment = c(role = "Original SQL & Analytic Code Author, Principal Investigator")),
+    person("J. Marc", "Overhage", email = "overhage@gmail.com", role = "aut", comment = c(role = "Co-Principal Investigator")),
+    person("Gowtham", "Rao", email = "gowtham.rao@coreason.ai", role = c("aut", "cre"), comment = c(role = "Study Package Architect & Maintainer")),
+    person("Shaun", "Grannis", email = "sgrannis@regenstrief.org", role = "aut", comment = c(role = "Investigator"))
   )
 Description: Executes the distributed OHDSI network study pipeline for large-scale
-  clinical concept association mining (Concept AB Mining Engine v57). Computes
-  encounter-level and population-level co-occurrence statistics across OMOP CDM standard
-  clinical domains (Condition, Drug, Measurement, Procedure, Device, Observation)
-  partitioned into random batches to optimize memory and disk utilization. Evaluates
-  temporal precedence, crude and healthcare utilization-stratified lift, odds ratios,
-  and continuity-corrected directionality ratios with complete privacy preservation and
-  zero patient-level data export.
+  clinical concept association mining (Concept AB Mining Engine v57). All SQL algorithms,
+  database architectures, random partitioning logic, continuity-corrected directionality
+  formulations, and original analytic code were conceived and authored by Stephen H. Bandeian,
+  MD, JD (Principal Investigator, Johns Hopkins University). Computes encounter-level and
+  population-level co-occurrence statistics across OMOP CDM standard clinical domains
+  (Condition, Drug, Measurement, Procedure, Device, Observation) partitioned into random batches
+  to optimize memory and disk utilization. Evaluates temporal precedence, crude and healthcare
+  utilization-stratified lift, odds ratios, and continuity-corrected directionality ratios
+  with complete privacy preservation and zero patient-level data export.
 Depends:
     R (>= 4.0.0)
 Imports:

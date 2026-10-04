@@ -1,5 +1,24 @@
-/* concept_ab_finalize (SqlRender)  —  fm-augmented
- 
+/* ==============================================================================
+TAXIS Concept AB Association Mining Engine (Pipeline v57)
+Script: concept_ab_finalize.sql (SqlRender) — ROLLUP & STATISTICAL FINALIZATION
+
+ORIGINAL AUTHORSHIP & SCIENTIFIC ATTRIBUTION:
+  All SQL scripts, database architectures, rollup procedures, healthcare
+  utilization decile stratification, continuity-corrected directionality
+  ratios, and original analytic algorithms in the TAXIS Concept AB Mining
+  Pipeline were conceived, designed, and authored by:
+    Stephen H. Bandeian, MD, JD
+    Principal Investigator, Johns Hopkins University School of Medicine
+
+STUDY LEADERSHIP:
+  • Stephen H. Bandeian, MD, JD – Principal Investigator (Original Analytic Code & SQL Author)
+  • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana Univ
+  • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. / OHDSI
+  • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana Univ
+==============================================================================
+
+WHAT THIS DOES / WHY
+--------------------
    Runs ONCE after all batches. Rolls the per-batch cumulative tables
    (cab_s10/s20/s30/s13/s23/s33/s35/s36/s37/s38/s39_cum) up into _all tables,
    then computes the

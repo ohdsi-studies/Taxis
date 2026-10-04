@@ -1,3 +1,20 @@
+# ==============================================================================
+# TAXIS Concept AB Mining Pipeline: Standalone SQL Execution Runner (concept_ab_run.R)
+#
+# ORIGINAL AUTHORSHIP & SCIENTIFIC ATTRIBUTION:
+#   All SQL scripts, database architectures, 40-batch partitioning strategies,
+#   and original analytic algorithms in Pipeline v57 were conceived, designed,
+#   and authored by:
+#     Stephen H. Bandeian, MD, JD
+#     Principal Investigator, Johns Hopkins University School of Medicine
+#
+# STUDY LEADERSHIP:
+#   • Stephen H. Bandeian, MD, JD – Principal Investigator (Original Analytic Code & SQL Author)
+#   • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana Univ
+#   • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. / OHDSI
+#   • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana Univ
+# ==============================================================================
+#
 # ---------------------------------------------------------
 # HOW TO RUN
 # ---------------------------------------------------------

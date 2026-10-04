@@ -3,10 +3,13 @@
 > **Component**: Concept AB Association Mining Engine (Pipeline v57)  
 > **Source Pipeline**: Indiana Network for Patient Care (INPC) 2.16M Patient Run  
 > **Study Leadership**:  
-> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
+> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
+>  
+> **Original Scientific & Analytic Authorship**:  
+> All SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`), database architectures, 40-batch partitioning strategies, measurement packing schemes, and original analytic algorithms in the Concept AB Mining Engine were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).  
 > **Governing Framework**: OHDSI HADES (`DatabaseConnector`, `SqlRender`)  
 > **Licensing**: Apache 2.0 Open Source  
 

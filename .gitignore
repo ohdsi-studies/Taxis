@@ -6,3 +6,4 @@ extras/testdata/
 *.sqlite
 *.duckdb
 *.zip
+.Rproj.user

@@ -47,6 +47,13 @@
 #' @param packageResults           Whether to extract and package non-PHI aggregate results (default: TRUE).
 #' @param minCellCount             Minimum count threshold for small-cell suppression (< 5 masked to -1, default: 5).
 #'
+#' @author Stephen H. Bandeian, MD, JD (Original SQL & Analytic Algorithms, Principal Investigator)
+#' @author Gowtham Rao, MD, PhD (Study Package Implementation & Maintenance)
+#'
+#' @note All SQL scripts (init, batch, finalize), 40-batch random partitioning strategies,
+#' and underlying analytic algorithms in the Concept AB Mining Engine were conceived, designed,
+#' and authored by Stephen H. Bandeian, MD, JD.
+#'
 #' @export
 execute <- function(connectionDetails,
                     cdmDatabaseSchema,

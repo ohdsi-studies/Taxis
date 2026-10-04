@@ -9,10 +9,13 @@
 > • `DEC-GR-006`: Target Federated CDM Deployments (Claims, EHR, International CDMs)  
 > • `DEC-GR-010`: Dual Lift Reporting Architecture (Unadjusted Person Lift vs. Utilization-Stratified Lift)  
 > **Study Leadership**:  
-> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
+> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
+>  
+> **Original Scientific & Analytic Authorship**:  
+> All SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`), database architectures, 40-batch random partitioning strategies, measurement key packing schemes, continuity-corrected directionality ratios, and original analytic algorithms embodied in Pipeline v57 were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
 
 ---
 

@@ -48,6 +48,13 @@
 #' @param runFinalize              Whether to execute the rollup and finalization phase (default: TRUE).
 #' @param outputFolder             Local directory where logs and diagnostic SQL dumps will be saved.
 #'
+#' @author Stephen H. Bandeian, MD, JD (Original SQL & Analytic Algorithms, Principal Investigator)
+#' @author Gowtham Rao, MD, PhD (Study Package Implementation & Maintenance)
+#'
+#' @note All SQL scripts (init, batch, finalize), 40-batch random partitioning strategies,
+#' measurement key packing schemes, continuity-corrected directionality formulations, and
+#' underlying analytic algorithms were conceived, designed, and authored by Stephen H. Bandeian, MD, JD.
+#'
 #' @export
 runConceptMining <- function(connectionDetails,
                              cdmDatabaseSchema,

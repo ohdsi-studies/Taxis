@@ -4,8 +4,14 @@
 #
 # Study: Temporal Association eXploration for Clinical Inference Studies (TAXIS)
 # Component: Concept AB Association Mining Engine (Pipeline v57)
+#
+# ORIGINAL AUTHORSHIP & SCIENTIFIC ATTRIBUTION:
+#   All SQL scripts (init, batch, finalize), 40-batch partitioning strategies,
+#   continuity-corrected directionality formulations, and original analytic code
+#   were conceived, designed, and authored by Stephen H. Bandeian, MD, JD.
+#
 # Study Leadership:
-#   • Stephen H. Bandeian, MD, JD - Principal Investigator, Johns Hopkins University
+#   • Stephen H. Bandeian, MD, JD - Principal Investigator, Johns Hopkins University (Original SQL & Analytic Code Author)
 #   • J. Marc Overhage, MD, PhD - Co-Principal Investigator, The Overhage Group / Indiana Univ
 #   • Gowtham Rao, MD, PhD - Investigator, CoReason, Inc. / OHDSI
 #   • Shaun Grannis, MD, MS - Investigator, Regenstrief Institute / Indiana Univ

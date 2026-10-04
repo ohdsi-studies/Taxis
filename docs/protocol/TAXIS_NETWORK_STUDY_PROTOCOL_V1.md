@@ -7,10 +7,12 @@
 > **Release Date**: October 2026  
 > **OHDSI Presentation**: 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127, October 20–22, 2026, New Brunswick, NJ)  
 > **Study Leadership**:  
-> - **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine)  
+> - **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine; Original SQL & Analytic Code Author)  
 > - **J. Marc Overhage, MD, PhD** (Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine)  
 > - **Gowtham Rao, MD, PhD** (Investigator, CoReason, Inc. USA; OHDSI)  
 > - **Shaun Grannis, MD, MS** (Investigator, Regenstrief Institute / Indiana University School of Medicine)  
+> **Original Scientific & Analytic Authorship**:  
+> All SQL algorithms, database schemas, 40-batch partitioning strategies, continuity-corrected directionality formulations ($DR$), and original analytic code of the Concept AB Mining Engine (Pipeline v57) were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).  
 > **Repository**: [ohdsi-studies/Taxis](https://github.com/ohdsi-studies/Taxis)  
 
 ---

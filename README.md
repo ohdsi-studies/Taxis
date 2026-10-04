@@ -15,7 +15,7 @@
 > - [48"x36" Digital Poster Presentation Guide](docs/symposium_2026/Poster_Presentation_Guide.md) (tri-panel layout & walkthrough script)  
 > - [2026 Symposium Dissemination Overview](docs/symposium_2026/README.md)  
 > **Study Leadership**:  
-> - **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine  
+> - **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > - **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > - **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup  
 > - **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine  
@@ -195,6 +195,10 @@ TAXIS is designed to explore applications across four areas of observational res
 ## 3. Tripartite Technical Methodology
 
 ### Pillar 1: Empirical Association Rule Mining (Pipeline v57)
+
+> **Original Scientific & Analytic Authorship**:  
+> All SQL algorithms, database schemas, 40-batch partitioning strategies, continuity-corrected directionality formulations ($DR$), and original analytic code of the Concept AB Mining Engine (Pipeline v57) were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
+
 - **Empirical Scale**: Deployed across **2.16 million longitudinal patient records** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM.
 - **Candidate Pair Mining**: Mined **5.52 million candidate concept pairs** ($N_{AB} \ge 100$) across 14 domain-pair permutations spanning Disorders, Findings, Interventions (drugs, procedures, devices), Tests, and Results.
 - **Confounding Control**:
@@ -220,7 +224,7 @@ TAXIS is designed to explore applications across four areas of observational res
 ### Pillar 3: Automated Phenotype Recreation & Multi-Database Evaluation
 - **Automated Phenotype Creation Package (`TaxisPhenotypeCreator`)**: Dedicated HADES R package for translating clinical descriptions and knowledge graph association edges into standards-compliant Circe JSON cohort expressions and target DBMS SQL queries. Located in [`extras/TaxisPhenotypeCreator/`](extras/TaxisPhenotypeCreator/README.md).
 - **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate target phenotypes against comparator cohorts from the OHDSI Phenotype Library across partner OMOP CDM databases. Located in [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/README.md).
-- **Concept AB Mining Network Study Package (`Taxis`)**: The root repository forms the official OHDSI Network Study Package executing the 40-batch association mining engine across federated OMOP CDMs. Configured via [`extras/CodeToRun.R`](extras/CodeToRun.R).
+- **Concept AB Mining Network Study Package (`Taxis`)**: The root repository forms the official OHDSI Network Study Package executing Dr. Stephen H. Bandeian's 40-batch association mining engine across federated OMOP CDMs. Configured via [`extras/CodeToRun.R`](extras/CodeToRun.R).
 
 ---
 
