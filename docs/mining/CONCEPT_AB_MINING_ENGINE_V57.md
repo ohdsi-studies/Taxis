@@ -475,7 +475,7 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
                            Interval 3: delta -W..-1 (B before A)      % B before A                                    
                                                                                                               
   5. Directionality Math   dir_ab = obs_after / (obs_after+obs_before) DR = (N_A->B+0.5)/(N_B->A+0.5) Concordant
-                           in cab_s55_pair_all; transformed to DR     (Downstream R/Python export)    (Mapped)
+                           in cab_s55_pair_all; transformed to DR     (Post-processing / unverified)  (Mapped)
                                                                                                               
   6. Lift Estimands        pers_lift = pers / pers_exp                Table 7: Person-level lift      Concordant
                            obs_lift = obs / obs_exp                   distributions (>=1, 2, 3, 5)    (Exact)
@@ -511,9 +511,9 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
 5. **Directionality Ratio ($DR$) vs. Directional Share (`dir_ab`)**:
    - In `inst/sql/sql_server/concept_ab_finalize.sql` (line 1348), the SQL engine computes the raw directional proportion:
      $$\text{dir\_ab} = \frac{\text{obs\_after}}{\text{obs\_after} + \text{obs\_before}}$$
-   - In downstream post-processing pipelines (such as `examples/knowledge_graph/build_graph.py` and analytical exports), the continuity-corrected Directionality Ratio is calculated:
+   - In Dr. Bandeian's analytical write-up and verified test harnesses (e.g., `extras/test_eunomia_integration.py` lines 176–178 and `extras/test_postgres_synthea_integration.py` lines 90–91), the continuity-corrected Directionality Ratio is calculated:
      $$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5} = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$$
-   - These formulations are monotonically equivalent: $DR = \frac{\text{dir\_ab} + 0.5/N}{(1 - \text{dir\_ab}) + 0.5/N}$. The SQL engine provides the unadjusted contingency base, while the export layer applies the Haldane-Anscombe continuity correction to safeguard against zero-division in sparse pairs.
+   - These formulations are monotonically equivalent: $DR = \frac{\text{dir\_ab} + 0.5/N}{(1 - \text{dir\_ab}) + 0.5/N}$. The SQL engine materializes `dir_ab` as the unadjusted database column in `cab_s55_pair_all`, while application of the Haldane-Anscombe continuity correction occurs during post-processing and analysis; packaging of this transformation inside a released R export driver remains an external/unverified pipeline step.
 
 6. **Healthcare Utilization Decile Stratification**:
    - The SQL scripts `concept_ab_init.sql` (lines 205–250) and `concept_ab_finalize.sql` (lines 913–1054) implement utilization decile tables `cab_s13_strat_all`, `cab_s23_strat_all`, `cab_s33_strat_all`, and `cab_s33_mh_all`.

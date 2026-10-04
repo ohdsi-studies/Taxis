@@ -121,9 +121,9 @@ TAXIS synthesizes **three coordinated cohort tiers** for every clinical concept:
 
 ## 4. Flagship Case Study: Acute Myocardial Infarction (AMI)
 
-Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine, formalizing the clinical adjudication patterns from the **10 synthetic educational case vignettes** analyzed in Phenotype Aphril Week 2 (Slides 18–48).
+Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine. The educational vignettes below are newly authored synthetic clinical archetypes illustrating how multi-tiered Circe definitions and TAXIS knowledge-graph slots systematically evaluate canonical presentation patterns (e.g., clear-cut inpatient STEMI, historical infarction, emergency department chest pain rule-out, and under-coded acute arrest).
 
-*Synthetic Educational Vignette Generation Basis & Provenance*: The case vignettes below (labeled with illustrative scenario IDs 2751, 225, 1816, etc.) are newly authored synthetic educational prototypes modeled after public OHDSI Phenotype Development & Evaluation Workgroup teaching concepts (such as the community 'Phinding Phenotypes with Phriends' educational exercises). They do not represent real-world patient records, hospital EHR extracts, or PHI; all clinical sequences are synthetically generated to illustrate multi-tiered phenotype and knowledge-graph slot matching.
+*Synthetic Clinical Archetype Generation Basis*: All clinical scenarios presented in this section are synthetic educational archetypes newly designed for the TAXIS phenotyping integration specification. They do not incorporate real patient identifiers, hospital EHR records, or private clinical traces; rather, each scenario provides an illustrative archetype of specific slot-matching permutations and anticipated tier classifications.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -214,15 +214,15 @@ In Phenotype Aphril Week 2, the community participated in interactive case adjud
 
 ### 5.1 Adjudication Heuristics Mapped to TAXIS Metrics
 
-| Synthetic Case Vignette # | Adjudication Vignette Pattern | Community / Consensus Decision | TAXIS Knowledge Graph Evaluation |
+| Synthetic Clinical Archetype | Illustrative Presentation Pattern | Anticipated Tier Classification | TAXIS Knowledge Graph Slot Evaluation |
 |---|---|---|---|
-| **Vignette 2751** | Day 0 Inpatient NSTEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4. Meets Tier 1 treatment-enriched criteria (acute diagnosis + forward revascularization), eliminating rule-out ambiguity for high-specificity studies. |
-| **Vignette 225** | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4, 5. Meets Tier 1 criteria; multi-admission recurrence confirms severe acute CAD presentation. |
-| **Vignette 1816** | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Not a Case (Certainty: High)** | Fails Tier 1 intervention gate (zero revascularization/acute pharmacotherapy). Bucket 6 mimic (gastritis) documented alongside negative work-up. Categorized as non-case rule-out in high-specificity tier. |
-| **Vignette 129** | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Old Case (Pre-index)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical event. |
-| **Vignette 626** | Outpatient carry-forward code at routine visit + zero cardiac meds | **Not a Case (Certainty: High)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact; does not meet acute encounter or diagnostic criteria in either tier. |
-| **Vignette 5189** | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Case (Under-coded / Edge Case)** | Requires secondary clinical rescue logic (acute cardiac arrest, shock, and emergency thrombolysis without explicit primary AMI code); fails standard Tier 1/Tier 2 diagnosis anchor, illustrating edge-case capture under expanded rescue rules. |
-| **Vignette 1100** | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Not a Case (Certainty: Low in Tier 1; Evaluated in Tier 2)** | Diagnostic cath without revascularization fails Tier 1 strict treatment gate, reflecting lack of acute intervention. Eligible for Tier 2 surveillance evaluation pending diagnostic troponin/ECG confirmation. |
+| **Archetype AMI-01** (Primary Inpatient STEMI) | Day 0 Inpatient NSTEMI/STEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Tier 1 & Tier 2)** | Satisfies Buckets 1, 3, 4. Meets Tier 1 treatment-enriched criteria (acute diagnosis + forward revascularization), eliminating rule-out ambiguity for high-specificity studies. |
+| **Archetype AMI-02** (Severe Multi-Vessel Event) | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Tier 1 & Tier 2)** | Satisfies Buckets 1, 3, 4, 5. Meets Tier 1 criteria; multi-admission recurrence confirms severe acute CAD presentation. |
+| **Archetype AMI-03** (ED Rule-Out with Mimic) | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Non-Case (Rule-Out)** | Fails Tier 1 intervention gate (zero revascularization/acute pharmacotherapy). Bucket 6 mimic (gastritis) documented alongside negative work-up. Categorized as non-case rule-out in high-specificity tier. |
+| **Archetype AMI-04** (Historical Infarct Carry-Forward) | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Non-Incident (Historical)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical event. |
+| **Archetype AMI-05** (Problem List Artifact) | Outpatient carry-forward code at routine visit + zero cardiac meds | **Non-Case (Artifact)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact; does not meet acute encounter or diagnostic criteria in either tier. |
+| **Archetype AMI-06** (Under-Coded Thrombolytic Rescue) | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Edge Case (Rescue Rule Target)** | Requires secondary clinical rescue logic (acute cardiac arrest, shock, and emergency thrombolysis without explicit primary AMI code); fails standard Tier 1/Tier 2 diagnosis anchor, illustrating edge-case capture under expanded rescue rules. |
+| **Archetype AMI-07** (Diagnostic Cath without Intervention) | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Non-Case in Tier 1 (Eligible in Tier 2)** | Diagnostic cath without revascularization fails Tier 1 strict treatment gate, reflecting lack of acute intervention. Eligible for Tier 2 surveillance evaluation pending diagnostic troponin/ECG confirmation. |
 
 ---
 
