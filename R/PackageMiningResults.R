@@ -37,10 +37,20 @@ packageMiningResults <- function(connectionDetails,
                                  databaseId,
                                  minCellCount = 5) {
 
-  # Enforce mandatory integer threshold floor of at least 5 (DEC-GR-005, REC-038-2)
-  if (is.null(minCellCount) || is.na(minCellCount) || !is.numeric(minCellCount) ||
-      length(minCellCount) != 1 || is.infinite(minCellCount) || minCellCount < 5) {
-    ParallelLogger::logWarn(sprintf("Invalid or sub-threshold minCellCount (%s). Enforcing mandatory floor minCellCount = 5.", as.character(minCellCount)))
+  # Enforce rigorous scalar integer threshold validation with mandatory floor of at least 5 (REC-038-2, REC-039-1)
+  isValidThreshold <- !is.null(minCellCount) &&
+    is.numeric(minCellCount) &&
+    length(minCellCount) == 1 &&
+    !is.na(minCellCount) &&
+    is.finite(minCellCount) &&
+    (minCellCount %% 1 == 0) &&
+    minCellCount >= 5
+
+  if (!isValidThreshold) {
+    valStr <- if (is.null(minCellCount)) "NULL" else paste(as.character(minCellCount), collapse = ", ")
+    ParallelLogger::logWarn(
+      sprintf("Invalid, non-integer, vector, or sub-threshold minCellCount (%s). Enforcing mandatory floor minCellCount = 5.", valStr)
+    )
     minCellCount <- 5L
   } else {
     minCellCount <- as.integer(minCellCount)

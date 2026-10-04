@@ -66,16 +66,16 @@ def test_cross_table_histogram_subtraction_reconstruction():
 
     min_cell_count = 5
 
-    # Synthetic fixture from REC-038-2:
+    # Synthetic fixture aligned with finalize SQL (lines 756-759: tight<=14, mid in 30,60,90, long>=180):
     # In cab_s39_pattern_all: Concept 201826 has two gap bins:
-    # Bin 1 (bucket 7): n_obs = 1 (<5, masked)
-    # Bin 2 (bucket 14): n_obs = 19 (>=5, unmasked)
+    # Bin 1 (bucket 7, tight band): n_obs = 1 (<5, masked)
+    # Bin 2 (bucket 30, mid band): n_obs = 19 (>=5, unmasked)
     pattern_rows = [
         {"metric": "gap", "src": 1, "concept_id": 201826, "bucket": 7, "n_obs": 1, "n_persons": 1},
-        {"metric": "gap", "src": 1, "concept_id": 201826, "bucket": 14, "n_obs": 19, "n_persons": 15},
+        {"metric": "gap", "src": 1, "concept_id": 201826, "bucket": 30, "n_obs": 19, "n_persons": 15},
     ]
 
-    # In cab_s54_grain_guide: total n_gaps = 20 (1 + 19), frac_gaps_tight = 0.05 (1/20)
+    # In cab_s54_grain_guide: total n_gaps = 20 (1 tight + 19 mid), frac_gaps_tight = 0.05 (1/20), frac_gaps_mid = 0.95 (19/20)
     grain_guide_row = {
         "concept_id": 201826,
         "src": 1,
@@ -83,7 +83,7 @@ def test_cross_table_histogram_subtraction_reconstruction():
         "pers_act": 80,
         "mentions_per_person": 1.25,
         "n_gaps": 20,
-        "median_gap_bucket": 14,
+        "median_gap_bucket": 30,
         "median_span_bucket": 90,
         "frac_gaps_tight": 0.05,
         "frac_gaps_mid": 0.95,
@@ -142,13 +142,20 @@ def test_scalar_integer_threshold_validation():
     """Verify REC-038-2: Finite scalar integer threshold validation."""
     print("--> Test 3: Verifying robust scalar integer threshold validation...")
     def validate_threshold(val):
-        if val is None or not isinstance(val, (int, float)):
+        if val is None or isinstance(val, (list, tuple)):
+            return 5
+        if not isinstance(val, (int, float)):
             return 5
         import math
-        if math.isnan(val) or math.isinf(val) or val < 5:
+        if math.isnan(val) or math.isinf(val):
+            return 5
+        if val % 1 != 0:  # Fractional input like 5.9 is rejected to floor 5
+            return 5
+        if val < 5:
             return 5
         return int(val)
 
+    # Invalid / fallback cases
     assert validate_threshold(None) == 5
     assert validate_threshold("invalid") == 5
     assert validate_threshold(float("nan")) == 5
@@ -157,9 +164,17 @@ def test_scalar_integer_threshold_validation():
     assert validate_threshold(0) == 5
     assert validate_threshold(1) == 5
     assert validate_threshold(4) == 5
+    assert validate_threshold([5, 10]) == 5, "Vectors must be rejected to floor 5"
+    assert validate_threshold((5, 10)) == 5
+    assert validate_threshold(5.9) == 5, "Fractional inputs must not be silently truncated; fallback to floor 5"
+    assert validate_threshold(5.1) == 5
+
+    # Valid scalar integer cases
     assert validate_threshold(5) == 5
+    assert validate_threshold(5.0) == 5
     assert validate_threshold(10) == 10
-    print("  [PASS] All sub-threshold, non-finite, and invalid inputs strictly enforced to >= 5.")
+    assert validate_threshold(25) == 25
+    print("  [PASS] All sub-threshold, fractional, vector, non-finite, and invalid inputs strictly enforced to >= 5.")
 
 def test_fail_closed_on_query_or_schema_error():
     """Verify REC-038-1: Exporter fails closed on query or schema errors."""
