@@ -107,7 +107,7 @@ def run_postgres_tests(host, port, dbname, user, password):
     try:
         conn = psycopg.connect(conn_str, autocommit=True)
     except Exception as e:
-        print(f"\n[NOTICE] Unable to connect to PostgreSQL container on {host}:{port}: {e}")
+        print(f"\n[ERROR] Unable to connect to PostgreSQL container on {host}:{port}: {e}")
         print("\nTo start the container, run:")
         print("  Windows:  .\\docker\\synthea-omop-postgres\\setup_synthea_postgres.ps1")
         print("  Linux/Mac: ./docker/synthea-omop-postgres/setup_synthea_postgres.sh")
@@ -224,14 +224,20 @@ def main():
     parser.add_argument("--db", default=os.environ.get("POSTGRES_DB", "synthea"))
     parser.add_argument("--user", default=os.environ.get("POSTGRES_USER", "ohdsi_app"))
     parser.add_argument("--password", default=os.environ.get("POSTGRES_PASSWORD", "ohdsi_app_pass_2026"))
+    parser.add_argument("--allow-skip", action="store_true", default=False,
+                        help="Allow skipping the test with exit code 0 if database is unavailable")
     args = parser.parse_args()
 
     result = run_postgres_tests(args.host, args.port, args.db, args.user, args.password)
     if result is True:
         sys.exit(0)
     elif result is None:
-        # Docker container was not running; notice displayed
-        sys.exit(0)
+        if args.allow_skip:
+            print("[SKIPPED] PostgreSQL integration test skipped (--allow-skip enabled).")
+            sys.exit(0)
+        else:
+            print("[FAILED] PostgreSQL database is unavailable. Exiting with failure code 1.")
+            sys.exit(1)
     else:
         sys.exit(1)
 

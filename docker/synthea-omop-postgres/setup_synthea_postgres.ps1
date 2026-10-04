@@ -60,6 +60,10 @@ python "$ScriptDir\load_synthea.py" --host localhost --port 5433 --db synthea --
 Write-Host "--> Step 5: Executing TAXIS integration test on PostgreSQL..." -ForegroundColor Yellow
 $rootDir = Resolve-Path "$ScriptDir\..\.."
 python "$rootDir\extras\test_postgres_synthea_integration.py" --port 5433
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "TAXIS PostgreSQL integration test failed with exit code $LASTEXITCODE."
+    exit $LASTEXITCODE
+}
 
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host " PostgreSQL Synthea-OMOP Setup & Integration Test Complete!" -ForegroundColor Green
