@@ -292,22 +292,27 @@ $$
 I^2 = \max\left(0, \frac{Q - (K - 1)}{Q}\right) \times 100\%
 $$
 
-#### Heterogeneity Classification & Knowledge Graph Gating:
-- **Low Heterogeneity ($I^2 < 25\%$)**: Invariant biological or clinical relationship. Fully transportable across any healthcare setting.
-- **Moderate Heterogeneity ($25\% \le I^2 \le 75\%$)**: Valid clinical association that exhibits legitimate variation in effect magnitude due to healthcare delivery differences (e.g., higher inpatient coding intensity in EHRs vs. ambulatory claims).
-- **High Heterogeneity ($I^2 > 75\%$)**: Flagged for sensitivity analysis. Indicates database-specific phenomena, such as local formulary restrictions, insurance reimbursement mandates, or coding classification shifts.
+#### Heterogeneity Classification & Research Evaluation:
+- **Low Heterogeneity ($I^2 < 25\%$)**: Indicates low between-database variation in observed effect sizes across the evaluated cohorts; transportability to unstudied settings remains a hypothesis to evaluate empirically.
+- **Moderate Heterogeneity ($25\% \le I^2 \le 75\%$)**: Reflects observed variation in effect magnitude across databases, which may stem from differences in healthcare delivery, coding practices (e.g., inpatient vs. ambulatory claims), or population case-mix.
+- **High Heterogeneity ($I^2 > 75\%$)**: Flagged for sensitivity analysis. Indicates substantial database-specific variation, which may arise from local formulary restrictions, reimbursement policies, or divergent coding practices.
 
 ---
 
 ### 3.3 Uncertainty Quantification: Confidence vs. Prediction Intervals
 
-A standard 95% Confidence Interval reflects only the precision of the *mean* pooled estimate. However, for a clinician or researcher applying the knowledge graph to a *new, previously unseen hospital or database*, the critical parameter is the **95% Prediction Interval (PI)**, which incorporates both sampling error and between-site variance $\tau^2$:
+A standard 95% Confidence Interval reflects only the precision of the *mean* pooled estimate. However, for a clinician or researcher evaluating the potential distribution of effects in a *comparable new healthcare database*, the relevant parameter is the **95% Prediction Interval (PI)**, which incorporates both sampling error and between-site variance $\tau^2$:
 
 $$
 \text{PI}_{95\%} = \left[ \exp\left(\hat{\mu} - t_{K-2, 0.975} \sqrt{\tau^2 + \text{SE}(\hat{\mu})^2}\right), \; \exp\left(\hat{\mu} + t_{K-2, 0.975} \sqrt{\tau^2 + \text{SE}(\hat{\mu})^2}\right) \right]
 $$
 
-where $t_{K-2, 0.975}$ is the critical value from Student's $t$-distribution with $K-2$ degrees of freedom. If the lower bound of the 95% Prediction Interval remains $> 1.0$, the concept association is guaranteed to be positively enriched in virtually any new healthcare database.
+where $t_{K-2, 0.975}$ is the critical value from Student's $t$-distribution with $K-2$ degrees of freedom.
+
+#### Small-Sample Degree-of-Freedom Boundary ($K < 3$):
+- Calculation of the prediction interval strictly requires **$K \ge 3$ sites** ($K - 2 \ge 1$ positive degrees of freedom for Student's $t$-distribution).
+- For analyses with **$K < 3$ sites** (e.g., a two-site synthesis), degrees of freedom $K - 2 \le 0$ cannot support a valid critical value; the synthesis engine explicitly sets $\text{PI}_{95\%\text{, lower}} = \text{NA}$ and $\text{PI}_{95\%\text{, upper}} = \text{NA}$.
+- When $K \ge 3$, if the lower bound of the 95% Prediction Interval remains $> 1.0$, it indicates that the estimated association is expected to remain positive in comparable future populations drawn from the same universe of healthcare settings, subject to the assumptions of the random-effects model (see Cochrane Handbook, Chapter 10, sections 10.10.2–10.10.4).
 
 ---
 
@@ -416,21 +421,23 @@ Prior to initiating central UDM database deployment or commercial claims ingesti
 2. **Explicit Input Schema**: Standardize the minimal required inputs: site identifier, observed counts ($O_{\text{after}}, O_{\text{before}}, O_{\text{same\_day}}$), marginal counts ($O_A, O_B$), background observation person-days, and derived variance $\sigma_s^2$.
 3. **Deterministic Edge-Case Handling**: Verify mathematically correct handling of small-cell suppression (masked counts $< 5 \to -1$, assigning unavailable variance) and empty/zero-count pairs without runtime failure.
 4. **Reference Result Comparison**: Assert pooled lift, Cochran's $Q$, $I^2$, and pooled $DR$ against an independently computed hand-calculation.
-5. *Boundary Note*: Passing this gate demonstrates computational correctness and data transport feasibility; it does not assert clinical validity across real healthcare databases.
+5. *Boundary Note*: Passing this gate demonstrates synthetic arithmetic and schema validation correctness; it does not assert data transport feasibility, pipeline integration, or clinical validity across real healthcare databases.
 
 ---
 
 ## 6. Summary of Authoritative Decisions & Governance Alignment
 
-1. **Separation of Core Study vs. Downstream Proofs of Concept (`DEC-GR-027`, `DEC-GR-028`)**:
-   TAXIS is fundamentally an association mining study package and federated aggregate dataset generator. The UDM and meta-analysis engine provide the empirical substrate; downstream clinical tools (e.g., phenotype builders or LLM classifiers) consume UDM outputs as read-only downstream clients.
-2. **Three-Channel Data Distribution Model (`DEC-GR-029`)**:
+1. **Core Scope & Repository Positioning (`DEC-GR-027`)**:
+   TAXIS is fundamentally an association mining study package and federated aggregate dataset generator, not an end-user cohort builder or classifier application. The UDM and meta-analysis engine provide the empirical substrate; downstream clinical tools consume UDM outputs as read-only downstream clients.
+2. **Three-Channel Data Distribution Model (`DEC-GR-028`)**:
    - **Channel 1 (Bulk Data Dumps for Researchers)**: Shared via secure academic cloud/SFTP under Data Use Agreements (DUA) and IRB approval where applicable, or open distribution of privacy-safe aggregate datasets where permitted.
    - **Channel 2 (Zero Bulk Data in Git Repository)**: Strict exclusion of bulk data matrices or unsuppressed aggregates from the git repository.
    - **Channel 3 (Public Web Explorer)**: Prospective read-only research portal serving small-cell suppressed aggregates ($< 5 \to -1$) with authenticated database credentials. (Note: Public API and formal privacy certification remain unestablished prospective proposals).
-3. **Phased Partner Rollout (`DEC-GR-030`)**:
+3. **Companion Demonstration Prototypes (`DEC-GR-029`)**:
+   Prototypes in `extras/` (`TaxisPhenotypeCreator`, `TaxisPhenotypeEvaluation`, `build_1032.py`) are illustrative demonstrations, not production tools.
+4. **Phased Partner Rollout Protocol (`DEC-GR-030`)**:
    Partner sites participate via Phase A (single-batch verification) before advancing to Phase B (40-batch full-cohort production).
-4. **Denominator Derivation & Strict Receipt Hardening (`DEC-GR-031`)**:
-   Observation person-days denominators must be derived directly from source CDM tables, and all pipeline runs must emit ISO 8601 UTC receipts with dynamic SQL digests.
-5. **Scholarly Scientific English (`DEC-GR-032`)**:
+5. **Scholarly Human Voice Documentation Standard (`DEC-GR-031`)**:
+   Public documentation and study guides are authored in clear, scholarly human prose rather than mechanical phrasing.
+6. **Medical & Scientific English Standard (`DEC-GR-032`)**:
    All mathematical derivations, statistical parameters, and cross-site syntheses use rigorous medical informatics and epidemiological vocabulary. Observational events do not "travel together"—they **empirically co-occur** and exhibit **temporal association**.

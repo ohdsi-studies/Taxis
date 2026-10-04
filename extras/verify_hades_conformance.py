@@ -276,6 +276,10 @@ def test_hades_no_invisible_side_effects():
 
                     for pat, desc in bad_patterns:
                         if pat.search(code):
+                            # Allow options() if safely scoped and restored via on.exit()
+                            if "options" in desc and "on.exit" in code:
+                                if re.search(r"on\.exit\s*\(\s*options\s*\(", code) and re.search(r"getOption\s*\(", code):
+                                    continue
                             errors.append(f"[{pname}] R/{fname}: {desc}")
 
     if errors:
