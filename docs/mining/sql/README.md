@@ -56,6 +56,27 @@ The analytical pipeline executes entirely within the database engine via paramet
 
 ---
 
+## Concept Entities & Mathematical Formulations
+
+The mining engine evaluates empirical bivariate associations anchored on standardized OMOP clinical entities:
+- **Concept A (Anchor / Index Concept)**: The reference clinical entity representing an eligible patient's index diagnosis or exposure.
+- **Concept B (Target / Associated Concept)**: The target clinical entity evaluated for co-occurrence and temporal lag relative to Concept A.
+- **Concept AB (Longitudinal Concept Pair)**: The pairwise co-occurrence observed within a defined longitudinal window ($W = \pm 30$ or $\pm 365$ days), partitioned across three mutual temporal intervals:
+  - **Interval 1 (Same-Day / Contemporaneous, $\Delta t = 0$)**: Evaluates co-documentation on the identical calendar day; segregated from directional calculations.
+  - **Interval 2 (Forward Precedence $A \to B$, $+1 \le \Delta t \le +W$)**: Quantifies sequential prospective incidence ($O_{\text{after}} = N_{A \to B}$).
+  - **Interval 3 (Reverse Precedence $B \to A$, $-W \le \Delta t \le -1$)**: Quantifies antecedent reverse incidence ($O_{\text{before}} = N_{B \to A}$).
+
+### Core Statistical Estimands
+1. **Crude Event Lift**: $\text{Lift}_{\text{obs}} = \frac{O_{AB}}{E_{\text{obs}}}$, where $E_{\text{obs}} = \frac{O_A \cdot O_B \cdot w}{T_{\text{total}}}$ is derived from background Poisson event rates.
+2. **Utilization-Stratified Lift**: $\text{Lift}_{\text{strat}} = \frac{O_{AB}}{E_{\text{MH}}}$, where $E_{\text{MH}} = \sum_{k=1}^{10} \frac{O_{A, k} \cdot O_{B, k} \cdot (2W+1)}{T_k}$ sums expected co-occurrences across 10 healthcare contact density deciles to eliminate surveillance confounding.
+3. **Wilson-Hilferty Poisson Confidence Intervals**: Exact asymmetrical 95% Poisson confidence limits for event lift computed directly in SQL (`concept_ab_finalize.sql`).
+4. **Directionality Metrics**: Directional share $\text{dir\_ab} = \frac{O_{\text{after}}}{O_{\text{after}} + O_{\text{before}}}$ and continuity-corrected Directionality Ratio $DR_{\text{corrected}} = \frac{O_{\text{after}} + 0.5}{O_{\text{before}} + 0.5}$.
+5. **Cochran-Mantel-Haenszel Common Odds Ratio**: Stratified contingency cell counts materialized in `cab_s33_strat_all` enabling exact odds ratio computation ($OR_{\text{MH}}$).
+
+For complete derivations, consult the [Concept AB Mining Engine Technical Specification](../CONCEPT_AB_MINING_ENGINE_V57.md) and the [Federated Unified Data Model & Meta-Analysis Specification](../FEDERATED_TAXIS_UNIFIED_DATA_MODEL_AND_META_ANALYSIS.md).
+
+---
+
 ## Technical Prerequisites
 
 ### 1. Software Environment

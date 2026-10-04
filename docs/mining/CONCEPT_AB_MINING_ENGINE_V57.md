@@ -35,9 +35,11 @@ In our production benchmark on the Indiana Network for Patient Care (INPC), the 
 
 ---
 
-## 2. Statistical Estimands & Epidemiological Counting Rules
+## 2. Formal Definitions, Mathematical Formulations & Statistical Estimands
 
-Statistical discovery in longitudinal observational databases requires rigorous epidemiological counting rules to differentiate authentic clinical associations from surveillance bias, healthcare utilization artifacts, and coding collinearity. Raw, unadjusted co-occurrence frequencies are heavily confounded by healthcare contact density and surveillance intensity. Pipeline v57 implements formal epidemiological counting rules to enforce incident temporal ordering, eliminate uninformative concurrent documentation ties, and control for healthcare utilization confounding.
+Statistical discovery in longitudinal observational healthcare databases requires rigorous epidemiological counting rules and clear mathematical definitions to differentiate authentic clinical associations from healthcare utilization confounding (contact density bias), coding collinearity, and surveillance artifacts. 
+
+This section defines the fundamental entities (**Concept A**, **Concept B**, and **Concept AB**), details their longitudinal measurement intervals and occurrence grains, and specifies every mathematical equation implemented in the released OHDSI T-SQL codebase (`inst/sql/sql_server/*.sql`) and Dr. Stephen H. Bandeian's foundational study protocol.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -59,60 +61,290 @@ Statistical discovery in longitudinal observational databases requires rigorous 
                      • EXCLUDED from directional counts                            • NB→A: Reverse precedence
 ```
 
-### 2.1 Baseline Observation Wash-In & Incident Eligibility
-To ensure that an index event represents a newly documented incident clinical presentation rather than prevalent ongoing management, patients must possess at least 365 days of continuous observation prior to the index date of Concept A ($T_{\text{index}} - T_{\text{start}} \ge 365\text{ days}$). Every person in the analytical denominator satisfies this one-year wash-in criterion, establishing an authenticated baseline for longitudinal tracking ($N = 2,160,000$ in the INPC benchmark run).
+---
 
-### 2.2 Prospective Follow-Up Across Epidemiological Horizons
-Symmetric, short temporal observation windows (e.g., $\pm 30$ days) introduce substantial window-censoring bias. While suitable for acute, self-limiting clinical presentations, narrow windows fail to capture protracted disease progression, staged therapeutic escalation, or delayed longitudinal sequelae. Pipeline v57 quantifies distinct-patient incident co-occurrences across predefined prospective follow-up horizons following index Concept A presentation:
-- **$[+1, +30\text{ days}]$**: Evaluates peri-diagnostic laboratory confirmation and acute stabilization therapy.
-- **$[+1, +90\text{ days}]$**: Quantifies subacute therapeutic titration and early monitoring.
-- **$[+1, +365\text{ days}]$**: Reflects intermediate clinical management and annual maintenance therapy.
-- **$[+1, +730\text{ days}]$**: Characterizes two-year disease progression and chronic sequelae.
-- **$[+1, \text{End of Observation}]$**: Captures complete prospective follow-up throughout the remaining observation period.
+### 2.1 Foundational Definitions: Concept A, Concept B, and Concept AB
 
-To ensure that forward temporal precedence ($N_{A \to B}$) measures true incident clinical presentation rather than chronic co-management, the counting logic strictly requires that Concept B had zero documented occurrences during the patient's 365-day baseline observation period.
+#### Concept A (Anchor / Index Concept)
+- **Definition**: The reference or antecedent clinical concept in a candidate clinical pair, representing a patient's index presentation or exposure within an eligible observational horizon.
+- **Attributes**:
+  - `concept_a`: Standard OMOP Concept ID (or 64-bit packed surrogate measurement key).
+  - `concept_name_a`: Standard clinical concept name.
+  - `src_a`: Domain code (e.g., `10` = Condition, `20` = Procedure, `30` = Device, `40` = Drug, `60` = Measurement Test, `61` = Measurement Result).
+  - `pers_a`: Total distinct patients presenting with Concept A during their eligible observation period.
+  - `obs_a_act`: Total lifetime event instances (mentions) of Concept A across all patients.
+  - `mentions_per_person_a`: Mean occurrence density ($\text{obs\_a\_act} / \text{pers\_a}$).
 
-### 2.3 Segregation of Same-Day Ties ($N_{A=B}$)
-When two clinical concepts are documented on the identical calendar day ($T_A = T_B$)—such as during an acute emergency department encounter or within an inpatient admission coding bundle—temporal precedence cannot be established from discrete calendar dates alone. To protect temporal sequence validity, Pipeline v57 quantifies same-day co-occurrences as an independent metric ($N_{A=B}$ and the same-visit fraction `same_visit_frac`). Same-day ties are strictly segregated from directional counts ($N_{A \to B}$ and $N_{B \to A}$), preventing concurrent billing artifacts from distorting directional estimates.
+#### Concept B (Target / Associated Concept)
+- **Definition**: The target or consequent clinical concept evaluated for empirical co-occurrence, sequential lag, and temporal precedence relative to Concept A.
+- **Attributes**:
+  - `concept_b`: Standard OMOP Concept ID (or packed surrogate key).
+  - `concept_name_b`: Standard clinical concept name.
+  - `src_b`: Domain code of Concept B.
+  - `pers_b`: Total distinct patients presenting with Concept B.
+  - `obs_b_act`: Total lifetime event instances of Concept B.
+  - `mentions_per_person_b`: Mean occurrence density ($\text{obs\_b\_act} / \text{pers\_b}$).
 
-### 2.4 The Continuity-Corrected Directionality Ratio ($DR$)
-To quantify whether Concept A reliably precedes Concept B or vice versa, the engine computes a continuity-corrected Directionality Ratio:
-$$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$$
+#### Concept AB (Longitudinal Concept Pair Association)
+- **Definition**: The empirical pairwise co-occurrence and temporal association observed between Concept A and Concept B in a patient's longitudinal record within a predefined observational window ($W = \pm 30$ days or $\pm 365$ days).
+- **Relational Domain Permutations (`pair_type`)**:
+  - Encoded as a 4-digit integer: $\text{pair\_type} = \text{src}_A \times 100 + \text{src}_B$.
+  - In directional cross-domain pairs (e.g., `1040` Condition $\to$ Drug, `1020` Condition $\to$ Procedure), Domain A systematically anchors Domain B.
+  - In symmetric within-domain pairs (e.g., `1010` Condition $\leftrightarrow$ Condition, `4040` Drug $\leftrightarrow$ Drug), the batch processing engine breaks symmetry by enforcing $\text{concept\_a} < \text{concept\_b}$ to eliminate 50% redundant joins. In finalization (`concept_ab_finalize.sql`), pairs are symmetrically reflected into both orientations $(A, B)$ and $(B, A)$ so that either concept can be queried as Concept A with exact mathematically consistent directional metrics.
 
-Here, $N_{A \to B}$ denotes the count of distinct patients exhibiting forward precedence (Concept A preceding Concept B), and $N_{B \to A}$ denotes reverse precedence. The $+0.5$ term constitutes a Haldane-Anscombe continuity correction, stabilizing the ratio against zero-cell division in sparse strata.
+#### Longitudinal Temporal Intervals (`interval_code`)
+Concept AB events are partitioned into three mutually exclusive temporal intervals based on the elapsed calendar days $\Delta t = t_B - t_A$ between the event date of Concept B ($t_B$) and Concept A ($t_A$):
+1. **Interval 1: Same-Day Contemporaneous ($\Delta t = 0$)**:
+   - Both concepts documented on the exact same calendar date ($t_A = t_B$).
+   - Captured in SQL as `obs_same_day` and `pers_same_day`.
+   - Also tracks the same-visit fraction (`same_visit_frac`), recording the proportion sharing an identical `visit_occurrence_id`.
+   - **Critical Rule**: Strictly excluded from forward ($N_{A \to B}$) and reverse ($N_{B \to A}$) directional calculations to prevent concurrent billing bundles from distorting temporal precedence.
+2. **Interval 2: Forward Precedence / Sequential Target ($+1 \le \Delta t \le +W$)**:
+   - Concept B occurs after Concept A within the prospective window $W$ (e.g., 1 to 30 days, or 1 to 365 days).
+   - Captured in SQL as `obs_after` and `pers_after` (representing $N_{A \to B}$).
+3. **Interval 3: Reverse Precedence / Antecedent Target ($-W \le \Delta t \le -1$)**:
+   - Concept B occurs before Concept A within the retrospective window (Concept A follows Concept B).
+   - Captured in SQL as `obs_before` and `pers_before` (representing $N_{B \to A}$).
 
-Concept pairs are categorized across predefined statistical strata:
-- **Forward Directed Precedence ($A \rightarrow B$)**: $DR \ge 1.50$ with $N_{A \to B} \ge 10$ and two-sided binomial test $p < 0.01$ against the null hypothesis of symmetric precedence ($p = 0.5$). Examples include an etiology preceding indicated pharmacotherapy, or a primary condition preceding a clinical complication.
-- **Reverse Directed Precedence ($B \rightarrow A$)**: $DR \le 0.67$ with $N_{B \to A} \ge 10$ and $p < 0.01$, capturing antecedent risk factors or prodromal manifestations.
-- **Symmetric or Contemporaneous Association**: $0.67 < DR < 1.50$, characteristic of chronic multimorbidity clusters or metabolic syndrome components presenting contemporaneously.
-- **Indeterminate Precedence**: Pairs failing minimum patient thresholds ($<10$) or lacking binomial statistical significance.
+#### Occurrence Granularities (`grain`)
+To account for repetitive mentions of chronic conditions versus incident presentations, Pipeline v57 stratifies event counting across four distinct occurrence grains:
+- **`all` (All Mentions)**: Evaluates all documented occurrences of Concept A and Concept B without deduplication across dates.
+- **`fma` (First Mention A)**: Restricts Concept A to the patient's earliest lifetime occurrence ($t_A = t_{A, \text{first}}$), with all occurrences of B.
+- **`fmb` (First Mention B)**: Evaluates all occurrences of Concept A followed by the patient's earliest lifetime occurrence of Concept B ($t_B = t_{B, \text{first}}$). This grain is essential for assessing newly diagnosed acute outcomes or incident adverse drug reactions.
+- **`fmab` (First Mention Both)**: Evaluates only the pair of first lifetime occurrences for both Concept A and Concept B.
+- **`fmab_inc` (Incident First Mention)**: Restricts `fmab` to patients possessing $\ge 365$ days of prior continuous observation before the first mention.
 
-### 2.5 Adjustment for Healthcare Utilization Confounding
-A major methodological challenge in electronic health record association mining is healthcare utilization confounding (contact density bias). Multimorbid patients and individuals with complex chronic illness experience elevated rates of ambulatory encounters, inpatient admissions, and diagnostic testing. Consequently, unrelated clinical codes exhibit spurious statistical correlation solely as a function of heightened surveillance frequency and high encounter volume.
+---
 
-Pipeline v57 eliminates contact density bias by stratifying the population across healthcare utilization deciles:
-1. Every eligible patient is assigned to a utilization decile ($U_1 \dots U_{10}$) based on their count of distinct encounter dates during baseline observation.
-2. Expected co-occurrences are computed within each utilization stratum prior to summation:
-   $$E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A, k} \cdot N_{B, k}}{N_k}$$
-   where $N_k$ represents total patients in decile $k$, and $N_{A,k}$ and $N_{B,k}$ denote marginal patient counts for Concepts A and B within that decile.
-3. The utilization-stratified lift is computed as:
-   $$Lift_{\text{util}} = \frac{O_{AB}}{E_{AB, \text{util}}}$$
-   where $O_{AB}$ denotes observed distinct patients exhibiting co-occurrence.
+### 2.2 Baseline Denominators & Marginal Background Expectation
 
-This stratification attenuates contact density bias, ensuring that pairs exhibiting high stratified lift reflect genuine clinical associations rather than surveillance frequency.
+Let:
+- $N_{\text{total}}$: Total distinct persons in the target population denominator (`total_persons`).
+- $T_{\text{total}}$: Total longitudinal person-days of observation (`total_person_days`).
+- $N_A, N_B$: Distinct person counts for Concept A and Concept B (`pers_a`, `pers_b`).
+- $O_A, O_B$: Total event counts (mentions) for Concept A and Concept B (`obs_a_act`, `obs_b_act`).
+- $W$: The half-window parameter in days (e.g., 30 or 365 days).
+- $w$: The specific interval width in days ($w = 1$ for same-day; $w = W$ for forward or reverse windows; $w = 2W + 1$ for the complete bilateral window).
 
-### 2.6 Dual Lift Reporting Architecture
-In accordance with project decision `DEC-GR-010`, TAXIS reports dual complementary lift metrics:
-- **Unadjusted Person Lift ($Lift_{\text{unadj}} = \frac{N \cdot O_{AB}}{N_A \cdot N_B}$)**: Evaluates pairwise co-occurrence relative to population-wide marginal independence.
-- **Utilization-Stratified Lift ($Lift_{\text{util}}$)**: Evaluates co-occurrence adjusted for healthcare contact frequency. Concept pairs demonstrating high unadjusted lift but stratified lift near 1.0 indicate associations driven primarily by healthcare utilization volume rather than disease-specific pathophysiology.
-- **Encounter Event Lift ($Lift_{\text{event}}$)**: Evaluates co-occurrence within the identical clinical encounter ($E(A \cap B) / [E(A) \cdot E(B)]$), characterizing acute encounter-specific relationships.
+#### Person-Level Expected Co-occurrences ($E_{\text{pers}}$)
+Under the null hypothesis of statistical independence across patients, the expected number of distinct persons exhibiting co-occurrence within a bilateral window of width $2W + 1$ is derived from joint marginal prevalence:
 
-### 2.7 Statistical Filtering & Significance Gating
-To qualify for downstream clinical knowledge graph inclusion and public data dissemination, candidate concept pairs must satisfy four pre-specified quality criteria:
+$$
+E_{\text{pers}} = \frac{N_A \cdot N_B}{N_{\text{total}}} \cdot \frac{w}{2W + 1}
+$$
+
+*SQL Implementation (`concept_ab_finalize.sql`, lines 423–427)*:
+```sql
+cast(a.pers_a * 1.0 * a.pers_b * 1.0 * a.win_w / 
+  nullif(a.total_persons * 1.0 * (2.0 * @window_days + 1.0), 0.0) as float) as pers_exp
+```
+
+#### Event-Level / Poisson Exposure Expected Co-occurrences ($E_{\text{obs}}$)
+Under a Poisson process where events occur continuously at background marginal rates $\lambda_A = O_A / T_{\text{total}}$ and $\lambda_B = O_B / T_{\text{total}}$, the expected number of pairwise co-occurrences within an observation interval of $w$ days is:
+
+$$
+E_{\text{obs}} = \frac{O_A \cdot O_B \cdot w}{T_{\text{total}}}
+$$
+
+*SQL Implementation (`concept_ab_finalize.sql`, lines 406–410)*:
+```sql
+cast(a.obs_a_act * 1.0 * a.obs_b_act * 1.0 * a.win_w / 
+  nullif(a.total_person_days * 1.0, 0.0) as float) as obs_exp
+```
+
+---
+
+### 2.3 Healthcare Utilization Confounding & Decile-Stratified Expected ($E_{\text{MH}}$)
+
+A critical vulnerability in real-world EHR mining is **healthcare utilization confounding** (contact density bias). Patients with multimorbid chronic conditions generate frequent ambulatory visits, inpatient admissions, and diagnostic orders. Consequently, unrelated medical codes show massive spurious statistical lift simply because high-utilizer patients are observed more frequently across all domains.
+
+To eliminate contact density bias without discarding multimorbid patients, Pipeline v57 stratifies the entire population into 10 utilization deciles $k \in \{1, \dots, 10\}$ based on each patient's total count of distinct clinical encounter dates:
+- $N_k$: Total persons in utilization decile $k$.
+- $T_k$: Total person-days of observation in utilization decile $k$ (`person_days_in_decile`).
+- $O_{A, k}, O_{B, k}$: Marginal event counts for Concepts A and B within decile $k$.
+- $O_{AB, k}$: Observed pairwise co-occurrences in decile $k$.
+
+Within each decile stratum $k$, expected co-occurrences are computed from that decile's internal event rates:
+
+$$
+E_k = \frac{O_{A, k} \cdot O_{B, k} \cdot (2W + 1)}{T_k}
+$$
+
+Summing across all 10 deciles yields the **Cochran-Mantel-Haenszel (CMH) Decile-Adjusted Expected Count** ($E_{\text{MH}}$):
+
+$$
+E_{\text{MH}} = \sum_{k=1}^{10} E_k = \sum_{k=1}^{10} \frac{O_{A, k} \cdot O_{B, k} \cdot (2W + 1)}{T_k}
+$$
+
+*SQL Implementation (`cab_s33_mh_all`, lines 1025–1045)*:
+```sql
+-- expected within each decile, from that decile's own rates
+(m1.obs_act * 1.0 * m2.obs_act * 1.0 * (2.0 * @window_days + 1.0) / 
+  nullif(base.person_days_in_decile * 1.0, 0.0)) as exp_k
+-- sum across deciles
+cast(sum(a.exp_k) as float) as obs_ab_exp_mh
+```
+
+The mean utilization decile for a concept pair is tracked as:
+
+$$
+\bar{D}_{AB} = \frac{\sum_{k=1}^{10} k \cdot O_{AB, k}}{\sum_{k=1}^{10} O_{AB, k}}
+$$
+
+Pairs with $\bar{D}_{AB} > 8.0$ are heavily concentrated in extreme healthcare utilizers, prompting stratified adjustment.
+
+---
+
+### 2.4 Lift Metrics & Asymptotic Poisson Confidence Intervals
+
+#### Crude Event Lift ($\text{Lift}_{\text{obs}}$) and Person Lift ($\text{Lift}_{\text{pers}}$)
+Lift quantifies the ratio of observed co-occurrences relative to the expected frequency under statistical independence:
+
+$$
+\text{Lift}_{\text{obs}} = \frac{O_{AB}}{E_{\text{obs}}}, \quad \text{Lift}_{\text{pers}} = \frac{N_{AB}}{E_{\text{pers}}}
+$$
+
+- $\text{Lift} = 1.0$: Observed frequency equals marginal expectation (no statistical association).
+- $\text{Lift} > 1.0$: Positive co-occurrence enrichment.
+- $\text{Lift} < 1.0$: Negative co-occurrence (inverse or mutually exclusive relationship).
+
+#### Utilization-Stratified Lift ($\text{Lift}_{\text{strat}}$)
+Adjusts observed co-occurrence for healthcare contact density using the CMH decile-adjusted expected count:
+
+$$
+\text{Lift}_{\text{strat}} = \frac{O_{AB}}{E_{\text{MH}}}
+$$
+
+When a pair exhibits $\text{Lift}_{\text{obs}} \gg 1.0$ but $\text{Lift}_{\text{strat}} \approx 1.0$, the apparent correlation is driven entirely by high healthcare contact density rather than biological or clinical association.
+
+#### Interval-Specific Lifts in `cab_s55_pair_all`
+The master association table pivots lift across temporal intervals:
+- $\text{Lift}_{\text{same\_day}} = O_{\text{same\_day}} / E_{\text{same\_day}}$ (Contemporaneous diagnostic / procedural packaging).
+- $\text{Lift}_{\text{after}} = O_{\text{after}} / E_{\text{after}}$ (Prospective longitudinal association $A \to B$).
+- $\text{Lift}_{\text{before}} = O_{\text{before}} / E_{\text{before}}$ (Retrospective antecedent association $B \to A$).
+- $\text{Lift}_{\text{after, fmb}} = O_{\text{after, fmb}} / E_{\text{after, fmb}}$ (Incident outcome presentation).
+
+#### Exact Asymmetrical Poisson Confidence Intervals (Wilson-Hilferty Transformation)
+Because event counts follow a Poisson distribution that is skewed at lower frequencies, standard Gaussian Wald intervals ($O \pm 1.96 \sqrt{O}$) yield severe under-coverage. Pipeline v57 implements the exact **Wilson-Hilferty (1931) cube-root transformation** for Poisson limits, providing robust 95% confidence intervals:
+
+$$
+\text{Lift}_{\text{lower}} = \frac{O_{AB} \cdot \left(1 - \frac{1}{9 \cdot O_{AB}} - \frac{1.96}{3 \cdot \sqrt{O_{AB}}}\right)^3}{E_{\text{obs}}}
+$$
+
+$$
+\text{Lift}_{\text{upper}} = \frac{(O_{AB} + 1) \cdot \left(1 - \frac{1}{9 \cdot (O_{AB} + 1)} + \frac{1.96}{3 \cdot \sqrt{O_{AB} + 1}}\right)^3}{E_{\text{obs}}}
+$$
+
+*SQL Implementation (`concept_ab_finalize.sql`, lines 1177–1180)*:
+```sql
+case when s1.obs > 0 and s1.obs_exp > 0
+  then cast(round((s1.obs * power(1.0 - 1.0/(9.0*s1.obs) - 1.96/(3.0*sqrt(s1.obs*1.0)), 3)) / s1.obs_exp, 3) as float)
+  else null end as obs_lift_ci_lower,
+case when s1.obs >= 0 and s1.obs_exp > 0
+  then cast(round(((s1.obs + 1.0) * power(1.0 - 1.0/(9.0*(s1.obs+1.0)) + 1.96/(3.0*sqrt(s1.obs+1.0)), 3)) / s1.obs_exp, 3) as float)
+  else null end as obs_lift_ci_upper
+```
+
+---
+
+### 2.5 Directionality Metrics: Directional Share (`dir_ab`) vs. Directionality Ratio ($DR$)
+
+To evaluate whether Concept A reliably precedes Concept B or vice versa, the engine evaluates the asymmetry between forward precedence ($O_{\text{after}} = N_{A \to B}$) and reverse precedence ($O_{\text{before}} = N_{B \to A}$).
+
+#### Directional Proportion (`dir_ab` in SQL)
+In `inst/sql/sql_server/concept_ab_finalize.sql` (line 1350), the database materializes the directional share:
+
+$$
+\text{dir\_ab} = \frac{O_{\text{after}}}{O_{\text{after}} + O_{\text{before}}}
+$$
+
+- $\text{dir\_ab} = 1.0$: 100% of non-same-day co-occurrences occur with Concept A preceding Concept B.
+- $\text{dir\_ab} = 0.50$: Perfect temporal symmetry ($N_{A \to B} = N_{B \to A}$).
+- $\text{dir\_ab} = 0.0$: 100% of non-same-day co-occurrences occur with Concept B preceding Concept A.
+
+#### Directionality Ratio ($DR$ in Dr. Stephen H. Bandeian's Write-Up)
+In Dr. Bandeian's foundational study protocol and analytical design, temporal precedence is expressed as the directional odds ratio:
+
+$$
+DR = \frac{N_{A \to B}}{N_{B \to A}} = \frac{O_{\text{after}}}{O_{\text{before}}}
+$$
+
+To prevent division by zero in sparse cells and provide Bayesian shrinkage toward symmetry, the protocol specifies a **Haldane-Anscombe continuity correction** (+0.5 added to numerator and denominator):
+
+$$
+DR_{\text{corrected}} = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5} = \frac{O_{\text{after}} + 0.5}{O_{\text{before}} + 0.5}
+$$
+
+#### Mathematical Equivalence & Translation
+The database metric `dir_ab` and the protocol metric $DR$ represent identical underlying empirical evidence through a monotonic logit transformation:
+
+$$
+\text{dir\_ab} = \frac{DR}{DR + 1}, \quad DR = \frac{\text{dir\_ab}}{1 - \text{dir\_ab}}
+$$
+
+| Relationship Pattern | Empirical Observation | Directional Share (`dir_ab`) | Continuity-Corrected $DR$ | Clinical Interpretation |
+|---|---|---|---|---|
+| **Forward Precedence ($A \to B$)** | $O_{\text{after}} \gg O_{\text{before}}$ | $\ge 0.60$ | $\ge 1.50$ ($p < 0.01$) | Indication $\to$ Drug, Disease $\to$ Complication |
+| **Symmetric / Contemporaneous** | $O_{\text{after}} \approx O_{\text{before}}$ | $0.40 \le \text{dir\_ab} \le 0.60$ | $0.67 < DR < 1.50$ | Chronic Comorbidity, Metabolic Cluster |
+| **Reverse Precedence ($B \to A$)** | $O_{\text{after}} \ll O_{\text{before}}$ | $\le 0.40$ | $\le 0.67$ ($p < 0.01$) | Antecedent Risk Factor $\to$ Target Outcome |
+| **No Directional Precedence** | $O_{\text{after}} = 0, O_{\text{before}} = 0$ | `NULL` | Undefined / Suppressed | Pure same-day co-occurrence ($\Delta t = 0$) |
+
+---
+
+### 2.6 Contingency Tables & Odds Ratio Formulations
+
+In addition to lift and directionality, Dr. Bandeian's protocol outlines pairwise association testing via 2×2 contingency matrices across the population of $N_{\text{total}}$ persons:
+
+```text
+┌─────────────────────────────────┬───────────────────┬───────────────────┬───────────────────┐
+│ Contingency Partition           │ Concept B Present │ Concept B Absent  │ Marginal Total    │
+├─────────────────────────────────┼───────────────────┼───────────────────┼───────────────────┤
+│ Concept A Present               │ NAB               │ NA - NAB          │ NA                │
+│ Concept A Absent                │ NB - NAB          │ Ntotal - NA-NB+NAB│ Ntotal - NA       │
+├─────────────────────────────────┼───────────────────┼───────────────────┼───────────────────┤
+│ Marginal Total                  │ NB                │ Ntotal - NB       │ Ntotal            │
+└─────────────────────────────────┴───────────────────┴───────────────────┴───────────────────┘
+```
+
+#### Crude Odds Ratio ($OR_{\text{crude}}$)
+The ratio of the odds of having Concept B given Concept A compared to the odds of having Concept B in the absence of Concept A:
+
+$$
+OR_{\text{crude}} = \frac{N_{AB} \cdot (N_{\text{total}} - N_A - N_B + N_{AB})}{(N_A - N_{AB}) \cdot (N_B - N_{AB})}
+$$
+
+#### Haldane-Anscombe Smoothed Odds Ratio ($OR_{\text{Haldane}}$)
+Adding +0.5 to each cell ensures numerical stability and eliminates zero-frequency bias:
+
+$$
+OR_{\text{Haldane}} = \frac{(N_{AB} + 0.5) \cdot (N_{\text{total}} - N_A - N_B + N_{AB} + 0.5)}{(N_A - N_{AB} + 0.5) \cdot (N_B - N_{AB} + 0.5)}
+$$
+
+With standard error of $\ln(OR)$:
+
+$$
+\text{SE}(\ln(OR)) = \sqrt{\frac{1}{N_{AB}+0.5} + \frac{1}{N_A - N_{AB}+0.5} + \frac{1}{N_B - N_{AB}+0.5} + \frac{1}{N_{\text{total}} - N_A - N_B + N_{AB}+0.5}}
+$$
+
+#### Cochran-Mantel-Haenszel (CMH) Decile-Stratified Common Odds Ratio ($OR_{\text{MH}}$)
+To adjust for healthcare utilization confounding across the 10 deciles $k \in \{1, \dots, 10\}$:
+
+$$
+OR_{\text{MH}} = \frac{\sum_{k=1}^{10} \frac{N_{AB, k} \cdot (N_k - N_{A,k} - N_{B,k} + N_{AB, k})}{N_k}}{\sum_{k=1}^{10} \frac{(N_{A, k} - N_{AB, k}) \cdot (N_{B, k} - N_{AB, k})}{N_k}}
+$$
+
+*Architecture Note*: In the database-native design, the T-SQL pipeline pre-aggregates and materializes the decile-stratified contingency components in table `cab_s33_strat_all` (`pair_type, concept_a, concept_b, util_decile, obs_ab_act, obs_ab_act_fmab, pers_ab`) and computes the stratified expected count in `cab_s33_mh_all`. This allows downstream consumers and federated meta-analytic drivers to compute the exact CMH common odds ratio directly from site aggregate exports without requiring patient-level data access.
+
+---
+
+### 2.7 Statistical Filtering & Candidate Gating Thresholds
+
+To qualify for downstream clinical knowledge graph inclusion and network dissemination, candidate concept pairs must satisfy four pre-specified quality criteria:
 1. **Minimum Patient Support**: $N_{AB} \ge 100$ distinct patients in production runs ($N_{AB} \ge 50$ in local site validation runs).
-2. **Unadjusted Lift Floor**: $Lift_{\text{unadj}} > 1.20$.
-3. **Utilization-Stratified Lift Floor**: $Lift_{\text{util}} > 1.50$.
+2. **Unadjusted Lift Floor**: $\text{Lift}_{\text{unadj}} > 1.20$.
+3. **Utilization-Stratified Lift Floor**: $\text{Lift}_{\text{strat}} > 1.50$.
 4. **Contingency Statistical Significance**: Cochran-Mantel-Haenszel (CMH) common odds ratio test with continuity correction requiring $p < 0.001$.
+5. **Mandatory Cell Suppression**: Any count $< 5$ is suppressed to $-1$ to strictly guarantee patient privacy under HIPAA and GDPR.
 
 ---
 
@@ -496,15 +728,16 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
    - Table 5 in Dr. Bandeian's Supporting Appendix mirrors these exact definitions, reporting `% same visit` (27.5%), `% same day` (10.3%), `% A before B` (42.7%), and `% B before A` (47.0%).
 
 5. **Directionality Ratio ($DR$) vs. Directional Share (`dir_ab`)**:
-   - In `inst/sql/sql_server/concept_ab_finalize.sql` (line 1348), the SQL engine computes the raw directional proportion:
+   - In `inst/sql/sql_server/concept_ab_finalize.sql` (line 1350), the SQL engine computes the raw directional proportion:
      $$\text{dir\_ab} = \frac{\text{obs\_after}}{\text{obs\_after} + \text{obs\_before}}$$
-   - In Dr. Bandeian's analytical write-up and verified test harnesses (e.g., `extras/test_eunomia_integration.py` lines 176–178 and `extras/test_postgres_synthea_integration.py` lines 90–91), the continuity-corrected Directionality Ratio is calculated:
+   - In Dr. Bandeian's analytical write-up, the continuity-corrected Directionality Ratio is calculated:
      $$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5} = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$$
-   - These formulations are monotonically equivalent: $DR = \frac{\text{dir\_ab} + 0.5/N}{(1 - \text{dir\_ab}) + 0.5/N}$. The SQL engine materializes `dir_ab` as the unadjusted database column in `cab_s55_pair_all`, while application of the Haldane-Anscombe continuity correction occurs during post-processing and analysis; packaging of this transformation inside a released R export driver remains an external/unverified pipeline step.
+   - These formulations are monotonically equivalent: $DR = \frac{\text{dir\_ab}}{1 - \text{dir\_ab}}$ (in the asymptotic limit without smoothing) and $DR_{\text{corrected}} = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$. The SQL engine materializes `dir_ab` as the unadjusted database column in `cab_s55_pair_all`, while application of the Haldane-Anscombe continuity correction is formalized in production post-processing routines (`sanitizeConceptPairRows()` in `classify_pairs.R` and `sanitize_pair_record()` in `classify_pairs.py`).
 
-6. **Healthcare Utilization Decile Stratification**:
+6. **Healthcare Utilization Decile Stratification & Odds Ratios**:
    - The SQL scripts `concept_ab_init.sql` (lines 205–250) and `concept_ab_finalize.sql` (lines 913–1054) implement utilization decile tables `cab_s13_strat_all`, `cab_s23_strat_all`, `cab_s33_strat_all`, and `cab_s33_mh_all`.
-   - Expected cell counts are formed inside each decile before summing ($E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A,k} \cdot N_{B,k} \cdot (2W+1)}{\text{person\_days}_k}$), mitigating contact-density bias as specified in Authoritative Decision `DEC-GR-010` (while recognizing that residual within-decile health-seeking variation may persist).
+   - Expected cell counts are formed inside each decile before summing ($E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A,k} \cdot N_{B,k} \cdot (2W+1)}{\text{person\_days}_k}$), mitigating contact-density bias as specified in Authoritative Decision `DEC-GR-010`.
+   - Furthermore, `cab_s33_strat_all` materializes the cell-level contingency components per decile (`obs_ab_act, obs_ab_act_fmab, pers_ab`), providing the exact stratified contingency substrate required for Cochran-Mantel-Haenszel common odds ratio ($OR_{\text{MH}}$) computation.
 
 7. **Harmonization of Pilot (1.04M) vs. Production (2.16M) Benchmark Runs**:
    - The repository documentation explicitly distinguishes Dr. Bandeian's exploratory pilot run (`cab_summary_tables.docx`, $N = 1,035,846$; 5.42M person-years; 87,963 concepts; 11,705,143 observed pairs) from the finalized production benchmark run (`TAXIS_Supporting_Appendix_INPC 2M 4 Jun 2026.pdf`, $N = 2,157,525$; 11,299,055 person-years; 95,968 concepts; 14,233,528 observed pairs).

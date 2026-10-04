@@ -24,7 +24,7 @@ The Clinical Pair Taxonomy is grounded entirely on empirical association metrics
 2. **Directionality Ratio ($DR$)**: Downstream continuity-corrected directional asymmetry:
    $$DR = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$$
 3. **Mantel-Haenszel Stratified Lift ($\text{Lift}_{\text{strat}}$)**: Stratified across 10 healthcare contact deciles to control for differential utilization density confounding.
-4. **Temporal Lag Distributions**: Empirical decay rates across longitudinal observation windows (e.g., $\tau_{1/2} \le 7$ days for acute presentations vs. $\tau_{1/2} > 365$ days for chronic sequelae).
+4. **Empirical Lag-Bucket Distributions**: Mined in `cab_s37_lag_all`, aggregating co-occurrence event counts and pair counts across discrete longitudinal time intervals (e.g., same-day $\Delta t = 0$, 1–7 days, 8–30 days, 31–180 days, and 181–365 days). (Note: Continuous parametric decay curves or half-life models represent prospective downstream analytical hypotheses and are not native outputs of Pipeline v57).
 
 ---
 
@@ -32,13 +32,15 @@ The Clinical Pair Taxonomy is grounded entirely on empirical association metrics
 
 Rather than relying purely on hierarchical ontologies (which define *what* a concept is), the taxonomy organizes pairs into five operational families reflecting clinical care delivery:
 
-| Relationship Family | Typical Temporal Pattern | Illustrative Concept Pair |
-|---|---|---|
-| **1. Causal & Pathophysiological Mechanisms** | Forward directed ($DR \ge 1.50$) | Chronic Hepatitis B $\to$ Hepatocellular Carcinoma |
-| **2. Clinical Manifestations** | Contemporaneous / Balanced ($0.67 < DR < 1.50$) | Acute Bronchitis $\leftrightarrow$ Cough |
-| **3. Diagnostic Evaluations** | Contemporaneous to Preceding | Suspected Deep Vein Thrombosis $\to$ Venous Duplex Ultrasound |
-| **4. Therapeutic Interventions** | Following directed ($DR \le 0.67$) | Acute Coronary Syndrome $\to$ Percutaneous Coronary Intervention |
-| **5. Differential Diagnostic Mimics** | Contemporaneous / Mutually Exclusive | Viral Sinusitis $\leftrightarrow$ Allergic Rhinitis |
+| Relationship Family | Defined Concept Orientation | Empirical Temporal Pattern | Illustrative Concept Pair |
+|---|---|---|---|
+| **1. Causal & Pathophysiological Mechanisms** | Concept A (Etiology) $\to$ Concept B (Sequela) | Forward directed ($DR \ge 1.50$, $t_A < t_B$) | Chronic Hepatitis B (A) $\to$ Hepatocellular Carcinoma (B) |
+| **2. Clinical Manifestations** | Concept A (Syndrome) $\leftrightarrow$ Concept B (Symptom) | Contemporaneous / Balanced ($0.67 < DR < 1.50$) | Acute Bronchitis (A) $\leftrightarrow$ Cough (B) |
+| **3. Diagnostic Evaluations** | Concept A (Suspected Condition) $\to$ Concept B (Confirmatory Assay) | Contemporaneous to Forward directed ($DR \ge 1.0$) | Suspected Deep Vein Thrombosis (A) $\to$ Venous Duplex Ultrasound (B) |
+| **4. Therapeutic Interventions** | Concept A (Intervention / Drug) $\to$ Concept B (Indication Condition) | Reverse directed ($DR \le 0.67$, condition $t_B$ precedes drug $t_A$) | Percutaneous Coronary Intervention (A) $\leftarrow$ Acute Coronary Syndrome (B) |
+| **5. Differential Diagnostic Mimics** | Concept A (Diagnosis 1) $\leftrightarrow$ Concept B (Alternative Diagnosis) | Contemporaneous / Symmetric ($0.67 < DR < 1.50$) | Viral Sinusitis (A) $\leftrightarrow$ Allergic Rhinitis (B) |
+
+> **Directionality Invariance Note**: Under the definition $DR = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$, if Concept A is the Indication (Acute Coronary Syndrome) and Concept B is the Procedure (Percutaneous Coronary Intervention), the syndrome precedes the intervention, yielding $DR \ge 1.50$. Inverting the pair orientation so that Concept A is the Intervention and Concept B is the Indication reciprocally yields $DR \le 0.67$. Mined directionality is an intrinsic property of the ordered pair $(A, B)$, not the semantic relationship label.
 
 ---
 

@@ -1,8 +1,8 @@
 {
-  "run_id": "run_20261004_112924",
-  "run_timestamp": "2026-10-04T15:29:49Z",
+  "run_id": "run_20261004_165258",
+  "run_timestamp": "2026-10-04T20:53:19Z",
   "status": "SUCCESS",
-  "total_duration_seconds": 24.75,
+  "total_duration_seconds": 21.16,
   "tool_versions": {
     "r_version": "R version 4.6.1 (2026-06-24 ucrt)",
     "sqlrender_version": "1.19.7",
@@ -10,9 +10,9 @@
     "digest_version": "0.6.39"
   },
   "sql_hashes": {
-    "concept_ab_init_sha256": "b6afbf6133882220f3eb507f5ddb7de19036f6b0a8bea3171f99ed55b3e9bc33",
-    "concept_ab_batch_sha256": "d4e833dccfc6eb3bed41353201adf32267675a91da26cb5eb2aa995870382930",
-    "concept_ab_finalize_sha256": "b0c5e6f2d8b63d9bf9fbbc453f5b7d90919981942bd8797309a1e63ec9031079"
+    "concept_ab_init_sha256": "194d8d6db3dfebf957634bd5a4dd59f3b852691f9741675f7a899f0aa88bf1ec",
+    "concept_ab_batch_sha256": "ae2d4cac494d80559e5ee762135e2fc699b771f20cd76ae79a86607a6f55f6fa",
+    "concept_ab_finalize_sha256": "ebc848bbae200a903d27de4559a4247f77ce6a349c8e35265fa93f651314904d"
   },
   "parameters": {
     "dbms": "postgresql",
@@ -36,15 +36,15 @@
   "phase_results": {
     "init": {
       "status": "PASS",
-      "duration_seconds": 0.65
+      "duration_seconds": 0.63
     },
     "batch_1": {
       "status": "PASS",
-      "duration_seconds": 10.82
+      "duration_seconds": 9.87
     },
     "finalize": {
       "status": "PASS",
-      "duration_seconds": 10.31
+      "duration_seconds": 8.04
     }
   },
   "table_count": 44,
@@ -69,13 +69,13 @@
     "cab_s13_strat_cum": 10,
     "cab_s20_marginal_all": 615,
     "cab_s20_marginal_cum": 615,
-    "cab_s23_strat_all": 1810,
-    "cab_s23_strat_cum": 1810,
+    "cab_s23_strat_all": 1845,
+    "cab_s23_strat_cum": 1845,
     "cab_s30_all": 14653,
     "cab_s30_cum": 14653,
     "cab_s33_mh_all": 4192,
-    "cab_s33_strat_all": 11247,
-    "cab_s33_strat_cum": 11247,
+    "cab_s33_strat_all": 11443,
+    "cab_s33_strat_cum": 11443,
     "cab_s37_lag_all": 405,
     "cab_s37_lag_cum": 405,
     "cab_s38_profile_all": 166,
@@ -92,7 +92,7 @@
     "meas_obs_attribute_s36_cum": 228,
     "meas_obs_profile_s35_all": 76,
     "meas_obs_profile_s35_cum": 76,
-    "taxis_run_receipt": 5
+    "taxis_run_receipt": 7
   },
   "error_message": {}
 }

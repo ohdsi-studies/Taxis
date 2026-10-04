@@ -133,7 +133,21 @@ By demonstrating how empirical concept-pair associations map into these six func
 TAXIS is built on three foundational technical pillars:
 
 ### 1. Large-Scale Association Mining (Pipeline v57)
-The core statistical engine of TAXIS—conceived, designed, and authored by Dr. Stephen H. Bandeian—analyzes longitudinal patient records across multiple clinical domains (conditions, procedures, devices, drugs, measurements, and observations). To evaluate large-scale observational cohorts while preserving database performance and preventing resource exhaustion, the engine partitions patient populations into 40 balanced, hash-derived partitions, computes empirical co-occurrence matrices within configurable risk intervals, and controls for healthcare utilization confounding to prevent surveillance frequency from biasing association estimates.
+The core statistical engine of TAXIS—conceived, designed, and authored by Dr. Stephen H. Bandeian—analyzes longitudinal patient records across multiple clinical domains (conditions, procedures, devices, drugs, measurements, and observations). To evaluate large-scale observational cohorts while preserving database performance and preventing resource exhaustion, the engine partitions patient populations into 40 balanced, hash-derived partitions, computes empirical co-occurrence matrices within configurable risk intervals, and controls for healthcare utilization confounding to prevent surveillance frequency from biasing association estimates:
+
+- **Entity Architecture (Concept A, Concept B, Concept AB)**:
+  - **Concept A (Anchor / Index Concept)**: The reference clinical entity representing an eligible patient's index exposure or diagnosis.
+  - **Concept B (Target / Associated Concept)**: The target clinical entity evaluated for empirical co-occurrence and temporal precedence relative to Concept A.
+  - **Concept AB (Longitudinal Pair Association)**: The pairwise co-occurrence observed within a defined observational window ($W = \pm 30$ or $\pm 365$ days), evaluated across temporal intervals (Interval 1: same-day contemporaneous $\Delta t = 0$; Interval 2: forward prospective precedence $+1 \le \Delta t \le +W$; Interval 3: reverse antecedent precedence $-W \le \Delta t \le -1$) and occurrence grains (`all`, `fma`, `fmb`, `fmab`, `fmab_inc`).
+- **Mathematical Formulations & Statistical Estimands**:
+  - **Crude & Stratified Lift**: Measures enrichment above independence ($\text{Lift}_{\text{obs}} = O_{AB} / E_{\text{obs}}$) alongside Cochran-Mantel-Haenszel (CMH) decile-stratified lift ($\text{Lift}_{\text{strat}} = O_{AB} / E_{\text{MH}}$) to eliminate contact density bias.
+  - **Poisson Exact Confidence Intervals**: Computes asymmetric 95% confidence bounds via the Wilson-Hilferty (1931) cube-root transformation.
+  - **Directionality Ratios ($DR$) & Directional Share (`dir_ab`)**: Quantifies temporal precedence between forward occurrences ($O_{\text{after}} = N_{A \to B}$) and reverse occurrences ($O_{\text{before}} = N_{B \to A}$) via directional share $\text{dir\_ab} = \frac{O_{\text{after}}}{O_{\text{after}} + O_{\text{before}}}$ and continuity-corrected ratio $DR_{\text{corrected}} = \frac{O_{\text{after}} + 0.5}{O_{\text{before}} + 0.5}$.
+  - **Contingency Odds Ratios ($OR$)**: Materializes decile-stratified contingency matrices (`cab_s33_strat_all`) enabling exact Cochran-Mantel-Haenszel common odds ratios ($OR_{\text{MH}}$).
+- **Multi-Site Federation & Commercial Data Supplementation**:
+  - To expand beyond the Indiana Network for Patient Care (INPC) benchmark, TAXIS incorporates a **Unified Data Model (UDM)** and random-effects meta-analytic framework to supplement INPC with national commercial claims (Merative MarketScan, Optum Clinformatics) and international registries (CPRD), estimating 95% multi-site prediction intervals and between-database heterogeneity ($I^2$). For the full specification, see the [TAXIS Federated Unified Data Model & Meta-Analysis Specification](docs/mining/FEDERATED_TAXIS_UNIFIED_DATA_MODEL_AND_META_ANALYSIS.md).
+
+For exhaustive mathematical derivations and SQL crosswalks, consult the [Concept AB Mining Engine Technical Specification](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md).
 
 In the production benchmark on the Indiana Network for Patient Care (INPC), the engine analyzed 2,157,525 patients across 11,299,055 person-years and 1.88 billion fact events, screening 5.52 million high-support pairs and deriving 1.9 million graded clinical knowledge edges.
 
