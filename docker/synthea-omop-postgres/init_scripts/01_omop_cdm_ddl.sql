@@ -156,6 +156,71 @@ CREATE TABLE IF NOT EXISTS cdm.concept_ancestor (
     max_levels_of_separation INTEGER NOT NULL
 );
 
+-- Table: VISIT_OCCURRENCE
+CREATE TABLE IF NOT EXISTS cdm.visit_occurrence (
+    visit_occurrence_id BIGINT NOT NULL,
+    person_id BIGINT NOT NULL,
+    visit_concept_id INTEGER NOT NULL,
+    visit_start_date DATE NOT NULL,
+    visit_start_datetime TIMESTAMP,
+    visit_end_date DATE NOT NULL,
+    visit_end_datetime TIMESTAMP,
+    visit_type_concept_id INTEGER NOT NULL,
+    provider_id BIGINT,
+    care_site_id BIGINT,
+    visit_source_value VARCHAR(50),
+    visit_source_concept_id INTEGER,
+    admitting_source_concept_id INTEGER,
+    admitting_source_value VARCHAR(50),
+    discharge_to_concept_id INTEGER,
+    discharge_to_source_value VARCHAR(50),
+    preceding_visit_occurrence_id BIGINT
+);
+
+-- Table: DEVICE_EXPOSURE
+CREATE TABLE IF NOT EXISTS cdm.device_exposure (
+    device_exposure_id BIGINT NOT NULL,
+    person_id BIGINT NOT NULL,
+    device_concept_id INTEGER NOT NULL,
+    device_exposure_start_date DATE NOT NULL,
+    device_exposure_start_datetime TIMESTAMP,
+    device_exposure_end_date DATE,
+    device_exposure_end_datetime TIMESTAMP,
+    device_type_concept_id INTEGER NOT NULL,
+    unique_device_id VARCHAR(50),
+    quantity INTEGER,
+    provider_id BIGINT,
+    visit_occurrence_id BIGINT,
+    visit_detail_id BIGINT,
+    device_source_value VARCHAR(50),
+    device_source_concept_id INTEGER
+);
+
+-- Table: OBSERVATION
+CREATE TABLE IF NOT EXISTS cdm.observation (
+    observation_id BIGINT NOT NULL,
+    person_id BIGINT NOT NULL,
+    observation_concept_id INTEGER NOT NULL,
+    observation_date DATE NOT NULL,
+    observation_datetime TIMESTAMP,
+    observation_type_concept_id INTEGER NOT NULL,
+    value_as_number NUMERIC,
+    value_as_string VARCHAR(60),
+    value_as_concept_id INTEGER,
+    qualifier_concept_id INTEGER,
+    unit_concept_id INTEGER,
+    provider_id BIGINT,
+    visit_occurrence_id BIGINT,
+    visit_detail_id BIGINT,
+    observation_source_value VARCHAR(50),
+    observation_source_concept_id INTEGER,
+    unit_source_value VARCHAR(50),
+    qualifier_source_value VARCHAR(50),
+    observation_event_id BIGINT,
+    obs_event_field_concept_id INTEGER,
+    value_as_datetime TIMESTAMP
+);
+
 -- Standard OHDSI Cohort Table in cohort schema
 CREATE TABLE IF NOT EXISTS cohort.cohort (
     cohort_definition_id BIGINT NOT NULL,
@@ -170,5 +235,10 @@ CREATE INDEX IF NOT EXISTS idx_cond_person ON cdm.condition_occurrence (person_i
 CREATE INDEX IF NOT EXISTS idx_cond_concept ON cdm.condition_occurrence (condition_concept_id);
 CREATE INDEX IF NOT EXISTS idx_drug_person ON cdm.drug_exposure (person_id);
 CREATE INDEX IF NOT EXISTS idx_drug_concept ON cdm.drug_exposure (drug_concept_id);
+CREATE INDEX IF NOT EXISTS idx_meas_person ON cdm.measurement (person_id);
+CREATE INDEX IF NOT EXISTS idx_proc_person ON cdm.procedure_occurrence (person_id);
+CREATE INDEX IF NOT EXISTS idx_visit_person ON cdm.visit_occurrence (person_id);
+CREATE INDEX IF NOT EXISTS idx_device_person ON cdm.device_exposure (person_id);
+CREATE INDEX IF NOT EXISTS idx_obs_person ON cdm.observation (person_id);
 CREATE INDEX IF NOT EXISTS idx_cohort_subject ON cohort.cohort (subject_id);
 CREATE INDEX IF NOT EXISTS idx_cohort_def ON cohort.cohort (cohort_definition_id);

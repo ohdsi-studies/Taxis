@@ -73,9 +73,12 @@ def load_tables_to_postgres(csv_dir, host, port, dbname, user, password):
     target_tables = [
         "PERSON",
         "OBSERVATION_PERIOD",
+        "VISIT_OCCURRENCE",
         "CONDITION_OCCURRENCE",
         "DRUG_EXPOSURE",
+        "DEVICE_EXPOSURE",
         "MEASUREMENT",
+        "OBSERVATION",
         "PROCEDURE_OCCURRENCE",
         "CONCEPT",
         "CONCEPT_ANCESTOR"
@@ -132,9 +135,18 @@ def load_tables_to_postgres(csv_dir, host, port, dbname, user, password):
             c_cnt = cur.fetchone()[0]
             cur.execute("SELECT COUNT(*) FROM cdm.drug_exposure;")
             d_cnt = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM cdm.visit_occurrence;")
+            v_cnt = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM cdm.device_exposure;")
+            dev_cnt = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM cdm.observation;")
+            o_cnt = cur.fetchone()[0]
             print(f"    cdm.person: {p_cnt} patients")
             print(f"    cdm.condition_occurrence: {c_cnt} records")
             print(f"    cdm.drug_exposure: {d_cnt} records")
+            print(f"    cdm.visit_occurrence: {v_cnt} records")
+            print(f"    cdm.device_exposure: {dev_cnt} records")
+            print(f"    cdm.observation: {o_cnt} records")
             assert p_cnt > 0, "No patients loaded into cdm.person"
 
     print("\nSUCCESS: Synthetic OMOP CDM loaded into PostgreSQL database.")

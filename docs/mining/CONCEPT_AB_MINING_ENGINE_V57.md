@@ -523,6 +523,10 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
    - The repository documentation explicitly distinguishes Dr. Bandeian's exploratory pilot run (`cab_summary_tables.docx`, $N = 1,035,846$; 5.42M person-years; 87,963 concepts; 11,705,143 observed pairs) from the finalized production benchmark run (`TAXIS_Supporting_Appendix_INPC 2M 4 Jun 2026.pdf`, $N = 2,157,525$; 11,299,055 person-years; 95,968 concepts; 14,233,528 observed pairs).
    - Both runs share the Pipeline v57 architectural design and parameter conventions, while historical server execution binary hashes and runtime environment configurations remain unverified historical artifacts.
 
+8. **Federated Phenomics & 6-Bucket Clinical Slot Translation**:
+   - The mined empirical pairs ($N = 14,233,528$) and continuity-corrected directionality ratios ($DR$) serve as the empirical substrate for the OHDSI Phenotype Development & Evaluation Workgroup initiatives ([Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940) and [Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158)).
+   - Associational pairs map deterministically into the 6-bucket slot architecture (Bucket 1: Primary Anchor, Bucket 2: Symptoms, Bucket 3: Confirmatory Labs, Bucket 4: Therapeutic Interventions with $DR \ge 1.50$, Bucket 5: Complications, Bucket 6: Exclusionary Mimics). Full integration details: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](../phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
+
 ---
 
 ## 7. Complete Output Data Dictionary (18 Export Tables)

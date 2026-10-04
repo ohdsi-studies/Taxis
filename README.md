@@ -190,24 +190,28 @@ TAXIS is designed to explore applications across four areas of observational res
                                                └──────── (Iterative Loop) ─────────►
 ```
 
-### Phenotype Phebruary 2026: 6-Bucket Clinical Elements & Multi-Tiered Cohorts
+### Phenotype Phebruary & Workgroup Integration: 6-Bucket Slots, Objective Diagnostics & Multi-Tiered Cohorts
 
-During the **OHDSI Phenotype Development & Evaluation Workgroup's Phenotype Phebruary / Aphril 2026** initiative, the community highlighted the critical need for an empirically grounded, reproducible pipeline to solve the **Phenotyping Input Bottleneck**—namely, how to systematically construct input concept sets across distinct clinical elements without manual bespoke guesswork. Furthermore, community case adjudication using KEEPER demonstrated that diagnosis codes alone suffer from substantial false-positive contamination from Emergency Department "rule-out" visits, while genuine acute cases cluster multi-domain corroboration (confirmatory biomarkers and invasive interventions).
+Drawing directly from the **OHDSI Phenotype Development & Evaluation Workgroup** initiatives—including ongoing workgroup updates ([OHDSI Forum Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940)) and the *Phenotype Phebruary / Aphril 2026* intensive series ([OHDSI Forum Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158))—TAXIS operationalizes the consensus **4-stage iterative phenotyping loop** (*Idea $\to$ Implementation $\to$ Iteration $\to$ Trust*) codified in the *Book of OHDSI (2025 Edition)*.
 
-To operationalize these insights, TAXIS establishes:
-1. **The 6-Bucket Clinical Element Slot Architecture**: Maps the 6 core clinical elements defined in Workgroup presentations directly to TAXIS association edges, temporal precedence ratios ($DR$), and Circe rules:
+To resolve the **Phenotyping Input Bottleneck** and counter empirical Real-World Data error modes (such as Emergency Department rule-out contamination, problem-list copy-forward macros, and up to 40-fold incidence variations demonstrated by James Weaver), TAXIS establishes:
+
+1. **The 6-Bucket Clinical Element Slot Architecture**: Translates the 6D clinical element framework into deterministic computable slots mapped to TAXIS association edges, temporal precedence ratios ($DR$), and Circe criteria blocks:
    - *Bucket 1 (Primary Anchor)*: Incident diagnosis of interest in inpatient/ED setting (`PrimaryCriteria`).
    - *Bucket 2 (Symptoms & Presentation)*: Non-specific co-presenting findings (`ASSOC_SYMPTOM`, `ASSOC_SIGN`) in $[-7, +1]$ days.
-   - *Bucket 3 (Diagnostic Labs & Procedures)*: Confirmatory laboratory tests and diagnostic testing (`DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED`) in $[-1, +3]$ days.
+   - *Bucket 3 (Diagnostic Labs & Procedures)*: Confirmatory laboratory biomarkers and diagnostic testing (`DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED`) in $[-1, +3]$ days.
    - *Bucket 4 (Therapeutic Interventions)*: Definitive event procedures (e.g., PCI, CABG) and acute pharmacotherapy (`THER_INTERVENTION_PROC`, `THER_FIRST_LINE`) in $[0, +2]$ days—the decisive separator between true cases and rule-outs.
    - *Bucket 5 (Complications & Progression)*: Downstream organ failures and clinical sequelae (`PROG_COMPLICATION`) in $[+1, +30]$ days.
    - *Bucket 6 (Alternative Diagnoses & Mimics)*: Competing causes and rule-out mimics (`ASSOC_MIMIC`, `DIAG_RULE_OUT`) in $[0, +7]$ days.
-2. **Multi-Tiered Circe Phenotype Synthesis**:
+2. **Multi-Tiered Circe Phenotype Synthesis & Probabilistic Benchmarking**:
    - *Tier 1 (Strict / Epidemiologic)*: Formulated as a treatment-enriched cohort requiring confirmed therapeutic interventions within $[0, +2]$ days to achieve high Positive Predictive Value (prospective target $\ge 92\%$) for comparative trials and active-comparator studies.
    - *Tier 2 (Broad / Surveillance)*: Captures hospital and emergency encounters with diagnostic work-up without restricting to invasive procedures, maximizing sensitivity (prospective target $\ge 95\%$) for disease incidence tracking.
-   - *Tier 3 (PheValuator Evaluators)*: Proposed automated synthesis of `xSpec` (noisy positive training cases) and `xSens` (broad non-case exclusion zone preventing control contamination) evaluator cohorts to train diagnostic predictive models without manual chart review.
-3. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Architectural design demonstrating complete 6-bucket slot compilation for AMI across synthetic educational case vignettes, illustrating how high-specificity tiers and exclusion zones differentiate acute events from outpatient carry-forwards and single-day emergency rule-outs (empirical execution and clinical validation are planned future targets).
-4. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring strictly behind the institutional firewall.
+   - *Tier 3 (PheValuator Evaluators)*: Automated synthesis of `xSpec` (noisy positive training cases) and `xSens` (broad non-case exclusion zone preventing control contamination) evaluator cohorts. In empirical benchmarking against clinical trials (Joel Swerdel), probabilistic phenotyping on noisy labels achieved **77% concordance with trial confidence intervals**, vs **23% for traditional deterministic rules**.
+3. **Objective Diagnostics for Phenotype Stability**: Implements the Workgroup objective diagnostic standard (Azza Shoaibi & Gowtham Rao) using a **3-knot Poisson spline model** over calendar time. Deviations $> 25\%$ (IRR $> 1.25$) flag temporal instability or unmeasured coding shifts (e.g., historical pure red cell aplasia shifts, ICD-9/10 transitions). Accelerates iterative design via `CohortDiagnostics Lite`.
+4. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Demonstrates complete 6-bucket slot compilation for AMI incorporating the *Fourth Universal Definition of MI* (distinguishing non-ischemic myocardial injury from true ischemic infarction).
+5. **Federated Phenomics & Interoperability**: Embeds VA CIPHER metadata harmonization (Jackie Honerlaw; 25 pilot phenotypes across 9M veterans) and DARWIN EU 3-phase locked phenotyping workflows (Albert Prats-Uribe).
+6. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring strictly behind the institutional firewall.
+
 Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
 
 ---
