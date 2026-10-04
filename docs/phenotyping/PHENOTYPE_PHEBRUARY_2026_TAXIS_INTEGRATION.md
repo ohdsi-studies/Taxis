@@ -121,9 +121,9 @@ TAXIS synthesizes **three coordinated cohort tiers** for every clinical concept:
 
 ## 4. Flagship Case Study: Acute Myocardial Infarction (AMI)
 
-Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine. The educational vignettes below are newly authored synthetic clinical archetypes illustrating how multi-tiered Circe definitions and TAXIS knowledge-graph slots systematically evaluate canonical presentation patterns (e.g., clear-cut inpatient STEMI, historical infarction, emergency department chest pain rule-out, and under-coded acute arrest).
+Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine, illustrating how multi-tiered Circe definitions and TAXIS knowledge-graph slots systematically evaluate canonical clinical elements (e.g., inpatient presentation, confirmatory biomarker work-up, forward-directed revascularization, and emergency rescue pathways).
 
-*Synthetic Clinical Archetype Generation Basis*: All clinical scenarios presented in this section are synthetic educational archetypes newly designed for the TAXIS phenotyping integration specification. They do not incorporate real patient identifiers, hospital EHR records, or private clinical traces; rather, each scenario provides an illustrative archetype of specific slot-matching permutations and anticipated tier classifications.
+*Methodological Scope*: The AMI flagship specification defines the formal slot assignments, timing windows, and Circe cohort criteria across the 6 clinical element buckets for high-specificity comparative safety and high-sensitivity incidence tracking.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -214,15 +214,15 @@ In Phenotype Aphril Week 2, the community participated in interactive case adjud
 
 ### 5.1 Adjudication Heuristics Mapped to TAXIS Metrics
 
-| Synthetic Clinical Archetype | Illustrative Presentation Pattern | Anticipated Tier Classification | TAXIS Knowledge Graph Slot Evaluation |
-|---|---|---|---|
-| **Archetype AMI-01** (Primary Inpatient STEMI) | Day 0 Inpatient NSTEMI/STEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Tier 1 & Tier 2)** | Satisfies Buckets 1, 3, 4. Meets Tier 1 treatment-enriched criteria (acute diagnosis + forward revascularization), eliminating rule-out ambiguity for high-specificity studies. |
-| **Archetype AMI-02** (Severe Multi-Vessel Event) | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Tier 1 & Tier 2)** | Satisfies Buckets 1, 3, 4, 5. Meets Tier 1 criteria; multi-admission recurrence confirms severe acute CAD presentation. |
-| **Archetype AMI-03** (ED Rule-Out with Mimic) | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Non-Case (Rule-Out)** | Fails Tier 1 intervention gate (zero revascularization/acute pharmacotherapy). Bucket 6 mimic (gastritis) documented alongside negative work-up. Categorized as non-case rule-out in high-specificity tier. |
-| **Archetype AMI-04** (Historical Infarct Carry-Forward) | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Non-Incident (Historical)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical event. |
-| **Archetype AMI-05** (Problem List Artifact) | Outpatient carry-forward code at routine visit + zero cardiac meds | **Non-Case (Artifact)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact; does not meet acute encounter or diagnostic criteria in either tier. |
-| **Archetype AMI-06** (Under-Coded Thrombolytic Rescue) | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Edge Case (Rescue Rule Target)** | Requires secondary clinical rescue logic (acute cardiac arrest, shock, and emergency thrombolysis without explicit primary AMI code); fails standard Tier 1/Tier 2 diagnosis anchor, illustrating edge-case capture under expanded rescue rules. |
-| **Archetype AMI-07** (Diagnostic Cath without Intervention) | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Non-Case in Tier 1 (Eligible in Tier 2)** | Diagnostic cath without revascularization fails Tier 1 strict treatment gate, reflecting lack of acute intervention. Eligible for Tier 2 surveillance evaluation pending diagnostic troponin/ECG confirmation. |
+The TAXIS interactive adjudication engine systematically evaluates clinical presentations against the 6-bucket slot architecture:
+1. **Acute Anchor & Diagnostic Confirmation (Buckets 1 & 3)**: Evaluates whether an acute inpatient or Emergency Department presentation is corroborated by confirmatory laboratory biomarkers or diagnostic procedures within $[-1, +2]$ days.
+2. **Treatment-Enriched Specificity Gating (Bucket 4)**: Assesses whether forward-directed therapeutic interventions (such as PCI, CABG, or acute disease-specific pharmacotherapy within $[0, +2]$ days with $DR \ge 1.50$) are present to satisfy Tier 1 high-specificity criteria, distinguishing true clinical events from emergency rule-out evaluations.
+3. **Diagnostic Work-Up Surveillance (Tier 2 Eligibility)**: Evaluates presentations lacking invasive interventions (such as medically managed infarction or non-revascularized diagnostic catheterization) for Tier 2 surveillance retention.
+4. **Competing Mimic & Alternative Diagnosis Filtering (Bucket 6)**: Detects when primary competing diagnoses (e.g., acute gastritis, musculoskeletal chest wall pain) explain presenting symptoms in the absence of confirmatory cardiac intervention.
+5. **Incident Baseline Wash-In**: Enforces $\ge 365$ days of continuous prior observation to separate new acute incidents from chronic carry-forward codes or problem-list administrative artifacts.
+6. **Secondary Clinical Rescue Pathways**: Provides rule-based edge-case capture for catastrophic acute presentations (such as acute cardiac arrest and cardiogenic shock receiving emergency thrombolysis) that lack an explicit primary anchor diagnosis code.
+
+*Provenance Notice*: Specific clinical presentation sequences, workgroup teaching vignettes, and case reviews are deferred from public-facing study documentation and maintained in private institutional review ledgers pending formal publication clearance.
 
 ---
 
