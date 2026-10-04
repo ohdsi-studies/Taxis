@@ -16,11 +16,164 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' Apply Small-Cell Suppression to PheValuator Diagnostic Summary
+#'
+#' @description
+#' Enforces strict non-disclosure protections (DEC-GR-005 / REC-048-1) on exported
+#' PheValuator performance metrics. If any contingency cell (true positives, false positives,
+#' true negatives, or false negatives) has a count that is between 1 and minCellCount - 1,
+#' or if upstream PheValuator has masked counts (negative values), all contingency counts,
+#' point estimates, 95% confidence intervals, F1 score, and estimated prevalence are masked to -1.
+#'
+#' @param phevalSummary   Data frame containing PheValuator results.
+#' @param minCellCount    Minimum count threshold for cell suppression (default = 5).
+#'
+#' @return A data frame with small cells and algebraically dependent metrics masked to -1.
+#' @export
+applyPheValuatorSuppression <- function(phevalSummary, minCellCount = 5) {
+  if (is.null(phevalSummary) || nrow(phevalSummary) == 0) {
+    return(phevalSummary)
+  }
+
+  for (i in seq_len(nrow(phevalSummary))) {
+    tp <- phevalSummary$truePositives[i]
+    fp <- phevalSummary$falsePositives[i]
+    tn <- phevalSummary$trueNegatives[i]
+    fn <- phevalSummary$falseNegatives[i]
+
+    # Evaluate whether any contingency cell triggers suppression:
+    # 1. Any non-NA cell is strictly between 0 and minCellCount (e.g. 1, 2, 3, 4 when minCellCount = 5)
+    # 2. Any non-NA cell is negative (upstream PheValuator suppression marker)
+    isSmallCell <- function(x) {
+      !is.na(x) && ((x > 0 && x < minCellCount) || x < 0)
+    }
+
+    triggerMask <- isSmallCell(tp) || isSmallCell(fp) || isSmallCell(tn) || isSmallCell(fn)
+
+    if (triggerMask) {
+      phevalSummary$truePositives[i] <- -1
+      phevalSummary$falsePositives[i] <- -1
+      phevalSummary$trueNegatives[i] <- -1
+      phevalSummary$falseNegatives[i] <- -1
+      phevalSummary$sensitivity[i] <- -1
+      phevalSummary$sensitivityCi95Lb[i] <- -1
+      phevalSummary$sensitivityCi95Ub[i] <- -1
+      phevalSummary$ppv[i] <- -1
+      phevalSummary$ppvCi95Lb[i] <- -1
+      phevalSummary$ppvCi95Ub[i] <- -1
+      phevalSummary$specificity[i] <- -1
+      phevalSummary$specificityCi95Lb[i] <- -1
+      phevalSummary$specificityCi95Ub[i] <- -1
+      phevalSummary$npv[i] <- -1
+      phevalSummary$npvCi95Lb[i] <- -1
+      phevalSummary$npvCi95Ub[i] <- -1
+      phevalSummary$f1Score[i] <- -1
+      phevalSummary$estimatedPrevalence[i] <- -1
+    }
+  }
+
+  return(phevalSummary)
+}
+
+#' Format Raw PheValuator Summary to Standardized Study Schema
+#'
+#' @description
+#' Formats raw PheValuator evaluation outputs into the standardized study summary schema,
+#' mapping phenotype pairs and establishing bounded status codes.
+#'
+#' @param summaryDf    Raw summary data frame from \code{PheValuator::summarizePheValuatorAnalyses}.
+#' @param pairs        Data frame of phenotype pairs (from \code{PhenotypePairs.csv}).
+#' @param databaseId   Unique identifier for the participating database.
+#'
+#' @return A formatted data frame matching the study output specification.
+#' @export
+formatPheValuatorResults <- function(summaryDf, pairs, databaseId) {
+  resultsRows <- list()
+
+  for (i in seq_len(nrow(pairs))) {
+    taxisId <- as.numeric(pairs$taxisCohortId[i])
+    libId <- as.numeric(pairs$libraryCohortId[i])
+    group <- pairs$pairGroup[i]
+    phenoName <- pairs$phenotypeName[i]
+
+    pairMatch <- if (!is.null(summaryDf) && nrow(summaryDf) > 0 && "cohortId" %in% names(summaryDf)) {
+      summaryDf[summaryDf$cohortId == taxisId, ]
+    } else {
+      data.frame()
+    }
+
+    if (nrow(pairMatch) > 0) {
+      row <- pairMatch[1, ]
+      resultsRows[[i]] <- data.frame(
+        databaseId = databaseId,
+        pairGroup = group,
+        phenotypeName = phenoName,
+        taxisCohortId = taxisId,
+        libraryCohortId = libId,
+        cutPoint = as.character(row$cutPoint),
+        sensitivity = as.numeric(row$sensitivity),
+        sensitivityCi95Lb = as.numeric(row$sensitivityCi95Lb),
+        sensitivityCi95Ub = as.numeric(row$sensitivityCi95Ub),
+        ppv = as.numeric(row$ppv),
+        ppvCi95Lb = as.numeric(row$ppvCi95Lb),
+        ppvCi95Ub = as.numeric(row$ppvCi95Ub),
+        specificity = as.numeric(row$specificity),
+        specificityCi95Lb = as.numeric(row$specificityCi95Lb),
+        specificityCi95Ub = as.numeric(row$specificityCi95Ub),
+        npv = as.numeric(row$npv),
+        npvCi95Lb = as.numeric(row$npvCi95Lb),
+        npvCi95Ub = as.numeric(row$npvCi95Ub),
+        f1Score = as.numeric(row$f1Score),
+        truePositives = as.numeric(row$truePositives),
+        trueNegatives = as.numeric(row$trueNegatives),
+        falsePositives = as.numeric(row$falsePositives),
+        falseNegatives = as.numeric(row$falseNegatives),
+        estimatedPrevalence = as.numeric(row$estimatedPrevalence),
+        status = "COMPLETED",
+        stringsAsFactors = FALSE
+      )
+    } else {
+      resultsRows[[i]] <- data.frame(
+        databaseId = databaseId,
+        pairGroup = group,
+        phenotypeName = phenoName,
+        taxisCohortId = taxisId,
+        libraryCohortId = libId,
+        cutPoint = "Expected Value",
+        sensitivity = NA_real_,
+        sensitivityCi95Lb = NA_real_,
+        sensitivityCi95Ub = NA_real_,
+        ppv = NA_real_,
+        ppvCi95Lb = NA_real_,
+        ppvCi95Ub = NA_real_,
+        specificity = NA_real_,
+        specificityCi95Lb = NA_real_,
+        specificityCi95Ub = NA_real_,
+        npv = NA_real_,
+        npvCi95Lb = NA_real_,
+        npvCi95Ub = NA_real_,
+        f1Score = NA_real_,
+        truePositives = NA_real_,
+        trueNegatives = NA_real_,
+        falsePositives = NA_real_,
+        falseNegatives = NA_real_,
+        estimatedPrevalence = NA_real_,
+        status = "NO_EVALUATION_SUBJECTS",
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  do.call(rbind, resultsRows)
+}
+
 #' Create PheValuator Analysis Specifications for Phenotype Pairs
 #'
 #' @description
 #' Creates a list of \code{pheValuatorAnalysis} objects from the study phenotype pairs configuration,
 #' setting condition-appropriate feature extraction windows and excluding target condition concepts.
+#' Supports explicit condition-specific role definitions (xSpec, xSens, prevalence) and logs
+#' provisional placeholder warnings when reference library cohorts are temporarily reused.
 #'
 #' @param pairs Data frame of phenotype pairs (from \code{PhenotypePairs.csv}).
 #'
@@ -35,6 +188,34 @@ createPheValuatorAnalysisList <- function(pairs) {
     taxisId <- as.numeric(pairs$taxisCohortId[i])
     libraryId <- as.numeric(pairs$libraryCohortId[i])
     condConceptId <- as.numeric(pairs$conditionConceptId[i])
+
+    # Methodological Configuration (REC-048-3):
+    # Retrieve explicit condition-specific cohort IDs for xSpec, xSens, and prevalence
+    xSpecId <- if ("xSpecCohortId" %in% names(pairs) && !is.na(pairs$xSpecCohortId[i])) {
+      as.numeric(pairs$xSpecCohortId[i])
+    } else {
+      libraryId
+    }
+
+    xSensId <- if ("xSensCohortId" %in% names(pairs) && !is.na(pairs$xSensCohortId[i])) {
+      as.numeric(pairs$xSensCohortId[i])
+    } else {
+      libraryId
+    }
+
+    prevId <- if ("prevalenceCohortId" %in% names(pairs) && !is.na(pairs$prevalenceCohortId[i])) {
+      as.numeric(pairs$prevalenceCohortId[i])
+    } else {
+      libraryId
+    }
+
+    # If the cohort roles use the reference library cohort as a placeholder, log an explicit warning
+    if (xSpecId == libraryId && xSensId == libraryId) {
+      ParallelLogger::logWarn(sprintf(
+        "Provisional cohort role assignment for %s: xSpecCohortId=%d, xSensCohortId=%d, prevalenceCohortId=%d. Using reference library cohort as provisional placeholder pending dedicated clinician-adjudicated xSpec and xSens cohort definitions per Swerdel et al. (2019).",
+        phenoName, xSpecId, xSensId, prevId
+      ))
+    }
 
     isAcute <- tolower(group) %in% c("hyperkalemia", "mi", "stroke", "acute")
 
@@ -64,9 +245,9 @@ createPheValuatorAnalysisList <- function(pairs) {
       }
 
       evalCohortArgs <- PheValuator::createCreateEvaluationCohortArgs(
-        xSpecCohortId = libraryId,
-        prevalenceCohortId = libraryId,
-        xSensCohortId = libraryId,
+        xSpecCohortId = xSpecId,
+        prevalenceCohortId = prevId,
+        xSensCohortId = xSensId,
         covariateSettings = covSettings,
         modelBaseSampleSize = 25000,
         baseSampleSize = 2000000
@@ -102,9 +283,9 @@ createPheValuatorAnalysisList <- function(pairs) {
           libraryId
         ),
         createEvaluationCohortArgs = list(
-          xSpecCohortId = libraryId,
-          prevalenceCohortId = libraryId,
-          xSensCohortId = libraryId
+          xSpecCohortId = xSpecId,
+          prevalenceCohortId = prevId,
+          xSensCohortId = xSensId
         ),
         testPhenotypeAlgorithmArgs = list(
           phenotypeCohortId = taxisId,
@@ -126,6 +307,7 @@ createPheValuatorAnalysisList <- function(pairs) {
 #' @description
 #' Evaluates diagnostic performance characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score)
 #' of TAXIS-generated phenotypes using the OHDSI \code{PheValuator} package.
+#' Adheres to strict small-cell suppression (REC-048-1) and non-disclosure error hygiene (REC-048-2).
 #'
 #' @param connectionDetails        DatabaseConnector connection details object.
 #' @param cdmDatabaseSchema        Schema containing OMOP CDM v5.4 clinical data.
@@ -135,6 +317,7 @@ createPheValuatorAnalysisList <- function(pairs) {
 #' @param outputFolder             Local directory where evaluation outputs will be saved.
 #' @param databaseId               Unique identifier for the participating database.
 #' @param cdmVersion               Version of OMOP CDM (default is "5").
+#' @param minCellCount             Minimum cell count threshold for small-cell suppression (default is 5).
 #'
 #' @return A data frame containing the summary of PheValuator diagnostic performance metrics.
 #' @export
@@ -145,7 +328,8 @@ runPheValuator <- function(connectionDetails,
                            workDatabaseSchema = cohortDatabaseSchema,
                            outputFolder,
                            databaseId,
-                           cdmVersion = "5") {
+                           cdmVersion = "5",
+                           minCellCount = 5) {
 
   phevalFolder <- file.path(outputFolder, "phevaluator")
   if (!file.exists(phevalFolder)) {
@@ -175,10 +359,9 @@ runPheValuator <- function(connectionDetails,
 
   # Step 3: Execute PheValuator pipeline
   ParallelLogger::logInfo("Beginning PheValuator pipeline execution across phenotype pairs...")
-  executedSuccessfully <- FALSE
 
   if (requireNamespace("PheValuator", quietly = TRUE)) {
-    tryCatch({
+    summaryDf <- tryCatch({
       referenceTable <- PheValuator::runPheValuatorAnalyses(
         phenotype = "TAXIS_5_Phenotypes",
         analysisName = "TAXIS_Phenotype_Evaluation",
@@ -193,80 +376,20 @@ runPheValuator <- function(connectionDetails,
         pheValuatorAnalysisList = pheValuatorAnalysisList
       )
 
-      summaryDf <- PheValuator::summarizePheValuatorAnalyses(
+      PheValuator::summarizePheValuatorAnalyses(
         referenceTable = referenceTable,
         outputFolder = phevalFolder
       )
-
-      if (nrow(summaryDf) > 0) {
-        for (i in seq_len(nrow(pairs))) {
-          taxisId <- as.numeric(pairs$taxisCohortId[i])
-          pairMatch <- summaryDf[summaryDf$cohortId == taxisId, ]
-          if (nrow(pairMatch) > 0) {
-            row <- pairMatch[1, ]
-            resultsRows[[i]] <- data.frame(
-              databaseId = databaseId,
-              pairGroup = pairs$pairGroup[i],
-              phenotypeName = pairs$phenotypeName[i],
-              taxisCohortId = taxisId,
-              libraryCohortId = as.numeric(pairs$libraryCohortId[i]),
-              cutPoint = as.character(row$cutPoint),
-              sensitivity = as.numeric(row$sensitivity),
-              sensitivityCi95Lb = as.numeric(row$sensitivityCi95Lb),
-              sensitivityCi95Ub = as.numeric(row$sensitivityCi95Ub),
-              ppv = as.numeric(row$ppv),
-              ppvCi95Lb = as.numeric(row$ppvCi95Lb),
-              ppvCi95Ub = as.numeric(row$ppvCi95Ub),
-              specificity = as.numeric(row$specificity),
-              specificityCi95Lb = as.numeric(row$specificityCi95Lb),
-              specificityCi95Ub = as.numeric(row$specificityCi95Ub),
-              npv = as.numeric(row$npv),
-              npvCi95Lb = as.numeric(row$npvCi95Lb),
-              npvCi95Ub = as.numeric(row$npvCi95Ub),
-              f1Score = as.numeric(row$f1Score),
-              truePositives = as.numeric(row$truePositives),
-              trueNegatives = as.numeric(row$trueNegatives),
-              falsePositives = as.numeric(row$falsePositives),
-              falseNegatives = as.numeric(row$falseNegatives),
-              estimatedPrevalence = as.numeric(row$estimatedPrevalence),
-              status = "COMPLETED",
-              stringsAsFactors = FALSE
-            )
-          } else {
-            resultsRows[[i]] <- data.frame(
-              databaseId = databaseId,
-              pairGroup = pairs$pairGroup[i],
-              phenotypeName = pairs$phenotypeName[i],
-              taxisCohortId = taxisId,
-              libraryCohortId = as.numeric(pairs$libraryCohortId[i]),
-              cutPoint = "Expected Value",
-              sensitivity = NA_real_,
-              sensitivityCi95Lb = NA_real_,
-              sensitivityCi95Ub = NA_real_,
-              ppv = NA_real_,
-              ppvCi95Lb = NA_real_,
-              ppvCi95Ub = NA_real_,
-              specificity = NA_real_,
-              specificityCi95Lb = NA_real_,
-              specificityCi95Ub = NA_real_,
-              npv = NA_real_,
-              npvCi95Lb = NA_real_,
-              npvCi95Ub = NA_real_,
-              f1Score = NA_real_,
-              truePositives = NA_real_,
-              trueNegatives = NA_real_,
-              falsePositives = NA_real_,
-              falseNegatives = NA_real_,
-              estimatedPrevalence = NA_real_,
-              status = "NO_EVALUATION_SUBJECTS",
-              stringsAsFactors = FALSE
-            )
-          }
-        }
-        executedSuccessfully <- TRUE
-      }
     }, error = function(e) {
-      ParallelLogger::logWarn(sprintf("PheValuator pipeline run encountered an issue: %s", e$message))
+      # Log full diagnostic details exclusively to private site-local log (REC-048-2)
+      ParallelLogger::logError(sprintf("PheValuator execution failed for database %s: %s", databaseId, e$message))
+      NULL
+    })
+
+    if (!is.null(summaryDf) && nrow(summaryDf) > 0) {
+      phevalSummary <- formatPheValuatorResults(summaryDf, pairs, databaseId)
+    } else {
+      # Build execution failure fallback with strictly bounded status code (zero raw error text)
       for (i in seq_len(nrow(pairs))) {
         resultsRows[[i]] <- data.frame(
           databaseId = databaseId,
@@ -293,11 +416,12 @@ runPheValuator <- function(connectionDetails,
           falsePositives = NA_real_,
           falseNegatives = NA_real_,
           estimatedPrevalence = NA_real_,
-          status = sprintf("FAILED: %s", e$message),
+          status = "EXECUTION_FAILED",
           stringsAsFactors = FALSE
         )
       }
-    })
+      phevalSummary <- do.call(rbind, resultsRows)
+    }
   } else {
     ParallelLogger::logWarn("PheValuator package not installed; generating unexecuted placeholder summary.")
     for (i in seq_len(nrow(pairs))) {
@@ -330,30 +454,11 @@ runPheValuator <- function(connectionDetails,
         stringsAsFactors = FALSE
       )
     }
+    phevalSummary <- do.call(rbind, resultsRows)
   }
 
-  phevalSummary <- do.call(rbind, resultsRows)
-
-  # Apply complementary cell suppression if counts are non-NA and 0 < N < 5 (DEC-GR-005)
-  if (!is.null(phevalSummary$truePositives)) {
-    maskIdx <- which(
-      (!is.na(phevalSummary$truePositives) & phevalSummary$truePositives > 0 & phevalSummary$truePositives < 5) |
-      (!is.na(phevalSummary$falsePositives) & phevalSummary$falsePositives > 0 & phevalSummary$falsePositives < 5) |
-      (!is.na(phevalSummary$trueNegatives) & phevalSummary$trueNegatives > 0 & phevalSummary$trueNegatives < 5) |
-      (!is.na(phevalSummary$falseNegatives) & phevalSummary$falseNegatives > 0 & phevalSummary$falseNegatives < 5)
-    )
-    if (length(maskIdx) > 0) {
-      phevalSummary$truePositives[maskIdx] <- -1
-      phevalSummary$falsePositives[maskIdx] <- -1
-      phevalSummary$trueNegatives[maskIdx] <- -1
-      phevalSummary$falseNegatives[maskIdx] <- -1
-      phevalSummary$sensitivity[maskIdx] <- -1
-      phevalSummary$ppv[maskIdx] <- -1
-      phevalSummary$specificity[maskIdx] <- -1
-      phevalSummary$npv[maskIdx] <- -1
-      phevalSummary$f1Score[maskIdx] <- -1
-    }
-  }
+  # Step 4: Apply strict complementary cell suppression (REC-048-1 / DEC-GR-005)
+  phevalSummary <- applyPheValuatorSuppression(phevalSummary, minCellCount = minCellCount)
 
   summaryPath <- file.path(outputFolder, sprintf("phevaluator_summary_%s.csv", databaseId))
   readr::write_csv(phevalSummary, summaryPath)

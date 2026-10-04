@@ -561,13 +561,43 @@ def test_phevaluator_api_and_description_conformance():
         if "xSpecCohortId" not in code:
             errors.append("RunPheValuator.R missing required argument 'xSpecCohortId' in createCreateEvaluationCohortArgs")
 
-        # Output schema metrics
-        expected_metrics = ["sensitivity", "specificity", "ppv", "npv", "f1Score", "truePositives", "falsePositives", "trueNegatives", "falseNegatives"]
+        # Output schema metrics and complete suppression (REC-048-1)
+        expected_metrics = ["sensitivity", "specificity", "ppv", "npv", "f1Score", "truePositives", "falsePositives", "trueNegatives", "falseNegatives", "estimatedPrevalence"]
         for m in expected_metrics:
             if m not in code:
                 errors.append(f"RunPheValuator.R missing expected summary metric column: {m}")
 
-    # 2. Inspect documentation accuracy in root README.md
+        if "applyPheValuatorSuppression" not in code:
+            errors.append("RunPheValuator.R missing applyPheValuatorSuppression function (REC-048-1)")
+        else:
+            # Check that suppression masks all 8 confidence intervals and estimatedPrevalence
+            ci_bounds = ["sensitivityCi95Lb", "sensitivityCi95Ub", "ppvCi95Lb", "ppvCi95Ub", "specificityCi95Lb", "specificityCi95Ub", "npvCi95Lb", "npvCi95Ub", "estimatedPrevalence"]
+            for bound in ci_bounds:
+                if f"phevalSummary${bound}[i] <- -1" not in code and f"phevalSummary${bound}[maskIdx] <- -1" not in code:
+                    errors.append(f"RunPheValuator.R suppression does not mask dependent metric: {bound} (REC-048-1)")
+
+        # Error hygiene (REC-048-2): No raw error messages embedded in outbound status
+        if 'sprintf("FAILED: %s", e$message)' in code or 'status = sprintf("FAILED: %s"' in code:
+            errors.append("RunPheValuator.R embeds raw error message e$message in outbound status column (REC-048-2)")
+        if '"EXECUTION_FAILED"' not in code:
+            errors.append("RunPheValuator.R missing bounded status code 'EXECUTION_FAILED' (REC-048-2)")
+
+        # Methodological configuration & provisional role assignment (REC-048-3)
+        if "Provisional cohort role assignment" not in code:
+            errors.append("RunPheValuator.R missing provisional cohort role assignment warning (REC-048-3)")
+
+    # 2. Inspect PhenotypePairs.csv for explicit cohort role columns (REC-048-3)
+    pairs_path = os.path.join(ROOT_DIR, "extras", "TaxisPhenotypeEvaluation", "inst", "settings", "PhenotypePairs.csv")
+    if not os.path.exists(pairs_path):
+        errors.append("PhenotypePairs.csv not found in extras/TaxisPhenotypeEvaluation/inst/settings/")
+    else:
+        with open(pairs_path, "r", encoding="utf-8") as f:
+            pairs_header = f.readline()
+        for role_col in ["xSpecCohortId", "xSensCohortId", "prevalenceCohortId", "cohortRoleStatus"]:
+            if role_col not in pairs_header:
+                errors.append(f"PhenotypePairs.csv missing explicit cohort role column: {role_col} (REC-048-3)")
+
+    # 3. Inspect documentation accuracy in root README.md
     readme_path = os.path.join(ROOT_DIR, "README.md")
     with open(readme_path, "r", encoding="utf-8") as f:
         readme_text = f.read()
@@ -582,7 +612,7 @@ def test_phevaluator_api_and_description_conformance():
             print(f"  FAILED: {err}")
         return False
 
-    print("  PASSED: PheValuator canonical API usage, argument specifications, and methodology descriptions verified.")
+    print("  PASSED: PheValuator canonical API usage, argument specifications, small-cell suppression, error hygiene, and cohort roles verified.")
     return True
 
 

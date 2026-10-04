@@ -126,7 +126,8 @@ execute <- function(connectionDetails,
         cohortTable = cohortTable,
         workDatabaseSchema = workDatabaseSchema,
         outputFolder = outputFolder,
-        databaseId = databaseId
+        databaseId = databaseId,
+        minCellCount = minCellCount
       )
     }, error = function(e) {
       ParallelLogger::logError(sprintf("PheValuator encountered an error: %s", e$message))

@@ -77,12 +77,15 @@ This package operates in strict accordance with the **TAXIS Network Data Use Ter
 2. **Zero Protected Health Information (PHI) / Patient-Level Data**: No individual patient records, person identifiers, encounter timestamps, or narrative texts leave the local site firewall.
 3. **Mandatory Small-Cell Suppression**: All patient counts below 5 (`minCellCount = 5`) are automatically masked (`-1`) in exported CSVs. Participating sites may raise this threshold if required by local governance policies.
 4. **Complementary Suppression for Derived Ratios & Partitions**: Whenever an underlying count (e.g., intersection or exclusive cell) is suppressed, all partition counts and derived ratio metrics (Jaccard index, sensitivity proxy, positive agreement) are masked to `-1` to eliminate linear algebraic back-calculation of protected counts.
-5. **Strict Allowlist Zip Packaging**: The export function enforces a strict allowlist. Only the following aggregate files are included in `Results_<databaseId>.zip`:
+5. **Comprehensive PheValuator Small-Cell & Bound Suppression (REC-048-1)**: In `phevaluator_summary_<databaseId>.csv`, if any 2x2 contingency cell (true positives, false positives, true negatives, false negatives) is small ($1 \le N < 5$) or negative (upstream PheValuator suppression marker), all 4 counts, point estimates (Sensitivity, Specificity, PPV, NPV, F1 Score), all 8 confidence interval bounds, and estimated prevalence are masked to `-1`.
+6. **Error Hygiene & Outbound Data Sanitization (REC-048-2)**: Outbound summaries export strictly bounded status codes (`COMPLETED`, `NO_EVALUATION_SUBJECTS`, `EXECUTION_FAILED`, `PACKAGE_NOT_INSTALLED`). Diagnostic error text (`e$message`) is redirected exclusively to private site-local logs (`log_<databaseId>.txt`), preventing accidental disclosure of SQL queries, table names, file paths, or DBMS credentials.
+7. **Provisional Cohort Role Specifications (REC-048-3)**: `PhenotypePairs.csv` explicitly defines `xSpecCohortId`, `xSensCohortId`, and `prevalenceCohortId`. For Phase 1 exploratory evaluation, reference library cohorts serve as provisional placeholders pending dedicated clinician-adjudicated `xSpec` and `xSens` definitions per Swerdel et al. (2019). Results are explicitly labeled as provisional specifications rather than validated diagnostic accuracy.
+8. **Strict Allowlist Zip Packaging**: The export function enforces a strict allowlist. Only the following aggregate files are included in `Results_<databaseId>.zip`:
    - `cohort_counts_<databaseId>.csv`
    - `cohort_overlap_summary_<databaseId>.csv`
    - `phevaluator_summary_<databaseId>.csv`
    - `diagnostics/Results_<databaseId>.zip` (verified CSV-only aggregate members; logs, scratch tables, and decoys rejected)
-6. **Mandatory Institutional Review**: Participating sites maintain full discretion to inspect the contents of `Results_<databaseId>.zip` before transferring it to the study coordinating team.
+9. **Mandatory Institutional Review**: Participating sites maintain full discretion to inspect the contents of `Results_<databaseId>.zip` before transferring it to the study coordinating team.
 
 ---
 

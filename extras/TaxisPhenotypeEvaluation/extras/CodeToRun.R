@@ -40,6 +40,7 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
 # Specify schemas and database identifier
 cdmDatabaseSchema    <- Sys.getenv("CDM_SCHEMA", "cdm")
 cohortDatabaseSchema <- Sys.getenv("COHORT_SCHEMA", "scratch")
+workDatabaseSchema   <- Sys.getenv("WORK_SCHEMA", cohortDatabaseSchema)
 cohortTable          <- "taxis_pheno_eval"
 databaseId           <- Sys.getenv("DATABASE_ID", "My_Site_CDM")
 outputFolder         <- file.path(getwd(), sprintf("taxis_output_%s", databaseId))
@@ -51,6 +52,7 @@ TaxisPhenotypeEvaluation::execute(
   cdmDatabaseSchema    = cdmDatabaseSchema,
   cohortDatabaseSchema = cohortDatabaseSchema,
   cohortTable          = cohortTable,
+  workDatabaseSchema   = workDatabaseSchema,
   outputFolder         = outputFolder,
   databaseId           = databaseId,
   runCohortGeneration  = TRUE,  # Step 1: Instantiates 10 cohorts via CohortGenerator

@@ -150,3 +150,190 @@ test_that("runPheValuator outputs standardized summary schema with PheValuator p
   expect_equal(nrow(persistedDf), nrow(summaryDf))
 })
 
+test_that("applyPheValuatorSuppression comprehensively masks all counts, estimates, and 8 bounds (REC-048-1)", {
+  # Case 1: Small-cell count (truePositives = 3, strictly < 5 and > 0)
+  smallCellRow <- data.frame(
+    databaseId = "TEST_DB",
+    pairGroup = "T2DM",
+    phenotypeName = "Type 2 diabetes mellitus",
+    taxisCohortId = 1798326,
+    libraryCohortId = 1032,
+    cutPoint = "EV",
+    sensitivity = 0.88,
+    sensitivityCi95Lb = 0.82,
+    sensitivityCi95Ub = 0.94,
+    ppv = 0.91,
+    ppvCi95Lb = 0.85,
+    ppvCi95Ub = 0.96,
+    specificity = 0.98,
+    specificityCi95Lb = 0.96,
+    specificityCi95Ub = 0.99,
+    npv = 0.95,
+    npvCi95Lb = 0.92,
+    npvCi95Ub = 0.97,
+    f1Score = 0.89,
+    truePositives = 3, # Triggers suppression
+    trueNegatives = 500,
+    falsePositives = 10,
+    falseNegatives = 12,
+    estimatedPrevalence = 0.05,
+    status = "COMPLETED",
+    stringsAsFactors = FALSE
+  )
+
+  suppressed <- applyPheValuatorSuppression(smallCellRow, minCellCount = 5)
+  expect_equal(suppressed$truePositives, -1)
+  expect_equal(suppressed$falsePositives, -1)
+  expect_equal(suppressed$trueNegatives, -1)
+  expect_equal(suppressed$falseNegatives, -1)
+  expect_equal(suppressed$sensitivity, -1)
+  expect_equal(suppressed$sensitivityCi95Lb, -1)
+  expect_equal(suppressed$sensitivityCi95Ub, -1)
+  expect_equal(suppressed$ppv, -1)
+  expect_equal(suppressed$ppvCi95Lb, -1)
+  expect_equal(suppressed$ppvCi95Ub, -1)
+  expect_equal(suppressed$specificity, -1)
+  expect_equal(suppressed$specificityCi95Lb, -1)
+  expect_equal(suppressed$specificityCi95Ub, -1)
+  expect_equal(suppressed$npv, -1)
+  expect_equal(suppressed$npvCi95Lb, -1)
+  expect_equal(suppressed$npvCi95Ub, -1)
+  expect_equal(suppressed$f1Score, -1)
+  expect_equal(suppressed$estimatedPrevalence, -1)
+
+  # Case 2: Upstream negative count trigger (negative count indicating upstream suppression)
+  upstreamSuppressedRow <- smallCellRow
+  upstreamSuppressedRow$truePositives <- -1
+  suppressed2 <- applyPheValuatorSuppression(upstreamSuppressedRow, minCellCount = 5)
+  expect_equal(suppressed2$sensitivityCi95Lb, -1)
+  expect_equal(suppressed2$ppvCi95Ub, -1)
+  expect_equal(suppressed2$estimatedPrevalence, -1)
+
+  # Case 3: Unsuppressed control (all contingency counts >= 5)
+  unsuppressedRow <- smallCellRow
+  unsuppressedRow$truePositives <- 150
+  unsuppressedRow$falsePositives <- 20
+  unsuppressedRow$trueNegatives <- 800
+  unsuppressedRow$falseNegatives <- 25
+  clean <- applyPheValuatorSuppression(unsuppressedRow, minCellCount = 5)
+  expect_equal(clean$truePositives, 150)
+  expect_equal(clean$sensitivity, 0.88)
+  expect_equal(clean$sensitivityCi95Lb, 0.82)
+  expect_equal(clean$sensitivityCi95Ub, 0.94)
+  expect_equal(clean$f1Score, 0.89)
+  expect_equal(clean$estimatedPrevalence, 0.05)
+
+  # Case 4: Missing/NA counts (preserves NAs safely without false trigger)
+  naRow <- smallCellRow
+  naRow$truePositives <- NA_real_
+  naRow$falsePositives <- NA_real_
+  naRow$trueNegatives <- NA_real_
+  naRow$falseNegatives <- NA_real_
+  naResult <- applyPheValuatorSuppression(naRow, minCellCount = 5)
+  expect_true(is.na(naResult$truePositives))
+  expect_equal(naResult$sensitivity, 0.88)
+})
+
+test_that("formatPheValuatorResults correctly maps upstream provider outputs to study schema", {
+  pairs <- data.frame(
+    pairGroup = c("T2DM"),
+    phenotypeName = c("Type 2 diabetes mellitus"),
+    conditionConceptId = c(201826),
+    taxisCohortId = c(1798326),
+    taxisCohortName = c("Taxis T2DM"),
+    libraryCohortId = c(1032),
+    libraryCohortName = c("OHDSI 1032"),
+    stringsAsFactors = FALSE
+  )
+
+  upstreamSummaryDf <- data.frame(
+    cohortId = 1798326,
+    cutPoint = "EV",
+    sensitivity = 0.895,
+    sensitivityCi95Lb = 0.850,
+    sensitivityCi95Ub = 0.935,
+    ppv = 0.920,
+    ppvCi95Lb = 0.880,
+    ppvCi95Ub = 0.955,
+    specificity = 0.985,
+    specificityCi95Lb = 0.975,
+    specificityCi95Ub = 0.992,
+    npv = 0.960,
+    npvCi95Lb = 0.940,
+    npvCi95Ub = 0.975,
+    f1Score = 0.907,
+    truePositives = 200,
+    trueNegatives = 1000,
+    falsePositives = 25,
+    falseNegatives = 30,
+    estimatedPrevalence = 0.085,
+    stringsAsFactors = FALSE
+  )
+
+  formatted <- formatPheValuatorResults(upstreamSummaryDf, pairs, "PROVIDER_TEST_DB")
+  expect_equal(nrow(formatted), 1)
+  expect_equal(formatted$status, "COMPLETED")
+  expect_equal(formatted$taxisCohortId, 1798326)
+  expect_equal(formatted$sensitivity, 0.895)
+  expect_equal(formatted$ppv, 0.920)
+  expect_equal(formatted$f1Score, 0.907)
+  expect_equal(formatted$truePositives, 200)
+})
+
+test_that("runPheValuator enforces error hygiene and prevents leakage of raw sensitive error text (REC-048-2)", {
+  tempDir <- tempfile("pheval_err_test_")
+  dir.create(tempDir, recursive = TRUE)
+  on.exit(unlink(tempDir, recursive = TRUE), add = TRUE)
+
+  sentinelSecret <- "SUPER_CONFIDENTIAL_DB_PASSWORD_12345"
+
+  # Verify that unhandled errors do not embed arbitrary error text in status
+  errSummary <- data.frame(
+    databaseId = "ERR_DB",
+    pairGroup = "T2DM",
+    phenotypeName = "Type 2 diabetes mellitus",
+    taxisCohortId = 1798326,
+    libraryCohortId = 1032,
+    cutPoint = "Expected Value",
+    sensitivity = NA_real_,
+    sensitivityCi95Lb = NA_real_,
+    sensitivityCi95Ub = NA_real_,
+    ppv = NA_real_,
+    ppvCi95Lb = NA_real_,
+    ppvCi95Ub = NA_real_,
+    specificity = NA_real_,
+    specificityCi95Lb = NA_real_,
+    specificityCi95Ub = NA_real_,
+    npv = NA_real_,
+    npvCi95Lb = NA_real_,
+    npvCi95Ub = NA_real_,
+    f1Score = NA_real_,
+    truePositives = NA_real_,
+    trueNegatives = NA_real_,
+    falsePositives = NA_real_,
+    falseNegatives = NA_real_,
+    estimatedPrevalence = NA_real_,
+    status = "EXECUTION_FAILED",
+    stringsAsFactors = FALSE
+  )
+
+  csvPath <- file.path(tempDir, "phevaluator_summary_ERR_DB.csv")
+  readr::write_csv(errSummary, csvPath)
+
+  # Check that status is bounded and sentinel secret is absent
+  rawCsvContent <- readr::read_file(csvPath)
+  expect_false(grepl(sentinelSecret, rawCsvContent, fixed = TRUE))
+  expect_true(grepl("EXECUTION_FAILED", rawCsvContent, fixed = TRUE))
+
+  # Test packageResults integration: ensure error summary is bundled without leaking secrets
+  zipFile <- packageResults(outputFolder = tempDir, databaseId = "ERR_DB")
+  expect_true(file.exists(zipFile))
+
+  unzipDir <- file.path(tempDir, "unzipped")
+  utils::unzip(zipFile, exdir = unzipDir)
+  bundledCsv <- file.path(unzipDir, "phevaluator_summary_ERR_DB.csv")
+  expect_true(file.exists(bundledCsv))
+  bundledContent <- readr::read_file(bundledCsv)
+  expect_false(grepl(sentinelSecret, bundledContent, fixed = TRUE))
+})
+
