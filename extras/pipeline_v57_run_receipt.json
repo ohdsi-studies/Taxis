@@ -1,8 +1,8 @@
 {
-  "run_id": "run_20261004_111323",
-  "run_timestamp": "2026-10-04T15:13:49Z",
+  "run_id": "run_20261004_112924",
+  "run_timestamp": "2026-10-04T15:29:49Z",
   "status": "SUCCESS",
-  "total_duration_seconds": 25.94,
+  "total_duration_seconds": 24.75,
   "tool_versions": {
     "r_version": "R version 4.6.1 (2026-06-24 ucrt)",
     "sqlrender_version": "1.19.7",
@@ -22,23 +22,29 @@
     "results_schema": "work_cab_test",
     "batch_count": 1,
     "batch_number": 1,
+    "partial_run_batch_limit": 1,
     "window_days": 35,
-    "threshold_support_count": 10,
-    "threshold_support_fraction": 0.001,
-    "threshold_pair_count": 5
+    "threshold_support_count": 0,
+    "threshold_support_fraction": 0,
+    "threshold_pair_count": 0,
+    "cab_min_concept_obs": 0,
+    "cab_min_conditional_prob": 0,
+    "cab_min_ab_obs": 0,
+    "total_input_persons": 2694,
+    "partition_persons": 2694
   },
   "phase_results": {
     "init": {
       "status": "PASS",
-      "duration_seconds": 0.62
+      "duration_seconds": 0.65
     },
     "batch_1": {
       "status": "PASS",
-      "duration_seconds": 13.72
+      "duration_seconds": 10.82
     },
     "finalize": {
       "status": "PASS",
-      "duration_seconds": 8.88
+      "duration_seconds": 10.31
     }
   },
   "table_count": 44,
@@ -63,13 +69,13 @@
     "cab_s13_strat_cum": 10,
     "cab_s20_marginal_all": 615,
     "cab_s20_marginal_cum": 615,
-    "cab_s23_strat_all": 1834,
-    "cab_s23_strat_cum": 1834,
+    "cab_s23_strat_all": 1810,
+    "cab_s23_strat_cum": 1810,
     "cab_s30_all": 14653,
     "cab_s30_cum": 14653,
     "cab_s33_mh_all": 4192,
-    "cab_s33_strat_all": 11453,
-    "cab_s33_strat_cum": 11453,
+    "cab_s33_strat_all": 11247,
+    "cab_s33_strat_cum": 11247,
     "cab_s37_lag_all": 405,
     "cab_s37_lag_cum": 405,
     "cab_s38_profile_all": 166,
@@ -86,7 +92,7 @@
     "meas_obs_attribute_s36_cum": 228,
     "meas_obs_profile_s35_all": 76,
     "meas_obs_profile_s35_cum": 76,
-    "taxis_run_receipt": 4
+    "taxis_run_receipt": 5
   },
   "error_message": {}
 }

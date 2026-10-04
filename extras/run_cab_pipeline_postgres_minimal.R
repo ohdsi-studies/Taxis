@@ -23,11 +23,19 @@ projectRefSchema <- "concept_ab_vocab"
 omopRefSchema <- "cdm"
 resultsSchema <- "work_cab_test"
 
-batchCount <- 1
-batchNumber <- 1
-partialRunBatchLimit <- 1
-dataProfileBatchLimit <- 1
-windowDays <- 35
+batchCount            <- as.integer(Sys.getenv("CAB_BATCH_COUNT", "1"))
+batchNumber           <- as.integer(Sys.getenv("CAB_BATCH_NUMBER", "1"))
+partialRunBatchLimit  <- as.integer(Sys.getenv("CAB_PARTIAL_RUN_BATCH_LIMIT", "1"))
+dataProfileBatchLimit <- as.integer(Sys.getenv("CAB_DATA_PROFILE_BATCH_LIMIT", "1"))
+windowDays            <- as.integer(Sys.getenv("CAB_WINDOW_DAYS", "35"))
+
+# Effective filtering thresholds for this diagnostic verification run:
+# In this minimal verification runner on the synthetic test fixture (2,694 persons),
+# thresholds default to 0 to capture all empirical concept pairs for known-answer tests.
+# In standard production network runs (e.g. CodeToRun.R), thresholds default to 10, 0.001, and 5.
+cabMinConceptObs      <- as.integer(Sys.getenv("CAB_MIN_CONCEPT_OBS", "0"))
+cabMinConditionalProb <- as.numeric(Sys.getenv("CAB_MIN_CONDITIONAL_PROB", "0.0"))
+cabMinAbObs           <- as.integer(Sys.getenv("CAB_MIN_AB_OBS", "0"))
 
 jarFolder <- "c:/files/git/github/ohdsi-studies/Taxis/extras/testdata/jdbc"
 sqlDir <- "c:/files/git/github/ohdsi-studies/Taxis/inst/sql/sql_server"
@@ -35,6 +43,8 @@ receiptPath <- "c:/files/git/github/ohdsi-studies/Taxis/extras/pipeline_v57_run_
 
 phaseResults <- list()
 tableCounts <- list()
+totalInputPersons <- NA_real_
+partitionPersons <- NA_real_
 
 # Calculate dynamic digests of the SQL files actually executed
 initPath  <- file.path(sqlDir, "concept_ab_init.sql")
@@ -77,10 +87,16 @@ preReceipt <- list(
     results_schema = resultsSchema,
     batch_count = batchCount,
     batch_number = batchNumber,
+    partial_run_batch_limit = partialRunBatchLimit,
     window_days = windowDays,
-    threshold_support_count = 10,
-    threshold_support_fraction = 0.001,
-    threshold_pair_count = 5
+    threshold_support_count = cabMinConceptObs,
+    threshold_support_fraction = cabMinConditionalProb,
+    threshold_pair_count = cabMinAbObs,
+    cab_min_concept_obs = cabMinConceptObs,
+    cab_min_conditional_prob = cabMinConditionalProb,
+    cab_min_ab_obs = cabMinAbObs,
+    total_input_persons = NA_real_,
+    partition_persons = NA_real_
   )
 )
 writeLines(as.character(jsonlite::toJSON(preReceipt, pretty = TRUE, auto_unbox = TRUE)), receiptPath)
@@ -192,7 +208,7 @@ tryCatch({
       omop_reference_schema    = omopRefSchema,
       batch_count              = batchCount,
       batch_number             = batchNumber,
-      cab_min_ab_obs           = 0,
+      cab_min_ab_obs           = cabMinAbObs,
       window_days              = windowDays,
       data_profile_batch_limit = dataProfileBatchLimit,
       now_expr                 = "clock_timestamp()",
@@ -211,8 +227,8 @@ tryCatch({
       results_database_schema  = resultsSchema,
       omop_reference_schema    = omopRefSchema,
       max_batch_number         = batchNumber,
-      cab_min_concept_obs      = 0,
-      cab_min_conditional_prob = 0.0,
+      cab_min_concept_obs      = cabMinConceptObs,
+      cab_min_conditional_prob = cabMinConditionalProb,
       window_days              = windowDays,
       create_index_ddl         = TRUE,
       drop_cum_tables          = FALSE
@@ -239,6 +255,16 @@ tryCatch({
     tableCounts[[t]] <- cntVal
     cat(sprintf("  %-35s : %10.0f rows\n", paste0(resultsSchema, ".", t), cntVal))
   }
+
+  # Query total CDM input population and partition person count for workload accounting (REC-066-2)
+  totalPersonsQuery <- paste0("SELECT COUNT(*) AS n FROM ", cdmSchema, ".person;")
+  totalInputPersons <<- as.numeric(querySql(conn, totalPersonsQuery)$n[1])
+  
+  partitionPersonsQuery <- paste0("SELECT total_persons FROM ", resultsSchema, ".cab_s10_person_all;")
+  partitionPersons <<- as.numeric(querySql(conn, partitionPersonsQuery)$total_persons[1])
+  
+  cat(sprintf("--> Workload accounting: Total CDM persons = %d, Partition persons = %d (batch %d of %d)\n",
+              as.integer(totalInputPersons), as.integer(partitionPersons), batchNumber, batchCount))
 
   # Update database run receipt to SUCCESS
   updateReceiptSql <- sprintf(
@@ -296,10 +322,16 @@ finalReceipt <- list(
     results_schema = resultsSchema,
     batch_count = batchCount,
     batch_number = batchNumber,
+    partial_run_batch_limit = partialRunBatchLimit,
     window_days = windowDays,
-    threshold_support_count = 10,
-    threshold_support_fraction = 0.001,
-    threshold_pair_count = 5
+    threshold_support_count = cabMinConceptObs,
+    threshold_support_fraction = cabMinConditionalProb,
+    threshold_pair_count = cabMinAbObs,
+    cab_min_concept_obs = cabMinConceptObs,
+    cab_min_conditional_prob = cabMinConditionalProb,
+    cab_min_ab_obs = cabMinAbObs,
+    total_input_persons = totalInputPersons,
+    partition_persons = partitionPersons
   ),
   phase_results = phaseResults,
   table_count = length(tableCounts),

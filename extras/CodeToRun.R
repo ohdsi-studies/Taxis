@@ -65,12 +65,25 @@ outputFolder           <- file.path(getwd(), sprintf("taxis_output_%s", database
 
 # Execution Parameters:
 # Phased Rollout Protocol (DEC-GR-030):
-#   Phase A (Local Site Verification): Set partialRunBatchLimit = 1 to perform a
-#          single-partition smoke test validating JDBC connectivity, permissions,
-#          and table creation in ~30 seconds prior to production execution.
-#   Phase B (Full Production Run): Set partialRunBatchLimit = 40 (the default) to
-#          execute the complete association mining pipeline across all 40 balanced
-#          patient partitions.
+#   Understanding Partitioning Workload:
+#     - batchCount: Total number of person partitions. In concept_ab_init.sql, eligible
+#       CDM persons are partitioned across @batch_count balanced segments via ntile(@batch_count).
+#     - partialRunBatchLimit: Number of partition batches to execute sequentially before finalization.
+#
+#   Phase A (Site Pre-Flight Verification):
+#     - For full-scale partner CDMs: Set batchCount = 40 and partialRunBatchLimit = 1.
+#       This partitions the CDM across 40 segments and executes only the first partition
+#       (1/40th of eligible persons, ~2.5% of patient workload), verifying JDBC connectivity,
+#       driver stability, permissions, and table materialization while capping execution load.
+#       (Note: setting batchCount = 1 assigns 100% of the CDM population to partition 1, which
+#       is suitable only for small test fixtures or pre-subsetted CDMs).
+#     - Runtime note: On a local synthetic CDM fixture (2,694 persons, batchCount = 1), verification
+#       executes in ~25-30 seconds. On partner CDMs with millions of patients, initialization spans
+#       the entire CDM and partition runtime scales with patient count and event volume.
+#
+#   Phase B (Full Production Run):
+#     - Set partialRunBatchLimit = 40 to execute all 40 balanced patient partitions across the
+#       entire CDM population.
 batchCount             <- as.integer(Sys.getenv("CAB_BATCH_COUNT", "40"))
 partialRunBatchLimit   <- as.integer(Sys.getenv("CAB_PARTIAL_RUN_BATCH_LIMIT", "1")) # Phase A verification default
 

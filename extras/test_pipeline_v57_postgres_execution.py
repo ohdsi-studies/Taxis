@@ -91,7 +91,27 @@ def main():
         print(f"    SQL Hash {k:<28}: {actual_h}")
         assert actual_h == expected_h, f"Digest mismatch for {k}: receipt has {actual_h}, file has {expected_h}"
 
-    print("    [PASS] Run receipt and dynamic SQL hashes verified.")
+    # Validate effective filtering parameters & workload accounting (REC-066-1, REC-066-2)
+    params = receipt.get("parameters", {})
+    cab_min_concept_obs = params.get("cab_min_concept_obs")
+    cab_min_conditional_prob = params.get("cab_min_conditional_prob")
+    cab_min_ab_obs = params.get("cab_min_ab_obs")
+    total_input_persons = params.get("total_input_persons")
+    partition_persons = params.get("partition_persons")
+    b_cnt = params.get("batch_count")
+    b_num = params.get("batch_number")
+
+    print(f"    Receipt Parameters: concept_obs={cab_min_concept_obs}, cond_prob={cab_min_conditional_prob}, pair_obs={cab_min_ab_obs}")
+    print(f"    Workload Metrics  : total_input_persons={total_input_persons}, partition_persons={partition_persons} (batch {b_num} of {b_cnt})")
+
+    # In this minimal verification diagnostic run, filters are explicitly set to 0/0.0/0
+    assert cab_min_concept_obs == 0, f"Expected cab_min_concept_obs=0, got {cab_min_concept_obs}"
+    assert cab_min_conditional_prob == 0.0, f"Expected cab_min_conditional_prob=0.0, got {cab_min_conditional_prob}"
+    assert cab_min_ab_obs == 0, f"Expected cab_min_ab_obs=0, got {cab_min_ab_obs}"
+    assert total_input_persons == 2694, f"Expected total_input_persons=2694, got {total_input_persons}"
+    assert partition_persons == 2694, f"Expected partition_persons=2694 (for batch 1 of 1), got {partition_persons}"
+
+    print("    [PASS] Run receipt, dynamic SQL hashes, effective parameters, and workload metrics verified.")
 
     conn_str = f"host={POSTGRES_HOST} port={POSTGRES_PORT} dbname={POSTGRES_DB} user={POSTGRES_USER} password={POSTGRES_PASSWORD}"
     print(f"\n--> Connecting to PostgreSQL at {POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}...")
