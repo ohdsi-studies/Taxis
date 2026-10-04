@@ -24,13 +24,20 @@ docker/synthea-omop-postgres/
 | Parameter | Default Value | Notes |
 |---|---|---|
 | **Host** | `localhost` | Exposed on host machine |
-| **Port** | `5432` | Standard PostgreSQL port |
+| **Port** | `5433` | Configured on host to avoid port 5432 collision with local postgres |
 | **Database** | `synthea` | Initialized OMOP database |
 | **Username** | `ohdsi_app` | Dedicated application user |
 | **Password** | `ohdsi_app_pass_2026` | Default non-production testing secret |
 | **CDM Schema** | `cdm` | Contains standard OMOP tables (`person`, `condition_occurrence`, etc.) |
 | **Cohort Schema**| `cohort` | Target schema for `CohortGenerator` tables |
 | **Work Schema** | `work` | Scratch schema for intermediate TAXIS mining pairs |
+
+---
+
+## Environment & Execution Scope (REC-052-1)
+- **Authoring Status**: Full container architecture, DDL schemas, streaming data loader, and synthetic Python smoke test harness are implemented.
+- **Execution Prerequisite**: Running the live container requires the Docker daemon (`com.docker.service`) to be active on the host machine.
+- **Scope Calibration**: The integration script is a synthetic Python/PostgreSQL CDM smoke check. It validates SQL and relational schema behavior on PostgreSQL; it does not substitute for native R package execution or real-world hospital CDM runs.
 
 ---
 
@@ -54,11 +61,11 @@ docker/synthea-omop-postgres/
    ```
 2. **Populate synthetic OMOP tables**:
    ```bash
-   python load_synthea.py --host localhost --port 5432 --db synthea
+   python load_synthea.py --host localhost --port 5433 --db synthea
    ```
-3. **Execute integration suite**:
+3. **Execute synthetic smoke suite**:
    ```bash
-   python ../../extras/test_postgres_synthea_integration.py
+   python ../../extras/test_postgres_synthea_integration.py --port 5433
    ```
 4. **Shutdown container**:
    ```bash

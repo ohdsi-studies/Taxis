@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-TAXIS Eunomia Integration Testing Suite (SQLite & DuckDB)
-=========================================================
-Executes end-to-end integration tests using the official OHDSI Eunomia synthetic OMOP CDM dataset:
-1. Auto-downloads and caches official Eunomia GiBleed dataset (6.8 MB) from OHDSI/EunomiaDatasets.
-2. Ingests OMOP CDM tables into both native SQLite (cdm.sqlite) and DuckDB (cdm.duckdb).
-3. Executes TAXIS Phenotype Extraction & Overlap Analysis (2x2 Jaccard, sensitivity, agreement).
-4. Tests algebraic disclosure protection (small-cell suppression, bound masking, floor normalization).
-5. Executes TAXIS Concept AB Mining queries on synthetic longitudinal data (Directionality Ratio, Stratification).
-6. Verifies export bundle creation and sanitization (zero leaks, allowlisted CSVs).
+TAXIS Eunomia Synthetic Smoke Testing Suite (SQLite & DuckDB)
+=============================================================
+Zero-PHI Synthetic OMOP CDM Pre-Flight Simulation
+
+Scope & Calibration Note (REC-052-1):
+This test harness executes synthetic Python/CDM smoke checks and Python bundle simulations
+against the public OHDSI Eunomia synthetic dataset. It validates SQL query logic, small-cell
+suppression mathematics (<5 -> -1), and directional mining ratios in lightweight SQLite and
+DuckDB database engines.
+
+This suite is a pre-flight synthetic smoke test. It does NOT invoke native R packages,
+R SqlRender transpilation, or released TaxisPhenotypeEvaluation::packageResults() functions,
+which remain separate gates pending native R runtime and partner CDM execution.
 
 Usage:
     python extras/test_eunomia_integration.py
@@ -343,10 +347,10 @@ def test_duckdb_eunomia_integration(duckdb_path):
     return True
 
 
-def test_package_results_export_hygiene():
-    """Verify packageResults export hygiene on temporary synthetic outputs."""
+def test_export_bundling_simulation():
+    """Verify export bundling and privacy hygiene in a Python simulation of allowlisting."""
     print("\n======================================================================")
-    print(" [3/3] VERIFYING EXPORT BUNDLING & PRIVACY HYGIENE")
+    print(" [3/3] SIMULATING EXPORT BUNDLING & PRIVACY HYGIENE (PYTHON SIMULATION)")
     print("======================================================================")
     temp_dir = tempfile.mkdtemp(prefix="taxis_export_test_")
     try:
@@ -361,7 +365,7 @@ def test_package_results_export_hygiene():
         with open(decoy_file, "w") as f:
             f.write("person_id,ssn,name\n1,000-00-0000,JohnDoe\n")
 
-        # Bundle allowlisted files
+        # Bundle allowlisted files (simulating packageResults allowlist logic)
         zip_path = os.path.join(temp_dir, "Results_Eunomia.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for fname in os.listdir(temp_dir):
@@ -375,7 +379,8 @@ def test_package_results_export_hygiene():
             assert "cohort_overlap_summary_Eunomia.csv" in namelist
             assert "raw_person_phi_leak.csv" not in namelist, "Decoy PHI file leaked into export archive!"
 
-        print("  PASSED: Export hygiene verified. Only allowlisted files entered the archive.")
+        print("  PASSED: Python bundle simulation verified. Only allowlisted files entered the archive.")
+        print("  NOTE: Native R package export (TaxisPhenotypeEvaluation::packageResults()) remains gated.")
         return True
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -383,26 +388,29 @@ def test_package_results_export_hygiene():
 
 def main():
     print("======================================================================")
-    print("       TAXIS EUNOMIA INTEGRATION SUITE (SQLite & DuckDB)              ")
-    print("       Zero-PHI Synthetic OMOP CDM End-to-End Execution              ")
+    print("       TAXIS EUNOMIA SYNTHETIC SMOKE SUITE (SQLite & DuckDB)          ")
+    print("       Zero-PHI Synthetic OMOP CDM Pre-Flight Simulation              ")
     print("======================================================================")
+    print(f" Python: {sys.version.split()[0]} | SQLite: {sqlite3.sqlite_version} | DuckDB: {duckdb.__version__ if HAS_DUCKDB else 'N/A'}")
 
     sqlite_path, duckdb_path = ensure_eunomia_dataset()
 
     res_sqlite = test_sqlite_eunomia_integration(sqlite_path)
     res_duckdb = test_duckdb_eunomia_integration(duckdb_path)
-    res_export = test_package_results_export_hygiene()
+    res_export = test_export_bundling_simulation()
 
     print("\n======================================================================")
     if res_sqlite and res_duckdb and res_export:
-        print("ALL EUNOMIA INTEGRATION TESTS PASSED (3/3).")
-        print("1. SQLite Native CDM Engine: PASSED")
-        print("2. DuckDB Vectorized CDM Engine: PASSED")
-        print("3. Export Bundling & Privacy Hygiene: PASSED")
+        print("ALL EUNOMIA SYNTHETIC SMOKE CHECKS PASSED (3/3).")
+        print("1. SQLite Synthetic CDM Smoke: PASSED")
+        print("2. DuckDB Synthetic CDM Smoke: PASSED")
+        print("3. Export Bundling Python Simulation: PASSED")
+        print("Notice: Synthetic pre-flight passed. Native R package execution, SqlRender transpilation,")
+        print("and real-world hospital CDM executions remain separate partner-environment gates.")
         print("======================================================================")
         return 0
     else:
-        print("SOME INTEGRATION TESTS FAILED.")
+        print("SOME SYNTHETIC SMOKE CHECKS FAILED.")
         print("======================================================================")
         return 1
 

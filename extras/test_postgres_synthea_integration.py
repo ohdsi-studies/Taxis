@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """
-TAXIS Synthea PostgreSQL Integration Testing Suite
-===================================================
-Executes end-to-end integration tests against the Dockerized PostgreSQL OMOP CDM:
-1. Validates connection to PostgreSQL cdm, cohort, and work schemas.
-2. Validates OMOP CDM v5.4 schema and table contents.
-3. Generates candidate cohorts in cohort.cohort schema.
-4. Executes 2x2 cohort overlap analysis with small-cell suppression (<5 -> -1).
-5. Executes Concept AB Association Mining queries with Directionality Ratio and Stratification.
-6. Verifies export bundling hygiene into Results_Postgres_Synthea.zip.
+TAXIS Synthea PostgreSQL Synthetic Smoke Testing Suite
+======================================================
+Live Containerized OMOP CDM v5.4 Synthetic Pre-Flight
+
+Scope & Calibration Note (REC-052-1):
+This harness executes synthetic Python/PostgreSQL CDM smoke checks against a
+containerized Synthea OMOP CDM v5.4 instance. It validates schema initialization,
+cohort generation in cohort.cohort, small-cell suppression (<5 -> -1), and
+Concept AB mining queries.
+
+This suite is a pre-flight synthetic smoke test. It does NOT invoke native R packages,
+R SqlRender transpilation, or released TaxisPhenotypeEvaluation::packageResults() functions,
+which remain separate gates pending native R runtime and partner CDM execution.
 
 Usage:
-    python extras/test_postgres_synthea_integration.py [--host localhost] [--port 5432]
+    python extras/test_postgres_synthea_integration.py [--host localhost] [--port 5433]
 """
 
 import os
@@ -89,15 +93,15 @@ def compute_directionality_ratio(forward_pairs, reverse_pairs):
 
 def run_postgres_tests(host, port, dbname, user, password):
     print("======================================================================")
-    print("       TAXIS SYNTHEA POSTGRESQL INTEGRATION TEST SUITE                ")
-    print("       Live Containerized OMOP CDM v5.4 Verification                  ")
+    print("       TAXIS SYNTHEA POSTGRESQL SYNTHETIC SMOKE SUITE                 ")
+    print("       Live Containerized OMOP CDM v5.4 Synthetic Pre-Flight          ")
     print("======================================================================")
 
     if not HAS_PSYCOPG:
         print("ERROR: psycopg is required. Install via 'pip install psycopg[binary]'")
         return False
 
-    conn_str = f"host={host} port={port} dbname={dbname} user={user} password={password}"
+    conn_str = f"host={host} port={port} dbname={dbname} user={user} password={password} connect_timeout=3"
     print(f"--> Connecting to PostgreSQL at {host}:{port}/{dbname}...")
 
     try:
