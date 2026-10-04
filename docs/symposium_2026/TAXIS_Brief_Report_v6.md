@@ -75,12 +75,16 @@ To establish empirical temporal ordering between concept pairs $(A, B)$, TAXIS c
 
 $$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$$
 
-where $N_{A \to B}$ represents the count of patients where Concept A predates Concept B within prospective observation windows ($[+1, +30]$, $[+1, +90]$, $[+1, +365]$, or $[+1, +730]$ days), and $N_{B \to A}$ represents the count of patients where Concept B predates Concept A. Directional asymmetry was formally tested against the binomial null hypothesis of equal temporal probability ($H_0: p = 0.5$) with a significance cutoff of $p < 0.01$:
+where $N_{A \to B}$ represents the count of paired event occurrences where Concept A predates Concept B within prospective observation windows (e.g., $[+1, +30]$, $[+1, +90]$, $[+1, +182]$, or $[+1, +365]$ days), and $N_{B \to A}$ represents paired event occurrences where Concept B predates Concept A. Same-day co-occurrences ($N_{A=B}$) are counted separately.
+
+*Worked Clinical Example*: For an illustrative condition–measurement pair in a configured 30-day window, suppose 30 paired occurrences follow the condition and 10 precede it; $DR = (30 + 0.5) / (10 + 0.5) = 2.90$. This indicates that the lab test was predominantly recorded after the diagnosis in longitudinal records, serving as an empirical candidate for clinical review rather than biological proof of disease confirmation.
+
+Directional asymmetry was formally tested against the binomial null hypothesis of equal temporal probability ($H_0: p = 0.5$) with a significance cutoff of $p < 0.01$:
 - $DR \ge 1.50$: Concept A empirically precedes Concept B (e.g., Acute Myocardial Infarction precedes Percutaneous Coronary Intervention).
 - $DR \le 0.67$: Concept B empirically precedes Concept A.
-- $0.67 < DR < 1.50$: Events occur concurrently or with balanced temporal ordering.
+- $0.67 < DR < 1.50$: Forward and reverse event occurrences are of comparable magnitude (balanced temporal ordering, distinct from same-day synchrony $N_{A=B}$).
 
-*Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While valuable for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (e.g., diagnostic delays or medications prescribed before formal diagnostic coding).
+*Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While valuable for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (e.g., diagnostic delays or medications prescribed before formal diagnostic coding). Causal relevance requires study-specific clinical evaluation.
 
 ### 2.4 Clinical Knowledge Graph & Two-Stage LLM Semantic Taxonomy
 Pairs meeting statistical significance criteria ($N_{AB} \ge 100$, $Lift_{\text{util}} \ge 1.50$, CMH $p < 0.001$, Binomial $p < 0.01$) were processed by the **Clinical Pair Taxonomy v6.0**. The taxonomy establishes **112 standardized relation codes** organized into **32 relation families** across **5 broad clinical classes**:

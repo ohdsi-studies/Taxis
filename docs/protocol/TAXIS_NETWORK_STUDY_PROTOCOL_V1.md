@@ -207,6 +207,9 @@ To evaluate true chronological emergence while avoiding acute diagnostic noise, 
 - **Censoring**: Patient observation is censored at the earliest of target concept occurrence, end of continuous enrollment/data availability, or 730 days post-index.
 
 #### Directionality Ratio ($DR$) with Continuity Correction
+
+> **A Concrete Worked Example**: For an illustrative condition–measurement pair in a configured follow-up window, suppose 30 paired occurrences follow the condition ($N_{A \to B} = 30$) and 10 precede it ($N_{B \to A} = 10$). With continuity corrections, the Directionality Ratio is $DR = (30 + 0.5) / (10 + 0.5) = 2.90$. Events occurring on the same calendar day ($N_{A=B}$) are recorded as distinct synchronous counts and excluded from directional calculations. This ratio describes empirical sequence in health records—indicating the lab was predominantly recorded after the diagnosis—providing an empirical candidate for clinical review rather than biological proof of disease etiology.
+
 Temporal precedence between two associated concepts $A$ and $B$ is quantified by the continuity-corrected Directionality Ratio:
 
 $$DR(A, B) = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5}$$
@@ -218,7 +221,7 @@ Where:
 
 **Interpretation Thresholds (requiring $N_{A \to B} \ge 10$)**:
 - $DR \ge 1.50$: Empirical temporal precedence of $A$ prior to $B$ (e.g., diabetes preceding diabetic retinopathy).
-- $0.67 < DR < 1.50$: Bidirectional or synchronous co-occurrence (e.g., concurrent chronic comorbidities).
+- $0.67 < DR < 1.50$: Balanced directional ordering (forward and reverse occurrences of comparable magnitude, distinct from same-day synchrony $N_{A=B}$).
 - $DR \le 0.67$: Empirical temporal precedence of $B$ prior to $A$.
 
 ### 6.4 Confounding Mitigation via Dual Lift Reporting

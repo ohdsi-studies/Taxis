@@ -39,7 +39,7 @@ To establish clear operational boundaries (`DEC-GR-027`): **TAXIS is an empirica
 The primary deliverable of this repository is the execution-ready network study package and its underlying association engine. Downstream applications in this codebase (such as Circe cohort generation in `extras/`) are proofs of concept demonstrating potential utility:
 1. **Richer Phenotype Definitions**: Surfaces commonly co-occurring lab tests, typical medications, and similar conditions to help refine computable cohort definitions.
 2. **Candidate Negative Controls**: Identifies clinical concepts that rarely co-occur across databases to propose candidate negative controls for clinical review.
-3. **Smarter Confounder Selection**: Knowing which event occurred first helps researchers select true baseline confounders (present before treatment) and avoid adjusting for intermediate steps caused by the treatment.
+3. **Smarter Confounder Selection**: Knowing which event occurred first helps researchers review candidate baseline variables (present before treatment) and avoid adjusting for intermediate steps caused by the treatment; causal relevance requires study-specific clinical evaluation.
 4. **Context for Unexpected Signals**: Provides baseline co-occurrence benchmarks so investigators can determine whether an unexpected drug-outcome link reflects clinical reality or high healthcare utilization.
 
 ---
@@ -49,13 +49,13 @@ The primary deliverable of this repository is the execution-ready network study 
 ```text
 ┌───────────────────────────────┐      ┌───────────────────────────────┐      ┌───────────────────────────────┐
 │       STEP 1: MINING          │      │    STEP 2: DIRECTIONALITY     │      │       STEP 3: UTILITY         │
-│  "Which clinical events       │ ───► │  "Which clinical event        │ ───► │  "Use empirical data to       │
-│   co-occur in patient care?"  │      │   typically occurs first?"    │      │   ground phenotype design"    │
+│  "Which clinical events       │ ───► │  "Which clinical event        │ ───► │  "Use empirical summaries     │
+│   co-occur in patient care?"  │      │   typically occurs first?"    │      │   to inform phenotype review" │
 └───────────────────────────────┘      └───────────────────────────────┘      └───────────────────────────────┘
-  • Evaluates 6 domain pairs             • Measures calendar sequence           • Identifies confirmatory labs
-  • 10 utilization strata adjust           via Directionality Ratio (DR)        • Identifies first-line drugs
-    for healthcare contact bias          • Observational timing clue, not       • Surfaces diagnostic mimics
-                                           proof of biological causation          for rule-out criteria
+  • Evaluates 6 domain pairs             • Measures calendar sequence           • Surfaces candidate labs
+  • 10 utilization strata adjust           via Directionality Ratio (DR)        • Surfaces candidate drugs
+    for healthcare contact bias          • Observational timing clue, not       • Surfaces candidate mimics
+                                           proof of biological causation          for clinician review
 ```
 
 ### Step 1: Pair Association Mining (Pipeline v57)
@@ -64,21 +64,24 @@ Conceived, designed, and authored by Dr. Stephen H. Bandeian, the mining engine 
 - **Detailed Specification**: For full mathematical derivations (Poisson exact confidence bounds, Wilson-Hilferty cube-root transformations, and SQL crosswalks), consult the [Concept AB Mining Engine Technical Specification](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md).
 
 ### Step 2: Temporal Precedence (Directionality Ratio)
+
+> **A Concrete Worked Example**: Suppose we evaluate a Condition (A) and a Diagnostic Lab (B) over a configured 30-day follow-up window. In our longitudinal records, we observe 30 paired-event occurrences where Lab B follows Condition A, and 10 paired-event occurrences where Lab B precedes Condition A. Using our continuity-corrected formula, the Directionality Ratio is $DR = (30 + 0.5) / (10 + 0.5) = 30.5 / 10.5 = 2.90$. Events occurring on the exact same day ($N_{A=B}$) are counted separately. This ratio describes empirical calendar sequence in health records—indicating that the test was usually recorded after the diagnosis—providing an empirical candidate for clinical review rather than biological proof of disease confirmation.
+
 To evaluate the longitudinal sequence between two concepts $(A, B)$, TAXIS checks calendar ordering:
-- $O_{\text{after}}$: Count of patients where Concept A predates Concept B ($+1$ to $+365$ days).
-- $O_{\text{before}}$: Count of patients where Concept B predates Concept A.
+- $O_{\text{after}}$: Number of paired event occurrences where Concept A predates Concept B within the configured follow-up window (configurable parameter `win_w`, e.g., 182-day package default, 35-day synthetic harness, or 30-day study window). (Note: released SQL distinguishes paired event counts $O_{\text{after}}$ from distinct person counts $P_{\text{after}}$).
+- $O_{\text{before}}$: Number of paired event occurrences where Concept B predates Concept A.
 - **Directionality Ratio ($DR$)**:
   $$DR = \frac{O_{\text{after}} + 0.5}{O_{\text{before}} + 0.5}$$
-  - $DR \ge 1.50$: Concept A empirically precedes Concept B (e.g., Acute Myocardial Infarction precedes Percutaneous Coronary Intervention).
+  - $DR \ge 1.50$: Concept A empirically precedes Concept B in longitudinal records.
   - $DR \le 0.67$: Concept B empirically precedes Concept A.
-  - $0.67 < DR < 1.50$: Events occur concurrently or with balanced temporal ordering.
-- *Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While useful for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (for example, diagnostic delays or treatments prescribed before formal diagnosis coding).
+  - $0.67 < DR < 1.50$: Forward and reverse event occurrences are of comparable magnitude (balanced temporal ordering, distinct from same-day synchrony $N_{A=B}$).
+- *Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While useful for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (for example, diagnostic delays or treatments prescribed before formal diagnosis coding). Causal relevance requires study-specific clinical evaluation.
 
 ### Step 3: Clinical Phenotyping Utility
-Downstream tools query the pre-computed concept-pair summaries to construct and refine reproducible cohort definitions:
-1. **Confirmatory Biomarkers**: Mined lab tests with high co-occurrence and same-day timing (e.g., HbA1c for Diabetes) to rule out provisional billing codes.
-2. **First-Line Therapeutics**: Medications that empirically follow the index diagnosis (e.g., Metformin following Diabetes) to ensure active clinical treatment.
-3. **Differential Diagnostic Mimics**: Competing clinical conditions sharing symptomatic features that warrant explicit rule-out exclusion logic.
+TAXIS measures how often paired events are recorded and their order within a specified time window. These summaries can help researchers identify candidate concepts to review when developing phenotype definitions:
+1. **Candidate Biomarkers**: Mined lab tests with high co-occurrence and same-day timing (e.g., HbA1c for Diabetes) to review for diagnostic criteria.
+2. **Candidate Medications**: Treatments that empirically follow the diagnosis (e.g., Metformin following Diabetes) to review for treatment-enriched definitions.
+3. **Candidate Diagnostic Mimics**: Competing clinical conditions sharing symptomatic features that researchers can review for rule-out exclusion logic.
 
 ---
 
@@ -88,14 +91,14 @@ To maintain clear scientific and operational boundaries (`DEC-GR-027`), TAXIS is
 
 | Capability / Component | Operational Status | Primary Location | Scope & Governance Notes |
 |---|:---:|---|---|
-| **Pipeline v57 Association Mining** | **Released & Verified** | [`inst/sql/sql_server/`](inst/sql/sql_server/), [`R/RunMining.R`](R/RunMining.R) | Dr. Stephen H. Bandeian's core 40-batch SQL engine. Verified on PostgreSQL. |
-| **Small-Cell Suppression ($<5 \to -1$)** | **Released & Verified** | [`R/PackageMiningResults.R`](R/PackageMiningResults.R) | Zero person-level data exported; cell suppression prevents algebraic disclosure. |
-| **Network Package Driver (`execute()`)** | **Released & Verified** | [`R/Main.R`](R/Main.R), [`extras/CodeToRun.R`](extras/CodeToRun.R) | Push-button execution driver for participating OHDSI data partners. |
-| **Concept Pair Classifier Demo** | **Demonstration Demo** | [`extras/applications/concept_pair_classifier/`](extras/applications/concept_pair_classifier/) | Illustrative script showing how downstream tools query `cab_s55_pair_all`. |
+| **Pipeline v57 Association Mining** | **Released (SQL Engine)** | [`inst/sql/sql_server/`](inst/sql/sql_server/), [`R/RunMining.R`](R/RunMining.R) | Dr. Stephen H. Bandeian's core 40-batch SQL engine. Verified on local synthetic PostgreSQL fixture. |
+| **Small-Cell Suppression ($<5 \to -1$)** | **Released (Export Contract)** | [`R/PackageMiningResults.R`](R/PackageMiningResults.R) | Enforces mandatory $<5 \to -1$ masking on 6 summary tables with companion-field suppression; verified in export harness. |
+| **Network Package Driver** | **Released (R Package)** | [`R/Main.R`](R/Main.R), [`extras/CodeToRun.R`](extras/CodeToRun.R) | Push-button study runner (`runConceptMining()`, `packageMiningResults()`); tested in local synthetic harness. |
+| **Concept Pair Classifier Demo** | **Demonstration Prototype** | [`extras/applications/concept_pair_classifier/`](extras/applications/concept_pair_classifier/) | Illustrative script showing how downstream tools query `cab_s55_pair_all`. |
 | **Circe Phenotype Creator (`build_1032.py`)** | **Demonstration Prototype** | [`extras/TaxisPhenotypeCreator/`](extras/TaxisPhenotypeCreator/) | Proof of concept compiling concept pairs into Circe JSON cohort expressions. |
 | **Phenotype Evaluation Package** | **Demonstration Prototype** | [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/) | Standalone companion package evaluating cohort overlap and Semi-Automated Phenotype Performance Evaluation with PheValuator. |
 | **ATLAS v3.0 / Pythia Integration** | **[Proposed Future Blueprint]** | [`docs/phenotyping/`](docs/phenotyping/) | Conceptual architecture for TrexSQL DuckDB caches and AI agent tools. |
-| **Multi-Site Federated Meta-Analysis** | **[Proposed Future Blueprint]** | [`docs/mining/`](docs/mining/) | Proposed random-effects synthesis specification (synthetic benchmark in `extras/`). |
+| **Multi-Site Federated Meta-Analysis** | **[Proposed Future Blueprint]** | [`docs/mining/`](docs/mining/) | Proposed random-effects synthesis specification (synthetic arithmetic benchmark in `extras/`). |
 
 ---
 
