@@ -6,16 +6,16 @@
 
 ## Executive Summary & Scientific Purpose
 
-The foundational Indiana Network for Patient Care (INPC) Concept AB Mining Engine run—surveying 2,157,525 patients, 11.3 million person-years, and 1.88 billion clinical events—demonstrated the power of database-native association mining across longitudinal healthcare data. However, as an electronic health record (EHR) and regional health information exchange (HIE) network located in the US Midwest, INPC reflects specific clinical recording patterns, local hospital formularies, and geographic demographics.
+The foundational Indiana Network for Patient Care (INPC) Concept AB Mining Engine run—surveying 2,157,525 patients, 11.3 million person-years, and 1.88 billion clinical events—demonstrated the power of database-native association mining across longitudinal healthcare data. However, as an electronic health record (EHR) and regional health information exchange (HIE) network located in the US Midwest, INPC reflects specific clinical recording patterns, local hospital formularies, and regional population characteristics.
 
-To transform TAXIS from a single-network benchmark into an authoritative, generalizable global clinical knowledge substrate, the pipeline architecture supports federated ingestion and statistical meta-analysis across multiple independent observational databases. By supplementing INPC with commercial claims databases (e.g., Merative MarketScan, Optum Clinformatics, IQVIA PharMetrics) and international primary care registries (e.g., CPRD in the UK, SIDIAP in Spain, Hong Kong Hospital Authority), TAXIS eliminates local institutional practice artifacts, resolves sample sparsity for rare conditions, and provides empirical uncertainty bounds across diverse healthcare delivery systems.
+To evaluate whether TAXIS can evolve from a single-network benchmark into an authoritative, generalizable multi-site clinical knowledge substrate, this document outlines an architectural proposal for federated ingestion and statistical meta-analysis across multiple independent observational databases. By evaluating INPC alongside commercial claims databases (e.g., Merative MarketScan, Optum Clinformatics, IQVIA PharMetrics) and international primary care registries (e.g., CPRD in the UK, SIDIAP in Spain, Hong Kong Hospital Authority), TAXIS seeks to test whether multi-site federation can reduce local institutional practice artifacts, address sample sparsity for rare conditions, and quantify empirical between-database heterogeneity across diverse healthcare delivery systems.
 
 This document specifies:
-1. **The Rationale and Clinical Value** of multi-database supplementation.
-2. **The TAXIS Unified Data Model (UDM)** relational schema and data dictionary.
+1. **The Rationale and Scientific Objectives** of multi-database supplementation.
+2. **The TAXIS Unified Data Model (UDM)** proposed relational schema and data dictionary.
 3. **The Statistical Meta-Analytic Synthesis Framework** (random-effects pooling, between-site heterogeneity diagnostics $I^2$, and prediction intervals).
 4. **The Protocol for Data Refreshes and Calendar Era Harmonization**.
-5. **The Implementation Roadmap** for multi-site deployment.
+5. **The Implementation Roadmap & Feasibility Gates** for multi-site deployment.
 
 ---
 
@@ -39,18 +39,19 @@ This document specifies:
 │                        LOCAL CODE-TO-DATA EXECUTION: PIPELINE v57 (SQL ENGINE)                         │
 │   • Executes inside local institutional firewall via DatabaseConnector                                │
 │   • Enforces mandatory small-cell suppression (< 5 -> -1)                                              │
-│   • Emits standardized site aggregate package: Results_Mining_<databaseId>.zip                         │
+│   • Current PackageMiningResults.R export: Diagnostic aggregates + manifest (Results_Mining_<site>.zip)│
+│   • [Future Export Contract Required]: Aggregate pair-level counts (cab_s55_pair_all) with suppression │
 └───────────────────┬───────────────────────────────────┬──────────────────────────────────┬─────────────┘
                     │                                   │                                  │
                     └───────────────────────────────────┼──────────────────────────────────┘
                                                         ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                        CENTRAL TAXIS UNIFIED DATA MODEL (UDM) & META-ANALYSIS                          │
+│                   [PROPOSED ARCHITECTURE] CENTRAL TAXIS UDM & META-ANALYSIS MODULE                     │
 │   • Ingests site-level aggregate summaries into standardized relational UDM schema                    │
 │   • Computes DerSimonian-Laird / REML random-effects pooled lift and pooled directionality             │
 │   • Diagnoses empirical heterogeneity (Cochran's Q, I² statistics, between-site variance τ²)           │
 │   • Calculates 95% multi-site confidence intervals and prediction intervals (uncertainty bounds)      │
-│   • Emits finalized, generalizable multi-network Clinical Knowledge Graph                              │
+│   • Synthesizes multi-network Clinical Knowledge Graph substrate                                      │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -63,10 +64,10 @@ This document specifies:
 | **Medicare / Geriatric Claims** | **Optum Medicare Advantage**, CMS Medicare 20% Sample | Complete capture of geriatric multimorbidity, polypharmacy, end-stage organ disease, and nursing home utilization in adults $\ge 65$. | Balances commercial claims under-representation of elderly multimorbid populations. |
 | **International Single-Payer EHRs** | **CPRD** (UK NHS), **SIDIAP** (Catalonia), **Hong Kong HA** | Cradle-to-grave population-based follow-up, general practice gatekeeping, universal healthcare access, non-US formulary prescribing. | Eliminates US billing and insurance churning artifacts; validates cross-national transportability and biological universality of associations. |
 
-### 1.2 Impact on Clinical Knowledge Graph Quality
+### 1.2 Hypothesized Impact on Clinical Knowledge Substrate Quality
 
-1. **Elimination of Institutional and Regional Practice Artifacts**:
-   A strong statistical association observed in a single regional database may reflect local institutional clinical protocols (e.g., a specific hospital ordering bundle or regional formulary preference). When an association reproduces across INPC, MarketScan, Optum, and CPRD, the likelihood of an institutional artifact approaches zero, confirming authentic pathophysiological or pharmacological association.
+1. **Identification of Institutional and Regional Practice Artifacts**:
+   A strong statistical association observed in a single regional database may reflect local institutional clinical protocols (e.g., a specific hospital ordering bundle or regional formulary preference). Evaluating associations across independent heterogeneous systems (INPC, MarketScan, Optum, CPRD) provides an empirical screening mechanism to test whether an observed link is driven by site-specific practice patterns or demonstrates generalizable multi-site transportability.
 
 2. **Remediation of Extreme Data Sparsity**:
    While common chronic diseases (e.g., Type 2 Diabetes, Hypertension) attain millions of occurrences in INPC, rare conditions (e.g., Systemic Lupus Erythematosus, Amyotrophic Lateral Sclerosis) or newly approved orphan drugs exhibit small cell counts ($N_{AB} < 100$). Supplementing with national claims databases expands observational support into tens of thousands of co-occurrences, permitting robust stratification.
@@ -76,11 +77,13 @@ This document specifies:
 
 ---
 
-## 2. The TAXIS Unified Data Model (UDM) Specification
+## 2. The TAXIS Unified Data Model (UDM) Proposed Specification
 
-The TAXIS Unified Data Model (UDM) is a standardized relational schema designed to store, harmonize, and synthesize pre-computed site aggregate outputs across heterogeneous OMOP CDM instances.
+The TAXIS Unified Data Model (UDM) is a proposed standardized relational schema designed to store, harmonize, and synthesize pre-computed site aggregate outputs across heterogeneous OMOP CDM instances.
 
-All tables in the UDM are aggregate-only. No patient-level records, individual encounter dates, or unsuppressed small cells ($< 5$) are ever admitted into the UDM.
+> **Implementation Status & Missing Export Contract**: The tables below represent a proposed target schema for central multi-site synthesis. At present, the released R export function (`PackageMiningResults.R`) exports six diagnostic tables (`cab_process_log`, `cab_s13_strat_all`, `cab_s37_lag_all`, `cab_s38_profile_all`, `cab_s39_pattern_all`, `cab_s54_grain_guide`) and an execution manifest. Feeding `taxis_udm_pair_summary` requires the future definition, privacy vetting, and release of an aggregate pair-export module that extracts `cab_s55_pair_all` with mandatory small-cell suppression ($< 5 \to -1$), cross-table subtraction protection, and institutional disclosure controls.
+
+All tables in the proposed UDM are strictly aggregate-only. No patient-level records, individual encounter dates, or unsuppressed small cells ($< 5$) are ever admitted into the schema.
 
 ### 2.1 Entity-Relationship Overview
 
@@ -221,9 +224,9 @@ CREATE TABLE taxis_udm_synthesized_graph (
 
 ---
 
-## 3. Statistical Meta-Analytic Synthesis & Uncertainty Bounds
+## 3. Statistical Meta-Analytic Synthesis & Uncertainty Bounds (Proposed Specification)
 
-When pooling observational associations across $K$ distinct health systems ($s = 1, \dots, K$), fixed-effects models are methodologically inappropriate because baseline patient demographics, formulary policies, and clinical practice vary across sites. TAXIS implements **Random-Effects Meta-Analysis (DerSimonian-Laird and Restricted Maximum Likelihood, REML)** to estimate the global distribution of association parameters.
+When pooling observational associations across $K$ distinct health systems ($s = 1, \dots, K$), fixed-effects models are methodologically inappropriate because baseline patient demographics, formulary policies, and clinical practice vary across sites. As part of the proposed central synthesis architecture, TAXIS specifies a **Random-Effects Meta-Analytic Model (DerSimonian-Laird and Restricted Maximum Likelihood, REML)** to estimate the global distribution of association parameters across participating sites.
 
 ### 3.1 Random-Effects Pooling for Association Lift ($\text{Lift}$)
 
@@ -369,9 +372,9 @@ Whenever a participating database site submits a refreshed data package, the cen
 
 ---
 
-## 5. Multi-Site Federation Roadmap
+## 5. Multi-Site Federation Roadmap & Feasibility Gates
 
-The multi-site federation architecture unfolds across five staged milestones:
+The multi-site federation architecture unfolds across staged milestones, conditioned on empirical engineering feasibility gates:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -380,39 +383,54 @@ The multi-site federation architecture unfolds across five staged milestones:
 │                                                                                                        │
 │   Phase 1: Indiana Network for Patient Care (INPC) Baseline [COMPLETE]                                 │
 │   • 2.16M patient production run, 14.2M observed pairs, 1.88B facts, 18 tables materialized.           │
-│   • Verified PostgreSQL & SQL Server runners with zero prohibited terms.                               │
+│   • Verified PostgreSQL runner on local synthetic OMOP fixture; SQL Server runner unverified on R.     │
 │                                                                                                        │
 │   Phase 2: Partner Site 1-Batch Pilot Verification [CURRENT PHASE]                                     │
 │   • Lightweight single-batch verification across partner OHDSI nodes via CodeToRun.R.                  │
 │   • Validates database permissions, JDBC connectivity, and receipt generation.                         │
 │                                                                                                        │
-│   Phase 3: UDM Schema Deployment & Commercial Data Ingestion [NEXT]                                    │
+│   [FEASIBILITY GATE]: Single-Pair 2-Site Synthetic Meta-Analysis Benchmark (Prerequisite to Phase 3)    │
+│   • Minimal standalone test: synthesize one ordered pair across two synthetic site records.            │
+│   • Explicit input schema, deterministic masked (<5) handling, independently verified reference math.  │
+│                                                                                                        │
+│   Phase 3: UDM Schema Deployment & Commercial Data Ingestion [PROPOSED FUTURE]                         │
 │   • Stand up central UDM PostgreSQL repository (taxis_udm_* schema).                                   │
+│   • Define and vet aggregate pair-level export specification (cab_s55_pair_all with <5 suppression).   │
 │   • Ingest initial commercial claims datasets (Merative MarketScan, Optum Clinformatics).              │
-│   • Validate privacy-preserving aggregate exports (small-cell suppression < 5 -> -1).                  │
 │                                                                                                        │
-│   Phase 4: Federated Meta-Analytic Synthesis Engine                                                    │
-│   • Automated R package module (taxis_synthesize_udm.R) computing random-effects pooled lift,          │
-│     pooled DR, Cochran's Q, I² heterogeneity, and 95% Prediction Intervals.                            │
-│   • Generation of the master multi-network Clinical Knowledge Graph.                                   │
+│   Phase 4: Federated Meta-Analytic Synthesis Engine [PROPOSED FUTURE]                                  │
+│   • Automated synthesis module computing random-effects pooled lift, pooled DR, and prediction bounds. │
+│   • Generation of the master multi-network Clinical Knowledge Graph substrate.                         │
 │                                                                                                        │
-│   Phase 5: Public Knowledge Graph Explorer & Longitudinal Refresh Pipeline                             │
-│   • Web-based open-access portal enabling researchers to query pooled associations and view            │
-│     forest plots of site-specific lifts and prediction intervals.                                      │
+│   Phase 5: Public Knowledge Graph Explorer & Longitudinal Refresh Pipeline [PROPOSED FUTURE]           │
+│   • Web-based research portal for exploring pooled associations and site-specific forest plots.        │
 │   • Semi-annual automated refresh pipeline with era-based temporal drift tracking.                     │
 │                                                                                                        │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### 5.1 Initial Engineering Feasibility Gate (Prerequisite to Phase 3)
+
+Prior to initiating central UDM database deployment or commercial claims ingestion, the project requires an explicit, reproducible engineering proof-of-concept benchmark:
+1. **Single Concept Pair Synthesis Demonstration**: Author a standalone test synthesizing one ordered concept pair across two synthetic site records.
+2. **Explicit Input Schema**: Standardize the minimal required inputs: site identifier, observed counts ($O_{\text{after}}, O_{\text{before}}, O_{\text{same\_day}}$), marginal counts ($O_A, O_B$), background observation person-days, and derived variance $\sigma_s^2$.
+3. **Deterministic Edge-Case Handling**: Verify mathematically correct handling of small-cell suppression (masked counts $< 5 \to -1$, assigning unavailable variance) and empty/zero-count pairs without runtime failure.
+4. **Reference Result Comparison**: Assert pooled lift, Cochran's $Q$, $I^2$, and pooled $DR$ against an independently computed hand-calculation.
+5. *Boundary Note*: Passing this gate demonstrates computational correctness and data transport feasibility; it does not assert clinical validity across real healthcare databases.
+
 ---
 
-## 6. Summary of Architectural Decisions & Governance Alignment
+## 6. Summary of Authoritative Decisions & Governance Alignment
 
 1. **Separation of Core Study vs. Downstream Proofs of Concept (`DEC-GR-027`, `DEC-GR-028`)**:
    TAXIS is fundamentally an association mining study package and federated aggregate dataset generator. The UDM and meta-analysis engine provide the empirical substrate; downstream clinical tools (e.g., phenotype builders or LLM classifiers) consume UDM outputs as read-only downstream clients.
-2. **Three-Channel Data Distribution Model (`DEC-GR-029`, `DEC-GR-030`)**:
-   UDM site aggregates are distributed exclusively via secured academic research channels under authenticated Data Use Agreements (DUAs). Zero aggregated bulk data files are committed to Git. The public knowledge graph explorer serves masked, privacy-certified aggregates via secured API gateways.
-3. **Phased Partner Rollout (`DEC-GR-031`)**:
+2. **Three-Channel Data Distribution Model (`DEC-GR-029`)**:
+   - **Channel 1 (Bulk Data Dumps for Researchers)**: Shared via secure academic cloud/SFTP under Data Use Agreements (DUA) and IRB approval where applicable, or open distribution of privacy-safe aggregate datasets where permitted.
+   - **Channel 2 (Zero Bulk Data in Git Repository)**: Strict exclusion of bulk data matrices or unsuppressed aggregates from the git repository.
+   - **Channel 3 (Public Web Explorer)**: Prospective read-only research portal serving small-cell suppressed aggregates ($< 5 \to -1$) with authenticated database credentials. (Note: Public API and formal privacy certification remain unestablished prospective proposals).
+3. **Phased Partner Rollout (`DEC-GR-030`)**:
    Partner sites participate via Phase A (single-batch verification) before advancing to Phase B (40-batch full-cohort production).
-4. **Scholarly Scientific English (`DEC-GR-032`)**:
+4. **Denominator Derivation & Strict Receipt Hardening (`DEC-GR-031`)**:
+   Observation person-days denominators must be derived directly from source CDM tables, and all pipeline runs must emit ISO 8601 UTC receipts with dynamic SQL digests.
+5. **Scholarly Scientific English (`DEC-GR-032`)**:
    All mathematical derivations, statistical parameters, and cross-site syntheses use rigorous medical informatics and epidemiological vocabulary. Observational events do not "travel together"—they **empirically co-occur** and exhibit **temporal association**.

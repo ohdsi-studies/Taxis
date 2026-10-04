@@ -24,7 +24,7 @@ The Clinical Pair Taxonomy is grounded entirely on empirical association metrics
 2. **Directionality Ratio ($DR$)**: Downstream continuity-corrected directional asymmetry:
    $$DR = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$$
 3. **Mantel-Haenszel Stratified Lift ($\text{Lift}_{\text{strat}}$)**: Stratified across 10 healthcare contact deciles to control for differential utilization density confounding.
-4. **Empirical Lag-Bucket Distributions**: Mined in `cab_s37_lag_all`, aggregating co-occurrence event counts and pair counts across discrete longitudinal time intervals (e.g., same-day $\Delta t = 0$, 1–7 days, 8–30 days, 31–180 days, and 181–365 days). (Note: Continuous parametric decay curves or half-life models represent prospective downstream analytical hypotheses and are not native outputs of Pipeline v57).
+4. **Empirical Lag-Bucket Distributions**: Materialized in `cab_s37_lag_all`, aggregating event counts (`sum(n_events)`) and distinct pair counts (`sum(n_pairs)`) grouped by `pair_type` across signed 10-day lag intervals (`lag_bucket = (start_bucket_b - start_bucket_a) / 10`, reporting `lag_days_approx = lag_bucket * 10` across $[-400, +400]$ days, with overflow codes $-999$ and $+999$). (Note: Continuous parametric decay curves or half-life models represent prospective downstream analytical hypotheses and are not native outputs of Pipeline v57).
 
 ---
 
@@ -34,13 +34,15 @@ Rather than relying purely on hierarchical ontologies (which define *what* a con
 
 | Relationship Family | Defined Concept Orientation | Empirical Temporal Pattern | Illustrative Concept Pair |
 |---|---|---|---|
-| **1. Causal & Pathophysiological Mechanisms** | Concept A (Etiology) $\to$ Concept B (Sequela) | Forward directed ($DR \ge 1.50$, $t_A < t_B$) | Chronic Hepatitis B (A) $\to$ Hepatocellular Carcinoma (B) |
-| **2. Clinical Manifestations** | Concept A (Syndrome) $\leftrightarrow$ Concept B (Symptom) | Contemporaneous / Balanced ($0.67 < DR < 1.50$) | Acute Bronchitis (A) $\leftrightarrow$ Cough (B) |
-| **3. Diagnostic Evaluations** | Concept A (Suspected Condition) $\to$ Concept B (Confirmatory Assay) | Contemporaneous to Forward directed ($DR \ge 1.0$) | Suspected Deep Vein Thrombosis (A) $\to$ Venous Duplex Ultrasound (B) |
-| **4. Therapeutic Interventions** | Concept A (Intervention / Drug) $\to$ Concept B (Indication Condition) | Reverse directed ($DR \le 0.67$, condition $t_B$ precedes drug $t_A$) | Percutaneous Coronary Intervention (A) $\leftarrow$ Acute Coronary Syndrome (B) |
-| **5. Differential Diagnostic Mimics** | Concept A (Diagnosis 1) $\leftrightarrow$ Concept B (Alternative Diagnosis) | Contemporaneous / Symmetric ($0.67 < DR < 1.50$) | Viral Sinusitis (A) $\leftrightarrow$ Allergic Rhinitis (B) |
+| **1. Causal & Pathophysiological Mechanisms** | Concept A (Etiology) $\to$ Concept B (Sequela) | Forward directed ($t_A < t_B$) | Chronic Hepatitis B (A) $\to$ Hepatocellular Carcinoma (B) |
+| **2. Clinical Manifestations** | Concept A (Syndrome) $\leftrightarrow$ Concept B (Symptom) | Contemporaneous / Balanced | Acute Bronchitis (A) $\leftrightarrow$ Cough (B) |
+| **3. Diagnostic Evaluations** | Concept A (Suspected Condition) $\to$ Concept B (Confirmatory Assay) | Contemporaneous to Forward directed | Suspected Deep Vein Thrombosis (A) $\to$ Venous Duplex Ultrasound (B) |
+| **4. Therapeutic Interventions** | Concept A (Intervention / Procedure) $\to$ Concept B (Indication Condition) | Reverse directed (Condition $t_B$ precedes Intervention $t_A$) | Percutaneous Coronary Intervention (A) $\leftarrow$ Acute Coronary Syndrome (B) |
+| **5. Differential Diagnostic Mimics** | Concept A (Diagnosis 1) $\leftrightarrow$ Concept B (Alternative Diagnosis) | Contemporaneous / Symmetric | Viral Sinusitis (A) $\leftrightarrow$ Allergic Rhinitis (B) |
 
-> **Directionality Invariance Note**: Under the definition $DR = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$, if Concept A is the Indication (Acute Coronary Syndrome) and Concept B is the Procedure (Percutaneous Coronary Intervention), the syndrome precedes the intervention, yielding $DR \ge 1.50$. Inverting the pair orientation so that Concept A is the Intervention and Concept B is the Indication reciprocally yields $DR \le 0.67$. Mined directionality is an intrinsic property of the ordered pair $(A, B)$, not the semantic relationship label.
+> **Directionality Reciprocity & Threshold Note**: Under the definition $DR(A, B) = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$, reversing the concept pair orientation mathematically inverts the ratio:
+> $$DR(B, A) = \frac{\text{obs\_before} + 0.5}{\text{obs\_after} + 0.5} = \frac{1}{DR(A, B)}$$
+> Whether an empirical pair satisfies directional asymmetry thresholds (e.g., $DR \ge 1.50$ or $DR \le 0.67$) depends strictly on the observed event counts ($O_{\text{after}}$ and $O_{\text{before}}$), rather than clinical category alone. For example, if an intervention follows an indication with $O_{\text{after}} = 11$ and $O_{\text{before}} = 10$, $DR(A, B) = 11.5 / 10.5 \approx 1.095$ (balanced/unresolved), whereas reciprocal orientation yields $DR(B, A) = 10.5 / 11.5 \approx 0.913$. When strong directional asymmetry is present (e.g., $O_{\text{after}} = 92$ and $O_{\text{before}} = 34$), $DR(A, B) = 92.5 / 34.5 \approx 2.68 \ge 1.50$, and $DR(B, A) = 34.5 / 92.5 \approx 0.37 \le 0.67$. Mined directionality is an intrinsic property of the ordered pair $(A, B)$, not the semantic relationship label.
 
 ---
 
