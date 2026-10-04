@@ -203,11 +203,11 @@ To operationalize these insights, TAXIS establishes:
    - *Bucket 5 (Complications & Progression)*: Downstream organ failures and clinical sequelae (`PROG_COMPLICATION`) in $[+1, +30]$ days.
    - *Bucket 6 (Alternative Diagnoses & Mimics)*: Competing causes and rule-out mimics (`ASSOC_MIMIC`, `DIAG_RULE_OUT`) in $[0, +7]$ days.
 2. **Multi-Tiered Circe Phenotype Synthesis**:
-   - *Tier 1 (Strict / Epidemiologic)*: Requires confirmed therapeutic interventions within $[0, +2]$ days to guarantee high Positive Predictive Value ($\ge 92\%$) for comparative trials.
-   - *Tier 2 (Broad / Surveillance)*: Captures hospital and emergency encounters with diagnostic work-up without restricting to invasive procedures, maximizing sensitivity ($\ge 95\%$) for disease incidence tracking.
-   - *Tier 3 (PheValuator Evaluators)*: Automatically synthesizes calibrated `xSpec` and `xSens` cohorts to train diagnostic predictive models without manual chart review.
-3. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Demonstrates complete 6-bucket slot compilation for AMI, successfully differentiating true acute events from outpatient carry-forwards and single-day emergency rule-outs.
-4. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring.
+   - *Tier 1 (Strict / Epidemiologic)*: Formulated as a treatment-enriched cohort requiring confirmed therapeutic interventions within $[0, +2]$ days to achieve high Positive Predictive Value (prospective target $\ge 92\%$) for comparative trials and active-comparator studies.
+   - *Tier 2 (Broad / Surveillance)*: Captures hospital and emergency encounters with diagnostic work-up without restricting to invasive procedures, maximizing sensitivity (prospective target $\ge 95\%$) for disease incidence tracking.
+   - *Tier 3 (PheValuator Evaluators)*: Automatically synthesizes calibrated `xSpec` (noisy positive training cases) and `xSens` (broad non-case exclusion zone preventing control contamination) cohorts to train diagnostic predictive models without manual chart review.
+3. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Demonstrates complete 6-bucket slot compilation for AMI across synthetic educational case vignettes, differentiating true acute events from outpatient carry-forwards and single-day emergency rule-outs.
+4. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring strictly behind the institutional firewall.
 Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
 
 ---
@@ -219,12 +219,17 @@ Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_IN
 > **Original Scientific & Analytic Authorship**:  
 > All SQL algorithms, database schemas, 40-batch partitioning strategies, continuity-corrected directionality formulations ($DR$), and original analytic code of the Concept AB Mining Engine (Pipeline v57) were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
 
-- **Empirical Scale**: Deployed across **2.16 million longitudinal patient records** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM.
-- **Candidate Pair Mining**: Mined **5.52 million candidate concept pairs** ($N_{AB} \ge 100$) across 14 domain-pair permutations spanning Disorders, Findings, Interventions (drugs, procedures, devices), Tests, and Results.
-- **Confounding Control**:
+- **Empirical Scale**: Deployed across **2.16 million longitudinal patient records** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM, surveying 1.88 billion clinical events across 8 domains.
+- **Empirical Benchmark Tables (Tables 1–7)**:
+  - *Headline Universe*: 2,157,525 patients; 11,299,055 person-years; 95,968 distinct concepts; 24 pair-type categories; 14,233,528 observed concept pairs ($N_{AB} \ge 5$); 36.1 billion event-pair observations; 4.01 billion person-pair observations.
+  - *Data Sparsity*: 99.1% of theoretically possible concept pairs never co-occur (overall density 0.9%), demonstrating that observational co-occurrence acts as a powerful natural candidate filter.
+  - *Screened Candidate Pairs*: 5.52 million high-support pairs ($N_{AB} \ge 100$), yielding 1.9 million clinically relevant graded knowledge edges.
+  - *ClinVec Benchmark Validation*: Monotonic precision enrichment gradient rising from 47.9% (unobserved) to 61.1% (co-occurring), 82.9% ($Lift \ge 1.0$), and 92.2% ($Lift \ge 2.0$), strongly confirmed by independent clinician ratings (mean 3.88 / 5.0).
+  - *Full Documentation & Concordance Audit*: See [`docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md`](docs/mining/CONCEPT_AB_MINING_ENGINE_V57.md#5-empirical-benchmark-indiana-network-for-patient-care-inpc-216m-patient-run).
+- **Confounding Control & Mathematical Formulations**:
   - *Chronic-Onset Hazard Windows*: Requires $\ge 365$ days of continuous baseline observation prior to incident anchor diagnoses to separate chronic etiology from acute acute-care encounters.
-  - *Utilization-Decile Stratification*: Computes expected co-occurrences within patient encounter-frequency deciles, substantially mitigating bias induced by hyper-monitored, multi-morbid patients.
-  - *Directionality Ratios ($DR$)*: Categorizes temporal precedence mathematically:
+  - *Utilization-Decile Stratification*: Computes expected co-occurrences within patient encounter-frequency deciles (`cab_s13`, `cab_s23`, `cab_s33`, `cab_s33_mh_all`), substantially mitigating bias induced by hyper-monitored, multi-morbid patients (`DEC-GR-010`).
+  - *Directionality Ratios ($DR$)*: Categorizes temporal precedence mathematically using Haldane-Anscombe continuity correction:
     $$\text{Forward Directed: } DR \ge 1.50 \quad (p < 0.01)$$
     $$\text{Reverse Directed: } DR \le 0.67 \quad (p < 0.01)$$
     $$\text{Symmetric Association: } 0.67 < DR < 1.50$$

@@ -93,37 +93,38 @@ To eliminate arbitrary, bespoke phenotype design, TAXIS operationalizes the 6 co
 ## 3. Multi-Tiered Circe Phenotype Generation Engine
 
 A major finding from the Phenotype Phebruary case reviews is that a single cohort definition cannot serve all epidemiological use cases:
-- Clinical trials and comparative safety studies demand **High Specificity (Positive Predictive Value $\ge 90\%$)** to prevent hazard dilution from false positives (rule-outs).
-- Disease surveillance and incidence tracking require **High Sensitivity** to avoid undercounting patients who died before interventional procedures or who were managed conservatively.
+- Clinical trials and comparative safety studies demand **High Specificity (Target Positive Predictive Value $\ge 90\%$)** to prevent hazard dilution from false positives (such as rule-out encounters without true disease).
+- Disease surveillance and natural history tracking require **High Sensitivity (Target Sensitivity $\ge 95\%$)** to avoid undercounting patients who died before interventional procedures or who were managed conservatively.
 
 TAXIS synthesizes **three coordinated cohort tiers** for every clinical concept:
 
 ### Tier 1: Strict / Epidemiologic Cohort (High Specificity — Comparative Safety & Trials)
+- **Methodological Design**: Formulated as a **treatment-enriched, high-specificity cohort** designed to eliminate non-case rule-out evaluations in comparative effectiveness research. While clinical consensus definitions (e.g. Fourth Universal Definition of Myocardial Infarction) define ischemic injury biochemically and clinically regardless of whether invasive therapy occurs, requiring procedural or acute pharmacological intervention serves as an established epidemiological design filter for high Positive Predictive Value.
 - **Anchor Requirement**: Inpatient hospitalization or Emergency Department visit with primary diagnosis of interest.
-- **Intervention Gate (Mandatory)**: Requires at least one definitive therapeutic procedure (`THER_INTERVENTION_PROC`) OR acute, disease-specific inpatient pharmacotherapy initiation (`THER_FIRST_LINE`) within $[0, +2]$ days of index.
+- **Intervention Gate**: Requires at least one definitive therapeutic procedure (`THER_INTERVENTION_PROC`) OR acute, disease-specific inpatient pharmacotherapy initiation (`THER_FIRST_LINE`) within $[0, +2]$ days of index.
 - **Confirmatory Testing**: Requires at least one documented diagnostic test or confirmatory laboratory measurement (`DIAG_LAB_CONFIRMATORY`) within $[-1, +2]$ days.
-- **Mimic Exclusions**: Excludes patients with primary competing diagnoses coded concurrently without definitive interventional revascularization.
-- **Target Performance**: Specificity $\ge 98\%$, PPV $\ge 92\%$.
+- **Mimic Exclusions**: Excludes patients with primary competing diagnoses coded concurrently without definitive interventional therapy.
+- **Target Design Thresholds**: Specificity $\ge 98\%$, PPV $\ge 92\%$.
 
 ### Tier 2: Broad / Surveillance Cohort (High Sensitivity — Incidence & Natural History)
 - **Anchor Requirement**: Inpatient, Emergency Department, or intensive outpatient encounter with diagnosis of interest in any position (primary or secondary).
 - **Testing Requirement**: Requires at least one diagnostic procedure or laboratory measurement order within $[-7, +7]$ days, confirming clinical suspicion.
-- **Intervention Gate**: Optional (does not require invasive intervention, ensuring elderly, frail, or comfort-care patients are retained).
-- **Target Performance**: Sensitivity $\ge 95\%$, Specificity $\ge 88\%$.
+- **Intervention Gate**: Optional (does not mandate invasive procedures, ensuring elderly, frail, or comfort-care patients are retained).
+- **Target Design Thresholds**: Sensitivity $\ge 95\%$, Specificity $\ge 88\%$.
 
 ### Tier 3: Diagnostic Evaluator Cohorts for Automated PheValuator Calibration
 - **Extremely Specific Cohort (`xSpec`)**: Tier 1 + positive biomarker result + secondary prevention persistence $\ge 90$ days. Serves as noisy positive training set for `PheValuator::createEvaluationCohort`.
-- **Extremely Sensitive Cohort (`xSens`)**: Tier 2 + any symptom or related diagnostic code within $\pm 30$ days. Used to define the non-case exclusion zone during diagnostic model training.
+- **Extremely Sensitive Cohort (`xSens`)**: Formulated strictly in accordance with OHDSI `PheValuator` methodology as a **broad non-case exclusion zone**. Encompasses any patient presenting with suggestive symptoms, related diagnostic codes, or work-up orders within $\pm 30$ days. During predictive model training, any patient inside the `xSens` boundary who is not in `xSpec` is **excluded from the negative training set**, preventing plausible, mild, or conservatively managed cases from contaminating the noisy control pool. Label-defining diagnosis, procedure, and drug features are strictly excluded from predictive covariates during model fitting.
 
 ---
 
 ## 4. Flagship Case Study: Acute Myocardial Infarction (AMI)
 
-Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine, directly formalizing the 10 real-world cases adjudicated in Phenotype Aphril Week 2 (Slides 18–48).
+Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine, formalizing the clinical adjudication patterns from the **10 synthetic educational case vignettes** analyzed in Phenotype Aphril Week 2 (Slides 18–48).
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                               FLAGSHIP CASE STUDY: ACUTE MYOCARDIAL INFARCTION                         │
+│                         FLAGSHIP CASE STUDY: ACUTE MYOCARDIAL INFARCTION (AMI)                         │
 └───────────────────────────────────────────────────┬────────────────────────────────────────────────────┘
                                                     │
     ┌───────────────────────┬───────────────────────┼───────────────────────┬────────────────────────┐
@@ -155,18 +156,18 @@ Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration o
    - Inpatient/ED filter: `visit_concept_id` in Inpatient (9201), Emergency (9203), Emergency+Inpatient (262).
 2. **Bucket 2: Symptoms & Presentation**
    - Concepts: `Chest pain` (77670), `Dyspnea` (312437), `Diaphoresis` (438727), `Syncope` (442289).
-   - Empirical TAXIS Lift: $Lift = 4.82$, $DR = 0.88$ (symmetric / co-presenting in $[-1, 0]$ days).
+   - Illustrative Exploratory TAXIS Lift: $Lift = 4.82$, $DR = 0.88$ (symmetric / co-presenting in $[-1, 0]$ days).
 3. **Bucket 3: Diagnostics & Biomarkers**
    - Measurements: `Troponin I in Serum/Plasma` (3013650), `Troponin T in Serum/Plasma` (3048000), `Creatine kinase MB` (3007220).
    - Procedures: `12-lead Electrocardiogram` (4066543), `Coronary angiography` (4185932).
    - Key-packing: Packed measurement tests with abnormal high result ($test \times 10^9 + 1$).
-4. **Bucket 4: Therapeutic Interventions (Definitive vs. Rule-Out Differentiator)**
+4. **Bucket 4: Therapeutic Interventions (High-Specificity Differentiation)**
    - Procedures: `Percutaneous coronary intervention (PCI)` (4305509), `Coronary artery bypass graft (CABG)` (4140640).
-   - Inpatient Drugs: `Tenecteplase` (1311037), `Clopidogrel` (1328165), `Ticagrelor` (40241331), `Unfractionated Heparin` (1367571), `Metoprolol` (1307046).
-   - Empirical TAXIS Lift: $Lift = 14.6$, $DR = 2.45$ (strongly forward-directed: diagnosis precedes or accompanies PCI).
+   - Inpatient Drugs: `Tenecteplase` (1311037 — FDA-indicated for acute STEMI and acute ischemic stroke), `Clopidogrel` (1328165), `Ticagrelor` (40241331), `Unfractionated Heparin` (1367571), `Metoprolol` (1307046).
+   - Illustrative Exploratory TAXIS Lift: $Lift = 14.6$, $DR = 2.45$ (strongly forward-directed: diagnosis precedes or accompanies PCI).
 5. **Bucket 5: Complications & Prognosis**
    - Concepts: `Cardiogenic shock` (4134440), `Acute heart failure` (318443), `Ventricular tachycardia` (317576), `Cardiac arrest` (321042).
-   - Empirical TAXIS Lift: $Lift = 8.90$, $DR = 1.95$ ($[+1, +30]$ days).
+   - Illustrative Exploratory TAXIS Lift: $Lift = 8.90$, $DR = 1.95$ ($[+1, +30]$ days).
 6. **Bucket 6: Alternative Diagnoses / Mimics (Censoring Criteria)**
    - Concepts: `Acute gastritis` (4275335), `Gastroesophageal reflux disease` (319835), `Panic disorder` (436070), `Thoracic aortic aneurysm/dissection` (4142905).
    - Rule: If a patient has single-day outpatient gastritis + esomeprazole with NO cardiology admission or interventions, censor as rule-out (matching Case 1816 and Case 626).
@@ -210,15 +211,15 @@ In Phenotype Aphril Week 2, the community participated in interactive case adjud
 
 ### 5.1 Adjudication Heuristics Mapped to TAXIS Metrics
 
-| Slide Case # | Adjudication Pattern | Community / LLM Decision | TAXIS Knowledge Graph Evaluation |
+| Synthetic Case Vignette # | Adjudication Vignette Pattern | Community / Consensus Decision | TAXIS Knowledge Graph Evaluation |
 |---|---|---|---|
-| **Case 2751** | Day 0 Inpatient NSTEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4. High $DR$ forward revascularization confirms true acute infarct. |
-| **Case 225** | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4, 5. Multi-admission recurrence confirms severe acute CAD. |
-| **Case 1816** | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Not a Case (Certainty: High)** | Fails Bucket 4 (zero interventions). Bucket 6 mimic (gastritis) triggered. Classic rule-out. |
-| **Case 129** | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Old Case (Pre-index)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical. |
-| **Case 626** | Outpatient carry-forward code at routine visit + zero cardiac meds | **Not a Case (Certainty: High)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact. |
-| **Case 5189** | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Case (Under-coded)** | Satisfies Buckets 3, 4 (Tenecteplase is STEMI-specific thrombolytic), 5. Flagged as rescue case. |
-| **Case 1100** | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Not a Case (Certainty: Low)** | Fails Bucket 4. Cath without revascularization reflects negative rule-out for culprit lesion. |
+| **Vignette 2751** | Day 0 Inpatient NSTEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4. High $DR$ forward revascularization confirms acute infarct in high-specificity tier. |
+| **Vignette 225** | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4, 5. Multi-admission recurrence confirms severe acute CAD. |
+| **Vignette 1816** | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Not a Case (Certainty: High)** | Fails Bucket 4 (zero interventions). Bucket 6 mimic (gastritis) triggered. Classic rule-out. |
+| **Vignette 129** | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Old Case (Pre-index)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical. |
+| **Vignette 626** | Outpatient carry-forward code at routine visit + zero cardiac meds | **Not a Case (Certainty: High)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact. |
+| **Vignette 5189** | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Case (Under-coded)** | Satisfies Buckets 3, 4 (Tenecteplase in acute presentation), 5. Flagged as rescue case in broad surveillance tier. |
+| **Vignette 1100** | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Not a Case (Certainty: Low)** | Fails Bucket 4. Cath without revascularization reflects negative rule-out for culprit lesion. |
 
 ---
 
@@ -236,4 +237,5 @@ To fulfill the Workgroup OKR of populating the OHDSI Phenotype Library with $\ge
 
 1. **Zero-Mentions Compliance**: Prohibited individual names and internal network terms are strictly excluded from all code, commits, and public documentation.
 2. **Scientific Attribution (`DEC-GR-020`)**: Full recognition is prominently preserved for Dr. Stephen H. Bandeian as the original author of all SQL scripts, partitioning logic, and analytic algorithms.
-3. **Privacy Floor**: All exported cell counts $< 5$ are masked to $-1$ (`DEC-GR-005`). No patient-level records leave local environments.
+3. **Privacy Floor & Local Firewall Execution**: All exported cell counts $< 5$ are masked to $-1$ (`DEC-GR-005`). No patient-level records, person IDs, or clinical event timestamps leave local database environments.
+4. **KEEPER Adjudication Bridge Isolation**: The interactive adjudication bridge ("Phinding Phenotypes with Phriends") and clinical timeline visualizer operate strictly within the local institutional network boundary behind the hospital firewall; patient timelines are never exported or transmitted across institutions. Case vignettes in public documentation are strictly synthetic educational illustrations.

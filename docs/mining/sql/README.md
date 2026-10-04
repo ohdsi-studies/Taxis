@@ -17,13 +17,10 @@
 
 ## 1. Overview & Architecture
 
-The **Concept AB Mining Engine** computes population-level and encounter-level association statistics across pairs of standardized OMOP concepts across 6 domain pairs:
-- `Condition - Drug`
-- `Condition - Measurement`
-- `Condition - Procedure`
-- `Condition - Condition`
-- `Drug - Procedure`
-- `Drug - Drug`
+The **Concept AB Mining Engine** computes population-level and encounter-level association statistics across pairs of standardized OMOP concepts across **8 clinical domains and 24 cross-domain pair permutations**:
+- Core Domains: `Condition` (10), `Procedure` (20), `Device` (30), `Drug` (40), `Obs Test` (50), `Obs Result` (51), `Meas Test` (60), `Meas Result` (61).
+- **Production INPC Benchmark Scale**: Evaluated across **2,157,525 patients** spanning **11,299,055 person-years** and **1.88 billion fact events**, observing **14,233,528 concept pairs** backed by **36.1 billion event-pairs** and **4.01 billion person-pairs**.
+- Complete empirical tables (Tables 1–7) and SQL concordance audit: see [`../CONCEPT_AB_MINING_ENGINE_V57.md`](../CONCEPT_AB_MINING_ENGINE_V57.md#5-empirical-benchmark-indiana-network-for-patient-care-inpc-216m-patient-run).
 
 The pipeline executes entirely inside the partner's database engine via **OHDSI SqlRender** parameterized scripts driven by an R runner script (`concept_ab_run.R`):
 

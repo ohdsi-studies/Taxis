@@ -289,6 +289,52 @@ def test_ohdsi_tsql_dialect_conformance():
     return True
 
 
+def test_empirical_benchmark_and_concordance_audit():
+    """Verify presence of empirical INPC 2.16M benchmark tables (Tables 1-7, Exhibits 1-2) and SQL concordance audit."""
+    print("--> Test 8: Validating empirical INPC 2.16M benchmark tables and SQL concordance audit...")
+    with open(SPEC_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    required_sections = [
+        "## 5. Empirical Benchmark: Indiana Network for Patient Care (INPC) 2.16M Patient Run",
+        "### 5.1 Headline Data Universe (Table 1)",
+        "### 5.2 Concept Universe by OMOP Domain (Table 2)",
+        "### 5.3 Observed Concept Pairs by Pair-Type (Table 3)",
+        "### 5.4 Theoretical Pair Space vs. Observed Coverage & Sparsity (Table 4)",
+        "### 5.5 Longitudinal Timing & Directionality Dynamics (Table 5)",
+        "### 5.6 Semantic Similarity via SNOMED LCA Distance (Table 6)",
+        "### 5.7 Person-Level Statistical Lift Distribution (Table 7)",
+        "### 5.8 External Clinical Validation: ClinVec / ClinGraph Benchmark",
+        "## 6. Concordance & Consistency Audit: OHDSI T-SQL vs. Bandeian Empirical Write-Up",
+    ]
+
+    missing_sections = [s for s in required_sections if s not in content]
+    if missing_sections:
+        print(f"  [FAIL] Missing sections in specification: {missing_sections}")
+        return False
+
+    required_empirical_metrics = [
+        "2,157,525",         # n_persons
+        "11,299,055",        # person_years
+        "95,968",            # n_distinct_concepts
+        "14,233,528",        # n_observed_concept_pairs
+        "36,053,079,999",    # event_pair_observations
+        "4,007,091,065",     # person_pair_observations
+        "1,882,277,314",     # total_events
+        "1,517,630,330",     # theoretically possible pairs
+        "2,970",             # ClinVec benchmark pairs
+        "2,004",             # ClinVec / LLM concurrence count
+    ]
+
+    missing_metrics = [m for m in required_empirical_metrics if m not in content]
+    if missing_metrics:
+        print(f"  [FAIL] Missing empirical benchmark metrics: {missing_metrics}")
+        return False
+
+    print("  [PASS] Empirical INPC benchmark tables (1-7), ClinVec validation, and SQL concordance audit verified.")
+    return True
+
+
 def main():
     print("=====================================================================")
     print("TAXIS Verification Suite: Concept AB Mining Engine & SQL Pipeline v57")
@@ -302,6 +348,7 @@ def main():
         test_measurement_key_packing,
         test_table_coverage_in_specification,
         test_ohdsi_tsql_dialect_conformance,
+        test_empirical_benchmark_and_concordance_audit,
     ]
 
     passed = 0
@@ -319,3 +366,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
