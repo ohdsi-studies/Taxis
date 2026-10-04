@@ -280,52 +280,94 @@ test_that("formatPheValuatorResults correctly maps upstream provider outputs to 
   expect_equal(formatted$truePositives, 200)
 })
 
-test_that("runPheValuator enforces error hygiene and prevents leakage of raw sensitive error text (REC-048-2)", {
+test_that("applyPheValuatorSuppression strictly enforces mandatory privacy floor >= 5 (REC-049-1)", {
+  smallCellRow <- data.frame(
+    databaseId = "TEST_DB",
+    pairGroup = "T2DM",
+    phenotypeName = "Type 2 diabetes mellitus",
+    taxisCohortId = 1798326,
+    libraryCohortId = 1032,
+    cutPoint = "EV",
+    sensitivity = 0.88,
+    sensitivityCi95Lb = 0.82,
+    sensitivityCi95Ub = 0.94,
+    ppv = 0.91,
+    ppvCi95Lb = 0.85,
+    ppvCi95Ub = 0.96,
+    specificity = 0.98,
+    specificityCi95Lb = 0.96,
+    specificityCi95Ub = 0.99,
+    npv = 0.95,
+    npvCi95Lb = 0.92,
+    npvCi95Ub = 0.97,
+    f1Score = 0.89,
+    truePositives = 3, # strictly < 5
+    trueNegatives = 500,
+    falsePositives = 10,
+    falseNegatives = 12,
+    estimatedPrevalence = 0.05,
+    status = "COMPLETED",
+    stringsAsFactors = FALSE
+  )
+
+  # Sub-floor and invalid values must all normalize to floor 5
+  subFloorValues <- list(0, 1, 2, 3, 4, -10, NULL, "invalid", c(5, 10), NaN, Inf, 5.7)
+  for (val in subFloorValues) {
+    res <- applyPheValuatorSuppression(smallCellRow, minCellCount = val)
+    expect_equal(res$truePositives, -1, info = sprintf("Failed floor enforcement for minCellCount = %s", as.character(val)))
+    expect_equal(res$sensitivityCi95Lb, -1)
+    expect_equal(res$estimatedPrevalence, -1)
+  }
+
+  # 4-versus-5 boundary test
+  boundary4 <- smallCellRow
+  boundary4$truePositives <- 4
+  res4 <- applyPheValuatorSuppression(boundary4, minCellCount = 5)
+  expect_equal(res4$truePositives, -1)
+  expect_equal(res4$sensitivity, -1)
+
+  boundary5 <- smallCellRow
+  boundary5$truePositives <- 5
+  res5 <- applyPheValuatorSuppression(boundary5, minCellCount = 5)
+  expect_equal(res5$truePositives, 5)
+  expect_equal(res5$sensitivity, 0.88)
+  expect_equal(res5$sensitivityCi95Lb, 0.82)
+})
+
+test_that("runPheValuator production wrapper catches injected runtime errors and prevents secret leakage (REC-049-2)", {
   tempDir <- tempfile("pheval_err_test_")
   dir.create(tempDir, recursive = TRUE)
   on.exit(unlink(tempDir, recursive = TRUE), add = TRUE)
 
   sentinelSecret <- "SUPER_CONFIDENTIAL_DB_PASSWORD_12345"
 
-  # Verify that unhandled errors do not embed arbitrary error text in status
-  errSummary <- data.frame(
+  # Invoke real production wrapper with injected runner error containing sentinel secret
+  errorRunnerStub <- function(...) {
+    stop(sprintf("CRITICAL DATABASE AUTH FAILURE: user=admin secret=%s connection refused", sentinelSecret))
+  }
+
+  summaryDf <- runPheValuator(
+    connectionDetails = list(),
+    cdmDatabaseSchema = "cdm",
+    cohortDatabaseSchema = "cohort",
+    cohortTable = "cohort",
+    workDatabaseSchema = "cohort",
+    outputFolder = tempDir,
     databaseId = "ERR_DB",
-    pairGroup = "T2DM",
-    phenotypeName = "Type 2 diabetes mellitus",
-    taxisCohortId = 1798326,
-    libraryCohortId = 1032,
-    cutPoint = "Expected Value",
-    sensitivity = NA_real_,
-    sensitivityCi95Lb = NA_real_,
-    sensitivityCi95Ub = NA_real_,
-    ppv = NA_real_,
-    ppvCi95Lb = NA_real_,
-    ppvCi95Ub = NA_real_,
-    specificity = NA_real_,
-    specificityCi95Lb = NA_real_,
-    specificityCi95Ub = NA_real_,
-    npv = NA_real_,
-    npvCi95Lb = NA_real_,
-    npvCi95Ub = NA_real_,
-    f1Score = NA_real_,
-    truePositives = NA_real_,
-    trueNegatives = NA_real_,
-    falsePositives = NA_real_,
-    falseNegatives = NA_real_,
-    estimatedPrevalence = NA_real_,
-    status = "EXECUTION_FAILED",
-    stringsAsFactors = FALSE
+    runAnalysesFn = errorRunnerStub
   )
 
-  csvPath <- file.path(tempDir, "phevaluator_summary_ERR_DB.csv")
-  readr::write_csv(errSummary, csvPath)
+  expect_true(is.data.frame(summaryDf))
+  expect_true(all(summaryDf$status == "EXECUTION_FAILED"))
 
-  # Check that status is bounded and sentinel secret is absent
+  # Check that wrapper-written CSV on disk has bounded status and zero sentinel secret
+  csvPath <- file.path(tempDir, "phevaluator_summary_ERR_DB.csv")
+  expect_true(file.exists(csvPath))
   rawCsvContent <- readr::read_file(csvPath)
   expect_false(grepl(sentinelSecret, rawCsvContent, fixed = TRUE))
   expect_true(grepl("EXECUTION_FAILED", rawCsvContent, fixed = TRUE))
 
-  # Test packageResults integration: ensure error summary is bundled without leaking secrets
+  # Test packageResults integration: ensure error summary is bundled into ZIP without leaking secrets
   zipFile <- packageResults(outputFolder = tempDir, databaseId = "ERR_DB")
   expect_true(file.exists(zipFile))
 
@@ -336,4 +378,103 @@ test_that("runPheValuator enforces error hygiene and prevents leakage of raw sen
   bundledContent <- readr::read_file(bundledCsv)
   expect_false(grepl(sentinelSecret, bundledContent, fixed = TRUE))
 })
+
+test_that("runPheValuator production wrapper executes provider stub, normalizes floor, and masks small cells (REC-049-2)", {
+  tempDir <- tempfile("pheval_stub_test_")
+  dir.create(tempDir, recursive = TRUE)
+  on.exit(unlink(tempDir, recursive = TRUE), add = TRUE)
+
+  # Upstream provider result containing small cell (truePositives = 3)
+  mockUpstreamSummary <- data.frame(
+    cohortId = 1798326,
+    cutPoint = "EV",
+    sensitivity = 0.895,
+    sensitivityCi95Lb = 0.850,
+    sensitivityCi95Ub = 0.935,
+    ppv = 0.920,
+    ppvCi95Lb = 0.880,
+    ppvCi95Ub = 0.955,
+    specificity = 0.985,
+    specificityCi95Lb = 0.975,
+    specificityCi95Ub = 0.992,
+    npv = 0.960,
+    npvCi95Lb = 0.940,
+    npvCi95Ub = 0.975,
+    f1Score = 0.907,
+    truePositives = 3, # Small cell!
+    trueNegatives = 1000,
+    falsePositives = 25,
+    falseNegatives = 30,
+    estimatedPrevalence = 0.085,
+    stringsAsFactors = FALSE
+  )
+
+  successfulRunnerStub <- function(...) {
+    list(analysisId = 1)
+  }
+
+  summarizerStub <- function(...) {
+    mockUpstreamSummary
+  }
+
+  # Execute production wrapper passing minCellCount = 1 to test floor bypass prevention
+  wrapperSummary <- runPheValuator(
+    connectionDetails = list(),
+    cdmDatabaseSchema = "cdm",
+    cohortDatabaseSchema = "cohort",
+    cohortTable = "cohort",
+    workDatabaseSchema = "cohort",
+    outputFolder = tempDir,
+    databaseId = "STUB_DB",
+    minCellCount = 1, # Attempted bypass -> must normalize to 5!
+    runAnalysesFn = successfulRunnerStub,
+    summarizeAnalysesFn = summarizerStub
+  )
+
+  expect_true(is.data.frame(wrapperSummary))
+
+  # Target T2DM row (taxisCohortId = 1798326)
+  t2dmRow <- wrapperSummary[wrapperSummary$taxisCohortId == 1798326, ]
+  expect_equal(nrow(t2dmRow), 1)
+  expect_equal(t2dmRow$status, "COMPLETED")
+
+  # Assert that wrapper suppression was applied: all cells, estimates, and 8 bounds masked to -1
+  expect_equal(t2dmRow$truePositives, -1)
+  expect_equal(t2dmRow$falsePositives, -1)
+  expect_equal(t2dmRow$trueNegatives, -1)
+  expect_equal(t2dmRow$falseNegatives, -1)
+  expect_equal(t2dmRow$sensitivity, -1)
+  expect_equal(t2dmRow$sensitivityCi95Lb, -1)
+  expect_equal(t2dmRow$sensitivityCi95Ub, -1)
+  expect_equal(t2dmRow$ppv, -1)
+  expect_equal(t2dmRow$ppvCi95Lb, -1)
+  expect_equal(t2dmRow$ppvCi95Ub, -1)
+  expect_equal(t2dmRow$specificity, -1)
+  expect_equal(t2dmRow$specificityCi95Lb, -1)
+  expect_equal(t2dmRow$specificityCi95Ub, -1)
+  expect_equal(t2dmRow$npv, -1)
+  expect_equal(t2dmRow$npvCi95Lb, -1)
+  expect_equal(t2dmRow$npvCi95Ub, -1)
+  expect_equal(t2dmRow$f1Score, -1)
+  expect_equal(t2dmRow$estimatedPrevalence, -1)
+
+  # Check that wrapper-written CSV on disk matches and was packaged into ZIP
+  csvPath <- file.path(tempDir, "phevaluator_summary_STUB_DB.csv")
+  expect_true(file.exists(csvPath))
+
+  zipFile <- packageResults(outputFolder = tempDir, databaseId = "STUB_DB")
+  expect_true(file.exists(zipFile))
+
+  unzipDir <- file.path(tempDir, "unzipped_stub")
+  utils::unzip(zipFile, exdir = unzipDir)
+  bundledCsv <- file.path(unzipDir, "phevaluator_summary_STUB_DB.csv")
+  expect_true(file.exists(bundledCsv))
+
+  bundledDf <- readr::read_csv(bundledCsv, col_types = readr::cols())
+  bundledT2dm <- bundledDf[bundledDf$taxisCohortId == 1798326, ]
+  expect_equal(bundledT2dm$status, "COMPLETED")
+  expect_equal(bundledT2dm$truePositives, -1)
+  expect_equal(bundledT2dm$sensitivityCi95Lb, -1)
+})
+
 

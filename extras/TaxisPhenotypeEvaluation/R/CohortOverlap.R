@@ -167,6 +167,14 @@ applyCohortOverlapSuppression <- function(taxisCount,
                                           libraryOnly,
                                           minCellCount = 5) {
 
+  # Enforce mandatory privacy floor (DEC-GR-005 / REC-049-1)
+  if (is.null(minCellCount) || length(minCellCount) != 1 || !is.numeric(minCellCount) ||
+      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 || (minCellCount %% 1 != 0)) {
+    minCellCount <- 5
+  } else {
+    minCellCount <- as.integer(minCellCount)
+  }
+
   # Cell-level suppression flags (< minCellCount and > 0)
   taxisSuppressed <- (taxisCount < minCellCount & taxisCount > 0)
   librarySuppressed <- (libraryCount < minCellCount & libraryCount > 0)
