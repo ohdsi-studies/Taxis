@@ -5,6 +5,10 @@
 # loads synthetic dataset, and executes TAXIS integration verification.
 # ==============================================================================
 
+param(
+    [string]$LoaderScript = "load_synthea.py"
+)
+
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
@@ -60,7 +64,7 @@ Write-Host "    PostgreSQL is ready and healthy on localhost:5433." -ForegroundC
 
 # 4. Load Synthetic OMOP CDM Data
 Write-Host "--> Step 4: Loading Synthetic OMOP CDM data..." -ForegroundColor Yellow
-python "$ScriptDir\load_synthea.py" --host localhost --port 5433 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
+python "$ScriptDir\$LoaderScript" --host localhost --port 5433 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Loading Synthea OMOP CDM data failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE
