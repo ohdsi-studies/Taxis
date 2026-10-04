@@ -112,11 +112,11 @@ Strict separation of evidence tiers per `REC-003-1`:
 | **Empirical Cohort Overlap: T2DM (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 143,528$) | OHDSI Phenotype Library Cohort #1032 | **99.5%** Jaccard Overlap ($142,810 / 143,528$); **99.8%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: CKD (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 70,383$) | OHDSI Phenotype Library Cohort #1191 | **97.2%** Jaccard Overlap ($68,412 / 70,383$); **98.6%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: COPD (EVID-04)** | Recreated Circe definition | INPC 2.16M CDM ($|A \cup B| = 52,042$) | OHDSI Phenotype Library Cohort #1263 | **98.4%** Jaccard Overlap ($51,209 / 52,042$); **98.9%** Sensitivity | Completed |
-| **Federated Multi-CDM Study** | Cross-database portability | CCAE, MDCR, MDCD, Optum, CPRD | Manual OHDSI definitions & PheValuator | ROC AUC, Sensitivity, Specificity | Prospective (JnJ) |
+| **Federated Multi-CDM Study** | Cross-database portability | CCAE, MDCR, MDCD, Optum, CPRD | Manual OHDSI definitions & PheValuator | Sensitivity, Specificity, PPV, NPV, F1 | Prospective (JnJ) |
 
 #### 3.2 Federated HADES Study Package: `TaxisPhenotypeEvaluation`
 - **Network Data Governance (`DEC-GR-005`)**: Fully isolated execution behind institutional firewalls; concept-pair co-occurrences remain local.
-- **Export Package**: Generates `Results_<databaseId>.zip` containing aggregate cohort overlap summaries and PheValuator ROC diagnostics.
+- **Export Package**: Generates `Results_<databaseId>.zip` containing aggregate cohort overlap summaries and PheValuator diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, F1 Score).
 - **Mathematical Small-Cell Suppression**: Enforces $2 \times 2$ complementary suppression ($0 < N < 5$ masks all interior partition counts and derived ratios to $-1$), preventing algebraic back-calculation.
 - **Packaging Security Contract**: Exact-path allowlist and deep archive inspection reject unapproved tables, logs, and patient-level identifiers.
 

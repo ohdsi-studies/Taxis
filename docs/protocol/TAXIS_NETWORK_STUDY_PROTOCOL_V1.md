@@ -165,7 +165,7 @@ TAXIS is designed as a **multicenter, observational, federated network study** e
 ### 5.2 Two-Tiered Data Governance Architecture
 As detailed in the companion [TAXIS Network Data Use Term Sheet](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md):
 - **Tier 1 (Internal Concept Co-Occurrence Matrices)**: Full pairwise co-occurrence matrices, patient-level counts, and internal edge weights remain strictly internal to the partner's secure infrastructure.
-- **Tier 2 (Aggregate Phenotype Performance & Overlap Summaries)**: Masked, site-level summary metrics (Jaccard similarity matrices, cohort counts with small-cell suppression, and PheValuator operating characteristics) are approved for network synthesis.
+- **Tier 2 (Aggregate Phenotype Performance & Overlap Summaries)**: Masked, site-level summary metrics (Jaccard similarity matrices, cohort counts with small-cell suppression, and PheValuator operating characteristics: Sensitivity, Specificity, PPV, NPV, F1 Score) are approved for network synthesis.
 
 ---
 
@@ -321,7 +321,7 @@ To convert massive observational associations into a computable, typed clinical 
 To guard against circular overfitting—where a phenotype algorithm is iteratively modified simply to reproduce an evaluation model rather than genuine clinical truth:
 1. **Exploratory Development Partition**: Exploratory model training (`PheValuator`) and graph feedback are restricted to designated development partitions or internal development CDMs.
 2. **Algorithm Freezing**: Circe JSON definitions, inclusion rules, and concept sets are locked and versioned prior to formal performance evaluation.
-3. **Independent Validation**: Final operating characteristics (ROC-AUC, sensitivity, specificity, PPV) are measured strictly on held-out test partitions or across independent external partner CDMs.
+3. **Independent Validation**: Final diagnostic performance characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score) are measured strictly on held-out test partitions or across independent external partner CDMs.
 
 ---
 

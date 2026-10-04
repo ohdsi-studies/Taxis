@@ -417,13 +417,13 @@ A proposed design framework to transform newly synthesized, benchmarked phenotyp
 │ 1. Cold-Start Synthesis│ ───► │ 2. Multi-CDM Benchmark │ ───► │ 3. Candidate Library PR│
 │ • TaxisPhenotypeCreator│      │ • TaxisPhenotypeEval   │      │ • Circe JSON in inst/  │
 │ • Generates Circe JSON │      │ • CohortDiagnostics    │      │ • Diagnostics ZIP      │
-│ • Standard slots       │      │ • PheValuator ROC      │      │ • OHDSI Workgroup Form │
+│ • Standard slots       │      │ • PheValuator Metrics  │      │ • OHDSI Workgroup Form │
 └────────────────────────┘      └────────────────────────┘      └────────────────────────┘
 ```
 
 1. **Automated Submission Packaging (Proposed Specification)**:
    - The evaluation package (`TaxisPhenotypeEvaluation`) instantiates the synthesized cohort across multiple partner CDMs upon investigator initiation.
-   - It executes `CohortDiagnostics` and `PheValuator` to generate empirical diagnostic performance characteristics (Sensitivity, Specificity, PPV, ROC-AUC).
+   - It executes `CohortDiagnostics` and `PheValuator` to generate empirical diagnostic performance characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score).
 2. **Standardized Candidate PR Generation (Proposed Design)**:
    - A proposed automation script formats the Circe JSON into `inst/cohorts/<new_id>.json`.
    - Compiles the diagnostic evidence into `inst/cohortDiagnostics/` and populates the OHDSI Phenotype Development & Evaluation Workgroup clinical description markdown template.

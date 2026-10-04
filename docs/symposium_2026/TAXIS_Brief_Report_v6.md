@@ -99,7 +99,7 @@ To demonstrate translational utility, TAXIS compiles knowledge graph subgraphs d
 ### 2.6 Multi-Tier Data Governance & HADES Evaluation Package
 To resolve data-sharing barriers across federated networks, TAXIS enforces an **Aggregate-Only Non-PHI Policy** (`DEC-GR-005`):
 - **Tier 1 (Local Mining)**: Data partners execute Concept AB mining and patient-level co-occurrence analysis entirely within their local firewall.
-- **Tier 2 (Aggregate Export)**: The deployable HADES study package `TaxisPhenotypeEvaluation` evaluates cohort overlap (Jaccard index, sensitivity, agreement) and PheValuator diagnostic operating characteristics (ROC AUC, sensitivity, specificity). All exported metrics implement **mathematical $2 \times 2$ complementary cell suppression**: whenever any cell in the cohort overlap partition contains $0 < N < 5$, all interior partition cells and derived ratios are masked to $-1$, completely preventing algebraic reconstruction of small patient counts.
+- **Tier 2 (Aggregate Export)**: The deployable HADES study package `TaxisPhenotypeEvaluation` evaluates cohort overlap (Jaccard index, sensitivity, agreement) and PheValuator diagnostic operating characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score with 95% CIs). All exported metrics implement **mathematical $2 \times 2$ complementary cell suppression**: whenever any cell in the cohort overlap partition contains $0 < N < 5$, all interior partition cells and derived ratios are masked to $-1$, completely preventing algebraic reconstruction of small patient counts.
 
 ---
 
@@ -115,7 +115,7 @@ In accordance with rigorous evidence accounting standards, TAXIS explicitly sepa
 | **Empirical Cohort Overlap: T2DM (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 143,528$) | OHDSI Phenotype Library Cohort #1032 | **99.5%** Jaccard Overlap ($142,810 / 143,528$); **99.8%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: CKD (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 70,383$) | OHDSI Phenotype Library Cohort #1191 | **97.2%** Jaccard Overlap ($68,412 / 70,383$); **98.6%** Sensitivity | Completed |
 | **Empirical Cohort Overlap: COPD (EVID-04)** | Recreated Circe phenotype | INPC 2.16M CDM ($|A \cup B| = 52,042$) | OHDSI Phenotype Library Cohort #1263 | **98.4%** Jaccard Overlap ($51,209 / 52,042$); **98.9%** Sensitivity | Completed |
-| **Multi-CDM Network Evaluation** | Cross-database portability | CCAE, MDCR, MDCD, Optum EHR, CPRD | Hand-crafted Library definitions & PheValuator | ROC AUC, Sensitivity, Specificity | Prospective (JnJ) |
+| **Multi-CDM Network Evaluation** | Cross-database portability | CCAE, MDCR, MDCD, Optum EHR, CPRD | Hand-crafted Library definitions & PheValuator | Sensitivity, Specificity, PPV, NPV, F1 | Prospective (JnJ) |
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐

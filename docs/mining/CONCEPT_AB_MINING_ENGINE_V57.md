@@ -273,7 +273,7 @@ The Concept AB Mining Engine operates in strict conformity with the **TAXIS Netw
 
 1. **Local Behind-the-Firewall Execution**: The pipeline executes entirely within the data partner's local database environment. No patient-level records, person IDs, encounter timestamps, or narrative clinical texts ever leave the local network boundary.
 2. **Concept Pair Matrix Retention (Authoritative Decision `DEC-GR-005`)**: The granular concept-pair co-occurrence matrix (`cab_s55_pair_all`) remains strictly on the partner's secure local database. It is **not** transmitted across institutions in federated Phase 1 studies.
-3. **Aggregate Network Export**: For federated network benchmarking, data partners run the companion `TaxisPhenotypeEvaluation` study package, exporting strictly small-cell suppressed ($<5$) summary counts, Jaccard overlap matrices, and `PheValuator` ROC performance metrics (`Results_<databaseId>.zip`).
+3. **Aggregate Network Export**: For federated network benchmarking, data partners run the companion `TaxisPhenotypeEvaluation` study package, exporting strictly small-cell suppressed ($<5$) summary counts, Jaccard overlap matrices, and `PheValuator` diagnostic performance metrics: Sensitivity, Specificity, PPV, NPV, F1 Score (`Results_<databaseId>.zip`).
 4. **Open-Source Licensing**: The pipeline scripts and SQL architecture are distributed under the **Apache 2.0** open-source license. Study documentation is licensed under **Creative Commons Attribution 4.0 International (CC-BY-4.0)**.
 
 ---

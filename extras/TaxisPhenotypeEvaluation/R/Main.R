@@ -29,6 +29,7 @@
 #' @param cohortDatabaseSchema The name of the database schema where the user has write
 #'   permissions to create and write to the cohort table.
 #' @param cohortTable The name of the cohort table to create and populate. Default is 'taxis_pheno_eval'.
+#' @param workDatabaseSchema The name of the database schema where temporary tables can be created. Default is cohortDatabaseSchema.
 #' @param outputFolder The path to the folder where output CSVs and ZIP archives will be saved.
 #' @param databaseId A short identifier for the database (e.g. 'Site_EHR', 'Site_Claims').
 #' @param runCohortGeneration Logical: should cohorts be instantiated on the CDM? Default is TRUE.
@@ -42,6 +43,7 @@ execute <- function(connectionDetails,
                     cdmDatabaseSchema,
                     cohortDatabaseSchema,
                     cohortTable = "taxis_pheno_eval",
+                    workDatabaseSchema = cohortDatabaseSchema,
                     outputFolder = "output",
                     databaseId = "My_CDM",
                     runCohortGeneration = TRUE,
@@ -122,6 +124,7 @@ execute <- function(connectionDetails,
         cdmDatabaseSchema = cdmDatabaseSchema,
         cohortDatabaseSchema = cohortDatabaseSchema,
         cohortTable = cohortTable,
+        workDatabaseSchema = workDatabaseSchema,
         outputFolder = outputFolder,
         databaseId = databaseId
       )

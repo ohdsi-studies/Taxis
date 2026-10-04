@@ -518,6 +518,74 @@ def test_hades_readme_badges_and_news():
     return True
 
 
+def test_phevaluator_api_and_description_conformance():
+    """Verify canonical OHDSI PheValuator API usage in R code and accurate methodology descriptions."""
+    print("--> Test 12: Auditing PheValuator API usage, argument specifications, and methodology descriptions...")
+    errors = []
+
+    # 1. Inspect RunPheValuator.R
+    run_pheval_path = os.path.join(ROOT_DIR, "extras", "TaxisPhenotypeEvaluation", "R", "RunPheValuator.R")
+    if not os.path.exists(run_pheval_path):
+        errors.append("RunPheValuator.R not found in extras/TaxisPhenotypeEvaluation/R/")
+    else:
+        with open(run_pheval_path, "r", encoding="utf-8") as f:
+            code = f.read()
+
+        # Check canonical functions
+        if "createDefaultCovariateSettings" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::createDefaultCovariateSettings")
+        if "createCreateEvaluationCohortArgs" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::createCreateEvaluationCohortArgs")
+        if "createTestPhenotypeAlgorithmArgs" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::createTestPhenotypeAlgorithmArgs")
+        if "createTestPhenotypeModelArgs" in code:
+            errors.append("RunPheValuator.R uses nonexistent PheValuator::createTestPhenotypeModelArgs (must use createTestPhenotypeAlgorithmArgs)")
+        if "createPheValuatorAnalysis" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::createPheValuatorAnalysis")
+        if "savePheValuatorAnalysisList" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::savePheValuatorAnalysisList")
+        if "runPheValuatorAnalyses" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::runPheValuatorAnalyses")
+        if "summarizePheValuatorAnalyses" not in code:
+            errors.append("RunPheValuator.R missing PheValuator::summarizePheValuatorAnalyses")
+
+        # Disallowed / deprecated arguments in createCreateEvaluationCohortArgs
+        if "daysFromObsStart" in code:
+            errors.append("RunPheValuator.R passes nonexistent argument 'daysFromObsStart' to createCreateEvaluationCohortArgs")
+        if "modelType" in code:
+            errors.append("RunPheValuator.R passes nonexistent argument 'modelType' to createCreateEvaluationCohortArgs")
+
+        # Required arguments
+        if "prevalenceCohortId" not in code:
+            errors.append("RunPheValuator.R missing required argument 'prevalenceCohortId' in createCreateEvaluationCohortArgs")
+        if "xSpecCohortId" not in code:
+            errors.append("RunPheValuator.R missing required argument 'xSpecCohortId' in createCreateEvaluationCohortArgs")
+
+        # Output schema metrics
+        expected_metrics = ["sensitivity", "specificity", "ppv", "npv", "f1Score", "truePositives", "falsePositives", "trueNegatives", "falseNegatives"]
+        for m in expected_metrics:
+            if m not in code:
+                errors.append(f"RunPheValuator.R missing expected summary metric column: {m}")
+
+    # 2. Inspect documentation accuracy in root README.md
+    readme_path = os.path.join(ROOT_DIR, "README.md")
+    with open(readme_path, "r", encoding="utf-8") as f:
+        readme_text = f.read()
+
+    if "Semi-Automated Phenotype Performance Evaluation" not in readme_text:
+        errors.append("README.md missing accurate description of PheValuator as semi-automated phenotype performance evaluation")
+    if "Model Covariates Feedback Loop" in readme_text:
+        errors.append("README.md still describes PheValuator primarily as 'Model Covariates Feedback Loop' rather than phenotype evaluation")
+
+    if errors:
+        for err in errors:
+            print(f"  FAILED: {err}")
+        return False
+
+    print("  PASSED: PheValuator canonical API usage, argument specifications, and methodology descriptions verified.")
+    return True
+
+
 def run_all_tests():
     print("======================================================================")
     print("       TAXIS HADES CONFORMANCE VERIFICATION SUITE                     ")
@@ -535,12 +603,13 @@ def run_all_tests():
         test_hades_unit_tests(),
         test_hades_governance_and_attribution(),
         test_hades_rbuildignore_and_maintenance(),
-        test_hades_readme_badges_and_news()
+        test_hades_readme_badges_and_news(),
+        test_phevaluator_api_and_description_conformance()
     ]
 
     print("======================================================================")
     if all(results):
-        print("ALL HADES STATIC STRUCTURAL CONFORMANCE CHECKS PASSED (11/11).")
+        print(f"ALL HADES STATIC STRUCTURAL CONFORMANCE CHECKS PASSED ({len(results)}/{len(results)}).")
         print("Notice: Static pre-flight verified. Native R CMD check compilation and real-CDM database execution remain pending execution in partner environments.")
         print("======================================================================")
         return 0

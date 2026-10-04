@@ -49,7 +49,7 @@ By coupling empirical associations mined across **2.16 million longitudinal pati
                     [ 4. EMPIRICAL VALIDATOR: HADES EVALUATION SUITE ]
                      Multi-Site Benchmark Execution:
                      • CohortDiagnostics (Prevalence, Overlap, Jaccard)
-                     • PheValuator (Diagnostic Sensitivity, Specificity, ROC)
+                     • PheValuator (Diagnostic Sensitivity, Specificity, PPV, NPV, F1)
 ```
 
 ---
@@ -132,7 +132,7 @@ Following the 2026 symposium demonstration, the engine connects into the broader
    - Integrates empirical concept prevalence and lexical recommendations from **PHOEBE** (*Ostropolets et al., 2022*).
    - Balances substantive clinical semantics (confirmatory labs, indicated medications) with network-wide frequency data to prioritize frequently used concept codes while avoiding obsolete terms.
 3. **CohortDiagnostics & PheValuator Evaluation Lifecycle**:
-   - Every synthesized cohort is evaluated using `CohortDiagnostics` (cohort count, incidence rate, cohort overlap Jaccard) and `PheValuator` (*Swerdel et al., 2019*) for empirical diagnostic sensitivity, specificity, and ROC-AUC estimation across network partner CDMs.
+   - Every synthesized cohort is evaluated using `CohortDiagnostics` (cohort count, incidence rate, cohort overlap Jaccard) and `PheValuator` (*Swerdel et al., 2019*) for empirical diagnostic sensitivity, specificity, positive predictive value, negative predictive value, and F1 score estimation across network partner CDMs.
 
 ---
 

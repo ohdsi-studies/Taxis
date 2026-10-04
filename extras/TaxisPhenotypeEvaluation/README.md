@@ -25,7 +25,7 @@ This HADES-compliant study package evaluates candidate phenotypes for five condi
 1. Standard cohort entry counts and person counts.
 2. Pairwise patient-level overlap and Jaccard similarity indices.
 3. Standard `CohortDiagnostics` characterizations (index event breakdowns, incidence rates, demographics, and visit context).
-4. `PheValuator` diagnostic performance estimates (Sensitivity, Specificity, and Positive Predictive Value).
+4. `PheValuator` diagnostic performance estimates (Sensitivity, Specificity, Positive Predictive Value, Negative Predictive Value, and F1 Score with 95% Confidence Intervals).
 
 All analyses are executed locally within partner environments. No patient-level data leaves the host institution.
 
@@ -60,7 +60,7 @@ In accordance with study quality standards (addressing REC-003-3, REC-021-3, and
 | **Cohort Generation** | **PASSED** | Eunomia (SQLite) & INPC (2.16M patients) | All 10 cohorts instantiated successfully via `CohortGenerator::generateCohortSet()`. |
 | **Cohort Overlap & Jaccard** | **PASSED** | Eunomia (SQLite) & INPC (2.16M patients) | Pairwise distinct person intersection, union, and Jaccard metrics computed cleanly. Denominators: $|A \cup B|$. |
 | **CohortDiagnostics** | **PASSED** | Eunomia (SQLite) & INPC (2.16M patients) | `CohortDiagnostics::executeDiagnostics()` completed across characterization, incidence, and index event breakdowns. |
-| **PheValuator Modeling** | **PASSED** | INPC OMOP CDM (Real-world extraction) | Evaluated operating characteristics against comparator cohorts. *(Skipped on Eunomia due to synthetic data class-separation limits)*. |
+| **PheValuator Modeling** | **PASSED** | INPC OMOP CDM (Real-world extraction) | Evaluated phenotype algorithm diagnostic operating characteristics (Sensitivity, Specificity, PPV, NPV, F1 Score) against probabilistic evaluation cohorts generated from PLP regularized logistic regression models. *(Skipped on Eunomia due to synthetic data class-separation limits)*. |
 | **Small-Cell Suppression & Boundary Contract** | **PASSED (Python Simulation)** | Algorithmic Contract Harness (`verify_suppression_and_packaging.py`) | **Algorithmic Simulation Receipt**: Verified boundary counts: 0 preserved as true absence; 1 and 4 masked to -1; 5 preserved unmasked. Complementary cell suppression masks all 4 partition counts ($A \cap B, A \setminus B, B \setminus A, A \cup B$) and all derived ratios whenever any cell is small ($<5$). Evaluated adversarial counterexample ($A=100, B=100, A \cap B=3, A \cup B=197, A \setminus B=97, B \setminus A=97$): all partition cells and ratios masked to -1; unmasked marginals ($A=100, B=100$) yield an underdetermined 2-equation/3-unknown system, proving mathematical impossibility of algebraic reconstruction. |
 | **Allowlist Export Packaging & Schema Audit** | **PASSED (Python Simulation)** | Packaging Contract Harness (`verify_suppression_and_packaging.py`) | **Packaging Simulation Receipt**: Packaging strictly enforces exact relative paths (`cohort_counts_<db>.csv`, `cohort_overlap_summary_<db>.csv`, `phevaluator_summary_<db>.csv`, `diagnostics/Results_<db>.zip`). Deep inspection of nested `diagnostics/Results_<db>.zip` verifies only approved aggregate CSVs; excludes execution logs (`.log`/`.txt`), scratch files, decoy archives (`Results_OTHER_DB.zip`), patient tables, and forbidden columns (`person_id`, `subject_id`). |
 | **Local R Runtime Package Execution** | **NOT RUN LOCALLY** | Local Workspace Environment (No `Rscript` installed) | Local development machine lacks native R runtime. Live R execution verified during historical INPC package runs; prospective network execution pending partner deployment. |
@@ -99,7 +99,7 @@ extras/TaxisPhenotypeEvaluation/
 │   ├── CreateCohorts.R                     # Instantiates 10 cohorts using CohortGenerator
 │   ├── CohortOverlap.R                     # Calculates pairwise Jaccard index with disclosure protection
 │   ├── RunDiagnostics.R                    # Runs CohortDiagnostics characterization
-│   ├── RunPheValuator.R                    # Runs PheValuator diagnostic performance modeling
+│   ├── RunPheValuator.R                    # Generates PheValuator analysis specifications and evaluates diagnostic performance
 │   └── PackageResults.R                    # Bundles allowlisted non-PHI results into Results_<db>.zip
 ├── inst/
 │   ├── cohorts/                            # 10 Circe JSON cohort definitions
@@ -181,6 +181,7 @@ remotes::install_github("ohdsi-studies/Taxis", subdir = "extras/TaxisPhenotypeEv
      cdmDatabaseSchema    = "cdm",
      cohortDatabaseSchema = "scratch",
      cohortTable          = "taxis_pheno_eval",
+     workDatabaseSchema   = "scratch",
      outputFolder         = "taxis_output",
      databaseId           = "My_Site_CDM",
      runCohortGeneration  = TRUE,
