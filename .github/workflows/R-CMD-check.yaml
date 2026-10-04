@@ -14,7 +14,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.package.name }} on ${{ matrix.config.os }} (${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
@@ -23,6 +23,10 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: macOS-latest, r: 'release'}
           - {os: ubuntu-22.04, r: 'release'}
+        package:
+          - {name: 'Taxis', path: '.'}
+          - {name: 'TaxisPhenotypeCreator', path: 'extras/TaxisPhenotypeCreator'}
+          - {name: 'TaxisPhenotypeEvaluation', path: 'extras/TaxisPhenotypeEvaluation'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -46,11 +50,13 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          working-directory: ${{ matrix.package.path }}
           extra-packages: any::rcmdcheck
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          working-directory: ${{ matrix.package.path }}
           args: 'c("--no-manual", "--as-cran")'
           error-on: '"warning"'
           check-dir: '"check"'

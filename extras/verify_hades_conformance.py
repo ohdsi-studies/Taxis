@@ -326,8 +326,8 @@ def test_hades_code_style_and_lintr():
 
 
 def test_hades_cross_platform_and_ci():
-    """Verify cross-database mechanics and multi-OS GitHub Actions CI."""
-    print("--> Test 7: Checking cross-database tools and multi-OS CI workflow...")
+    """Verify static cross-database dependencies and multi-package/multi-OS CI workflow."""
+    print("--> Test 7: Checking static cross-database dependencies and multi-package/multi-OS CI workflow...")
     errors = []
 
     # 1. Root package must use DatabaseConnector and SqlRender
@@ -337,7 +337,7 @@ def test_hades_cross_platform_and_ci():
     if "DatabaseConnector" not in desc or "SqlRender" not in desc:
         errors.append("[Taxis] Root package must import DatabaseConnector and SqlRender for cross-database support")
 
-    # 2. Check GitHub Actions workflow
+    # 2. Check GitHub Actions workflow covers all 3 packages and all 3 OS targets
     ci_path = os.path.join(ROOT_DIR, ".github", "workflows", "R-CMD-check.yaml")
     if not os.path.exists(ci_path):
         errors.append("Missing .github/workflows/R-CMD-check.yaml for continuous integration")
@@ -347,13 +347,16 @@ def test_hades_cross_platform_and_ci():
         for os_name in ["windows-latest", "macOS-latest", "ubuntu-22.04"]:
             if os_name not in ci_text:
                 errors.append(f"CI workflow missing matrix OS target: {os_name}")
+        for pkg_name in ["Taxis", "TaxisPhenotypeCreator", "TaxisPhenotypeEvaluation"]:
+            if pkg_name not in ci_text:
+                errors.append(f"CI workflow missing package target: {pkg_name}")
 
     if errors:
         for err in errors:
             print(f"  FAILED: {err}")
         return False
 
-    print("  PASSED: Cross-database integration and multi-OS CI verified.")
+    print("  PASSED: Static cross-database dependencies and multi-package/multi-OS CI matrix configured (runtime database interoperability and native R CMD check execution pending partner CDM environments).")
     return True
 
 
@@ -537,8 +540,8 @@ def run_all_tests():
 
     print("======================================================================")
     if all(results):
-        print("ALL HADES CONFORMANCE AUDIT CHECKS PASSED (11/11).")
-        print("Notice: Static pre-flight verified. Native R CMD check and network interoperability pending partner execution.")
+        print("ALL HADES STATIC STRUCTURAL CONFORMANCE CHECKS PASSED (11/11).")
+        print("Notice: Static pre-flight verified. Native R CMD check compilation and real-CDM database execution remain pending execution in partner environments.")
         print("======================================================================")
         return 0
     else:
