@@ -15,6 +15,9 @@
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
 
+> **Operational Boundary Notice (`DEC-GR-027`, `DEC-GR-029`)**:
+> The TAXIS network study package (`ohdsi-studies/Taxis`) is an **empirical association mining engine**, designed to execute standardized SQL across network partners to materialize population-level co-occurrence statistics (`cab_s55_pair_all`). The Clinical Pair Taxonomy described below is an **illustrative downstream knowledge representation schema** for organizing mined relationships. It is **not** part of the SQL package execution on partner CDMs (`extras/CodeToRun.R`).
+
 ---
 
 ## 1. Executive Summary & Epistemic Foundations

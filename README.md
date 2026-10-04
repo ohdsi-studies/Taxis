@@ -142,7 +142,7 @@ We have verified this complete three-phase pipeline (`concept_ab_init.sql`, `con
 ### 2. The Clinical Knowledge Graph (Taxonomy v6.0)
 Statistical co-occurrence in observational data indicates association rather than clinical etiology. To assign explicit clinical semantics, TAXIS incorporates a 112-code clinical relationship taxonomy organized across five core relationship families: causal and pathophysiological mechanisms, clinical manifestations and symptoms, diagnostic laboratory and procedural evaluations, therapeutic interventions, and differential diagnostic mimics. An ensemble of clinical models evaluates co-occurring concept pairs, assigns structured taxonomy codes and empirical evidence grades, and documents the clinical rationale for each relationship.
 
-For the downstream application blueprint on clinical concept-pair classification, its historical provenance (Dr. Stephen H. Bandeian's concept-pair architecture and Dr. J. Marc Overhage's clinical validation architecture), and empirical metric coordination, see the [Downstream Application Blueprint: TAXIS Clinical Pair Taxonomy](docs/knowledge_graph/TAXONOMY_SCIENTIFIC_FOUNDATIONS_AND_SPECIFICATION.md).
+For an overview of the clinical concept-pair taxonomy, its scientific provenance (Dr. Stephen H. Bandeian's concept-pair architecture and Dr. J. Marc Overhage's clinical validation architecture), and empirical metric coordination, see the [TAXIS Clinical Pair Taxonomy Overview](docs/knowledge_graph/TAXONOMY_OVERVIEW.md).
 
 ### 3. Demonstrating Downstream Applications
 While our primary focus is releasing and maintaining TAXIS as a network study package, this repository includes proof-of-concept applications and packages illustrating how TAXIS data can be consumed by downstream tools:

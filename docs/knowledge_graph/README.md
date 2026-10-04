@@ -6,13 +6,12 @@ This directory contains the formal ontology specifications, relational schemas, 
 
 ## Document Index
 
-### 1. [Scientific Foundations & Specification of the TAXIS Clinical Pair Taxonomy](TAXONOMY_SCIENTIFIC_FOUNDATIONS_AND_SPECIFICATION.md)
-**Definitive Scientific Monograph**: Comprehensively details:
-- **Scientific Provenance & Authorship**: Dr. Stephen H. Bandeian's original clinical concept-pair architecture and AHRQ/CMS episode-of-care foundation (M1–M9, 1111); Dr. J. Marc Overhage's clinical validation architecture, ClinVec benchmarks, and blinded dual-internist adjudication (Overhage & Grannis); and Dr. Gowtham Rao's neuro-symbolic proposer-validator integration and governance.
-- **The Five Core Relationship Families**: Deep medical and pathophysiological characterization of Causal & Pathophysiological Mechanisms, Clinical Manifestations, Diagnostic Evaluations, Therapeutic Interventions, and Differential Diagnostic Mimics.
-- **The Complete 112-Code Catalog**: Tabulated specifications for all 112 standardized codes across 32 semantic families, complete with domain constraints, expected directionality ratios, and real-world clinical exemplars.
-- **Mathematical Coordination with Pipeline v57**: Directionality Ratio ($DR$) mechanics, Mantel-Haenszel Stratified Lift ($\text{Lift}_{\text{strat}}$), and empirical lag decay distributions.
-- **Operational Circe Phenotyping Translation**: The 6-Bucket architecture and the 10% anchor mimic-attrition cap (`DEC-GR-008`).
+### 1. [Overview & Empirical Grounding of the TAXIS Clinical Pair Taxonomy](TAXONOMY_OVERVIEW.md)
+**High-Level Scientific Overview**:
+- **Scientific Provenance & Authorship**: Dr. Stephen H. Bandeian's clinical concept-pair architecture and SQL mining engine; Dr. J. Marc Overhage's clinical validation architecture, ClinVec benchmarks, and blinded dual-internist adjudication; and Dr. Gowtham Rao's empirical phenotype integration and statistical governance.
+- **Empirical Grounding**: Coordination with Pipeline v57 metrics materialized in `cab_s55_pair_all` (co-occurrences, continuity-corrected Directionality Ratio $DR$, and Mantel-Haenszel Stratified Lift $\text{Lift}_{\text{strat}}$).
+- **The Five Core Relationship Families**: Operational grouping of clinical relationships (Causal Mechanisms, Manifestations, Diagnostics, Interventions, and Mimics).
+- **Methodological Boundaries**: Clarifying observational timing versus biological causality.
 
 ### 2. [TAXIS Clinical Pair Taxonomy v6.0](Clinical_Pair_Taxonomy_6.md)
 Formal knowledge graph schema, relational code tables, directional precedence boundaries, and inverse symmetry specifications for the 112 standardized relation codes.
