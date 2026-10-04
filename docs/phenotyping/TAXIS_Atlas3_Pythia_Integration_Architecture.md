@@ -59,7 +59,7 @@ TAXIS computes **Stratified Lift** across 10 empirical healthcare utilization de
 
 $$\text{Lift}_{\text{strat}}(A, B) = \frac{\sum_{k=1}^{10} w_k \cdot \text{Obs}_k(A, B)}{\sum_{k=1}^{10} w_k \cdot \text{Exp}_k(A, B)}$$
 
-When Pythia proposes confirmatory criteria for an index condition, TAXIS filters out high-frequency incidental co-occurrences (e.g., routine metabolic panels, essential hypertension) and surfaces only those clinical criteria with true diagnostic signal ($\text{Lift}_{\text{strat}} \ge 3.0$).
+When Pythia proposes candidate confirmatory criteria for an index condition, TAXIS filters out high-frequency incidental co-occurrences (e.g., routine metabolic panels, essential hypertension) and surfaces clinical criteria with strong empirical co-occurrence signal ($\text{Lift}_{\text{strat}} \ge 3.0$) for investigator clinical evaluation.
 
 ### 2.2. Continuity-Corrected Directionality Ratio ($DR$)
 A major challenge in phenotype authoring is placing clinical criteria in temporal windows that conform to observed clinical sequences. TAXIS calculates the **Directionality Ratio ($DR$)** between Concept A (index) and Concept B (candidate criterion):
@@ -87,15 +87,26 @@ $$\text{Marginal Overlap Fraction} = \frac{\text{Persons}(A \cap B)}{\text{Perso
 ### 2.4. Longitudinal Pattern Signatures & The Grain Guide (`cab_s54_grain_guide`)
 Pythia frequently faces ambiguity regarding whether an entry event should capture the "First Mention" or "All Mentions", and what observation washout is appropriate. Sourced directly from `concept_ab_finalize.sql:842-874`, TAXIS classifies clinical concepts into empirical longitudinal signatures:
 
-| Pattern Signature | Empirical SQL Classification Rules | Recommended Grain | Atlas v3 / Pythia Modeling Rule |
+| Pattern Signature | Empirical SQL Classification Rules | Recommended Grain | Illustrative Modeling Options for Investigator Review (Subject to Protocol Justification) |
 | :--- | :--- | :---: | :--- |
-| **`punctate`** | `mentions_per_person < 1.05` | **All Mentions** | Acute one-time event (e.g., accidental injury). Minimal or no washout needed. |
-| **`clustered`** | `median_gap_bucket <= 14` days | **First Mention** | Acute episode with flurry of care (e.g., Acute MI, Pneumonia). Collapse into 30d episodes. |
-| **`chronic`** | `mentions_per_person >= 8.0` and `median_gap_bucket <= 90` days | **First Mention** | Indefinite disease course (e.g., T2DM, COPD, CKD). Require prior observation; enter on first. |
-| **`recurrent`** | `median_gap_bucket >= 90` days | **All Mentions** | Distinct episodic recurrence (e.g., Major Depressive Episode, Gout). Require 90d-180d washout. |
+| **`punctate`** | `mentions_per_person < 1.05` | **All Mentions** | Acute one-time event (e.g., accidental injury). Minimal or no washout option. |
+| **`clustered`** | `median_gap_bucket <= 14` days | **First Mention** | Acute episode with flurry of care (e.g., Acute MI, Pneumonia). Candidate 30d episode collapse. |
+| **`chronic`** | `mentions_per_person >= 8.0` and `median_gap_bucket <= 90` days | **First Mention** | Indefinite disease course (e.g., T2DM, COPD, CKD). Prior observation required; enter on first. |
+| **`recurrent`** | `median_gap_bucket >= 90` days | **All Mentions** | Distinct episodic recurrence (e.g., Major Depressive Episode, Gout). Candidate 90d-180d washout. |
 | **`episodic`** | `frac_gaps_tight >= 0.25` and `frac_gaps_long >= 0.25` | **Both / Dual** | Complex cycle (e.g., Multiple Sclerosis, Relapsing Remitting). Model onset and episodes separately. |
 | **`mixed`** | Other distributed recurrence patterns | **Both / Dual** | Heterogeneous recording pattern. Require investigator adjudication. |
 | **`unknown`** | `n_gaps is null or n_gaps = 0` | **Both / Dual** | Insufficient gap data. Default to user-specified protocol. |
+
+> **SQL CASE Precedence & Sequential Evaluation**: Sourced directly from `concept_ab_finalize.sql:842-850`, patterns are classified in strict sequential order:
+> 1. `unknown`: `n_gaps is null or n_gaps = 0`
+> 2. `punctate`: `mentions_per_person < 1.05`
+> 3. `episodic`: `frac_gaps_tight >= 0.25 and frac_gaps_long >= 0.25`
+> 4. `chronic`: `mentions_per_person >= 8.0 and median_gap_bucket <= 90`
+> 5. `clustered`: `median_gap_bucket <= 14`
+> 6. `recurrent`: `median_gap_bucket >= 90`
+> 7. `mixed`: all remaining cases
+>
+> *Note*: Episode windows and washout periods presented above are illustrative candidate options and require independent clinical and protocol justification. The primary entry setting adheres to First-entry by default (`DEC-GR-007`).
 
 ---
 
@@ -373,16 +384,16 @@ When designing a phenotype for an anchor condition:
    - For **Confirmatory Labs** (`DIAG_LAB_CONFIRM`): Prioritize laboratories with Stratified Lift >= 3.0. Always specify the operator and threshold returned by TAXIS.
    - For **First-Line Treatments** (`THER_DRUG_FIRSTLINE`): Confirm that Directionality Ratio >= 1.50 before placing treatments in post-index windows.
    - For **Differential Mimics** (`ASSOC_MIMIC`): Call `taxis_audit_exclusion_attrition(anchorId, excludeId)`. If the overlap exceeds the **10% Rule-Out Cap**, DO NOT propose a blanket lifetime exclusion. Propose either an index-day restricted window or require treatment divergence.
-3. Call `taxis_get_grain_guide(conceptId)` to set the primary entry event limit (First vs. All) and observation window lengths based on empirical pattern signatures (`chronic`, `clustered`, `punctate`, `recurrent`).
+3. Call `taxis_get_grain_guide(conceptId)` to propose candidate entry event limits (maintaining the settled primary First-entry baseline by default per `DEC-GR-007`) and candidate observation window options for investigator review based on empirical pattern signatures (`chronic`, `clustered`, `punctate`, `recurrent`, `episodic`).
 ```
 
 ---
 
 ## 5. Design Target Hypotheses & Proposed Evaluation Framework
 
-> **Evaluation Scope & Status**: The performance metrics below represent **projected design target hypotheses** for upcoming multi-site observational evaluation; they do not represent completed prospective trial outcomes. Illustrative tool-payload values in Section 3 are synthetic demonstration fixtures. Formal validation requires multi-CDM execution against institutional data partners.
+> **Evaluation Scope & Status**: The performance metrics below represent **projected design target hypotheses** for upcoming multi-site observational evaluation; they do not represent completed prospective trial outcomes. Illustrative tool-payload values in Section 3 are synthetic demonstration fixtures. Conventional baseline figures represent illustrative operational assumptions based on qualitative authoring experience rather than measured multi-CDM benchmark trials. Formal validation requires multi-CDM execution against institutional data partners.
 
-| Phenotyping Metric | Standard Atlas / Pythia (Observed Baseline) | Atlas v3 + TAXIS Empirical Integration (Design Target) | Hypothesized Rationale |
+| Phenotyping Metric | Conventional Authoring (Illustrative Baseline Assumptions Awaiting Partner Measurement) | Atlas v3 + TAXIS Empirical Integration (Design Target) | Hypothesized Rationale |
 | :--- | :--- | :--- | :--- |
 | **Phenotype Cold-Start Rate** | **Fails on ~60%** of conditions not in Phenotype Library v3.37. | **< 2% failure target**: Expands coverage across standard concepts with empirical graph associations. | Empirically grounded graph relationships eliminate dependence on static library JSONs. |
 | **Inclusion Rule Attrition Failures** | **~35% of novel cohorts** suffer $\ge 90\%$ catastrophic patient loss after initial generation. | **< 3% attrition target**: Pre-execution 10% rule-out cap alerts users to high-attrition exclusions. | Intercepts high-risk exclusions before database instantiation. |
@@ -395,7 +406,7 @@ When designing a phenotype for an anchor condition:
 
 ### 6.1. Site-Local Data Governance & Perimeter Security (`DEC-GR-005`, `DEC-GR-013`)
 
-To guarantee complete privacy preservation and adhere strictly to institutional data use term sheets:
+To enforce rigorous data governance, mitigate disclosure risks, and adhere strictly to institutional data use term sheets:
 1. **Site-Local Isolation of Pair Matrices**: Populated concept-pair co-occurrence matrices (`cab_s55_pair_all`), raw transition matrices, and local patient counts **must remain site-local behind institutional firewalls at all times**. They are never packaged into public distributable libraries or transmitted off-premises.
 2. **Code-Only Distributable Artifacts**: Distributable packages (such as `@ohdsi/atlas-plugin-taxis` or containerized service engines) are strictly code-only. They execute against local data behind the partner's firewall.
 3. **Aggregate-Only Outbound Perimeter**: When Pythia interacts with remote LLM endpoints (e.g. cloud-hosted models), the communication boundary transmits strictly aggregate, small-cell suppressed descriptive metadata ($< 5$). Zero patient identifiers, granular cell counts, or pairwise occurrence matrices may cross the outbound perimeter.
