@@ -126,7 +126,27 @@ TAXIS operates strictly under a federated, code-to-data model designed to respec
 3. **Mandatory Small-Cell Suppression**: Cell counts $<5$ are masked to -1, with complementary suppression applied to derived statistics to prevent algebraic identity disclosure.
 4. **Auditable Aggregate Export Archive**: The export routine packages strictly allowlisted summary tables and execution logs into an auditable archive (`Results_Mining_<databaseId>.zip`) for local investigator inspection prior to transmission.
 
-For institutional governance details, review the [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md) and the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md).
+For institutional governance details, review the [TAXIS Network Study Protocol v1.0](docs/protocol/TAXIS_NETWORK_STUDY_PROTOCOL_V1.md), the companion [TAXIS Network Data Use Term Sheet](docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md), and the official [TAXIS Call for Collaborators](docs/governance/TAXIS_CALL_FOR_COLLABORATION.md).
+
+---
+
+## Call for Collaborators: Two Network Participation Pathways
+
+The TAXIS network study invites international collaborators across two distinct, complementary pathways launching simultaneously (`DEC-GR-057`):
+
+1. **Track A: Knowledge Graph Contributors (Data Network Partners)**:
+   - **Mission**: Expand the empirical clinical knowledge graph beyond Indiana by executing association mining on your local OMOP CDM v5.4.
+   - **Flexible Scope**: Choose between **Full-Database Mining** (the complete 40-batch Pipeline v57 across 6 domains) or **Targeted Mining** (focused on site-selected disease conditions of interest).
+   - **Supported Backends**: PostgreSQL, Microsoft SQL Server, and Snowflake.
+   - **Tiered Data Governance**: Open small-cell suppressed summaries ($<5 \to -1$) for public community benefit, with unmasked pair co-occurrence matrices shared centrally under a consortium Data Use Agreement (DUA).
+2. **Track B: Application Validators (Data Sites & Clinical Experts)**:
+   - **Sub-track B1 (Phenotype Validation)**: Execute the HADES companion study package [`TaxisPhenotypeEvaluation`](extras/TaxisPhenotypeEvaluation/) across partner CDMs to benchmark 5 showcase phenotypes (T2DM, CKD, COPD, AMI, MDD) using `CohortDiagnostics` and `PheValuator`.
+   - **Sub-track B2 (Negative Control Calibration)**: Evaluate TAXIS-derived candidate negative control outcomes using `EmpiricalCalibration` to assess systematic error reduction.
+   - **Sub-track B3 (Clinical Expert Adjudication)**: Clinicians and terminologists without direct CDM database access participate in blinded pair reviews, clinical description authoring, and mimic evaluations.
+
+*Academic Attribution*: Lead site analysts and PIs receive named co-authorship under ICMJE guidelines on primary network publications; site execution contributors receive consortium co-authorship under the **TAXIS Study Group**.
+
+For complete participation instructions, prerequisites, and data governance terms, consult the official [TAXIS Call for Collaborators](docs/governance/TAXIS_CALL_FOR_COLLABORATION.md).
 
 ---
 

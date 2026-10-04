@@ -236,7 +236,17 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
 
 ---
 
-## 7. Key References & Literature
+## 7. Call for Network Collaborators (`DEC-GR-057`)
+
+The 2026 Collaborator Showcase presentation serves as the official launch for international network participation across two simultaneous pathways:
+- **Track A: Knowledge Graph Contributors**: Data network partners executing local association mining on their OMOP CDMs (Full or Targeted mining) across PostgreSQL, SQL Server, and Snowflake.
+- **Track B: Application Validators**: Sites evaluating the 5 showcase benchmark phenotypes via [`TaxisPhenotypeEvaluation`](../../extras/TaxisPhenotypeEvaluation/README.md), methodologists running negative control calibration via `EmpiricalCalibration`, and clinical experts conducting blinded adjudications.
+
+For complete participation specifications, prerequisites, and governance terms, consult the official [TAXIS Call for Collaborators](../governance/TAXIS_CALL_FOR_COLLABORATION.md).
+
+---
+
+## 8. Key References & Literature
 
 1. **Shoaibi A, Ostropolets A, Weaver J, Rao G, et al.** *Variation in phenotype definitions in observational clinical research: a review of three conditions*. *AMIA Annu Symp Proc*. 2024.
 2. **Shoaibi A, Ostropolets A, Murphy JD, Rao GA, et al.** *Clinical Descriptions as Semantic Anchors: A Best Practice in OHDSI Phenotype Development*. *OHDSI Phenotype Development and Evaluation Workgroup Consensus Statement*; 2025.

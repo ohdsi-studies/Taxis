@@ -160,9 +160,13 @@ TAXIS is designed as a **multicenter, observational, federated network study** e
 - **Zero Patient-Level Data Transfer**: Patient-level data, direct identifiers, and personal health information never leave the participating institution.
 - **Deterministic Execution**: Analysis routines are distributed as standardized HADES R study packages ([`TaxisPhenotypeEvaluation`](../../extras/TaxisPhenotypeEvaluation/README.md)), evaluating candidate cohorts against comparator definitions under federated execution.
 - **Site Audit Authority**: All exported files are written into a single inspection archive (`Results_<databaseId>.zip`). Participating sites retain absolute authority to inspect, audit, and approve the archive before transmission.
-- **Workstream Phasing**:
-  - **Initial Network Workstream (Collaborator Showcase Demonstration)**: Focuses exclusively on the **5-phenotype evaluation** (COPD, Obesity, CKD, Hyperkalemia, T2DM), generating local Circe cohorts, running `CohortDiagnostics` and `PheValuator`, and exporting masked aggregate overlap and performance summaries.
-  - **Future Network Workstream (Phase 2 Distributed Mining)**: Federated execution of the complete Concept AB association mining pipeline across partner CDMs represents a distinct future workstream subject to separate institutional addenda.
+- **Two Simultaneous Network Participation Pathways (`DEC-GR-057`)**:
+  - **Track A (Knowledge Graph Contributors)**: Data network partners execute local association mining on their OMOP CDMs (with choice between Full-Database 40-batch mining or Targeted condition-of-interest mining) across PostgreSQL, SQL Server, and Snowflake, operating under a tiered governance model (open small-cell suppressed summaries and central consortium DUA pair co-occurrence matrices).
+  - **Track B (Application Validators)**: Data sites and clinical experts evaluate downstream applications:
+    - *Sub-track B1 (Phenotype Validation)*: Evaluating the 5 showcase benchmark phenotypes (T2DM, CKD, COPD, AMI, MDD) using `CohortDiagnostics` and `PheValuator`.
+    - *Sub-track B2 (Negative Control Calibration)*: Evaluating candidate negative control sets derived from TAXIS via `EmpiricalCalibration`.
+    - *Sub-track B3 (Clinical Adjudication)*: Clinician-investigators without direct database access conducting blinded pair review and Clinical Description authoring.
+  - Complete instructions and prerequisites are detailed in the companion [TAXIS Call for Collaborators](../governance/TAXIS_CALL_FOR_COLLABORATION.md).
 
 ### 5.2 Two-Tiered Data Governance Architecture
 As detailed in the companion [TAXIS Network Data Use Term Sheet](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md):
