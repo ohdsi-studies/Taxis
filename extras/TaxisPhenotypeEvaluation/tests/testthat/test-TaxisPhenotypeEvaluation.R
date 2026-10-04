@@ -26,59 +26,41 @@ test_that("TaxisPhenotypeEvaluation package exports required functions", {
 })
 
 test_that("applyCohortOverlapSuppression preserves unsuppressed counts when all >= minCellCount", {
-  df <- data.frame(
-    databaseId = "TEST_DB",
-    pairGroup = "COPD",
-    phenotypeName = "COPD",
-    taxisCohortId = 1798322,
-    libraryCohortId = 1263,
+  suppressed <- applyCohortOverlapSuppression(
     taxisCount = 100,
     libraryCount = 100,
-    intersectionCount = 80,
+    intersectCount = 80,
     unionCount = 120,
-    taxisOnlyCount = 20,
-    libraryOnlyCount = 20,
-    jaccardIndex = 80 / 120,
-    taxisSensitivityVsLibrary = 80 / 100,
-    taxisAgreementVsLibrary = 80 / 100,
-    stringsAsFactors = FALSE
+    taxisOnly = 20,
+    libraryOnly = 20,
+    minCellCount = 5
   )
 
-  suppressed <- applyCohortOverlapSuppression(df, minCellCount = 5)
-
-  expect_equal(suppressed$taxisCount, 100)
-  expect_equal(suppressed$libraryCount, 100)
+  expect_equal(suppressed$taxisPatientCount, 100)
+  expect_equal(suppressed$libraryPatientCount, 100)
   expect_equal(suppressed$intersectionCount, 80)
   expect_equal(suppressed$unionCount, 120)
   expect_equal(suppressed$taxisOnlyCount, 20)
   expect_equal(suppressed$libraryOnlyCount, 20)
-  expect_equal(suppressed$jaccardIndex, 80 / 120)
+  expect_equal(suppressed$jaccardIndex, round(80 / 120, 4))
+  expect_equal(suppressed$taxisSensitivityVsLibrary, round(80 / 100, 4))
+  expect_equal(suppressed$taxisAgreementVsLibrary, round(80 / 100, 4))
 })
 
 test_that("applyCohortOverlapSuppression applies complementary suppression when intersection < 5 (REC-024-1)", {
-  df <- data.frame(
-    databaseId = "TEST_DB",
-    pairGroup = "T2DM",
-    phenotypeName = "T2DM",
-    taxisCohortId = 1798326,
-    libraryCohortId = 1032,
+  suppressed <- applyCohortOverlapSuppression(
     taxisCount = 100,
     libraryCount = 100,
-    intersectionCount = 3,
+    intersectCount = 3,
     unionCount = 197,
-    taxisOnlyCount = 97,
-    libraryOnlyCount = 97,
-    jaccardIndex = 3 / 197,
-    taxisSensitivityVsLibrary = 3 / 100,
-    taxisAgreementVsLibrary = 3 / 100,
-    stringsAsFactors = FALSE
+    taxisOnly = 97,
+    libraryOnly = 97,
+    minCellCount = 5
   )
 
-  suppressed <- applyCohortOverlapSuppression(df, minCellCount = 5)
-
   # Marginals >= 5 preserved
-  expect_equal(suppressed$taxisCount, 100)
-  expect_equal(suppressed$libraryCount, 100)
+  expect_equal(suppressed$taxisPatientCount, 100)
+  expect_equal(suppressed$libraryPatientCount, 100)
 
   # All 4 interior partition counts masked to -1
   expect_equal(suppressed$intersectionCount, -1)
@@ -334,7 +316,80 @@ test_that("applyPheValuatorSuppression strictly enforces mandatory privacy floor
   expect_equal(res5$sensitivityCi95Lb, 0.82)
 })
 
-test_that("runPheValuator production wrapper catches injected runtime errors and prevents secret leakage (REC-049-2)", {
+test_that("applyPheValuatorSuppression and applyCohortOverlapSuppression enforce integer range guards without NA coercion (REC-050-1)", {
+  smallCellRow <- data.frame(
+    databaseId = "TEST_DB",
+    pairGroup = "T2DM",
+    phenotypeName = "Type 2 diabetes mellitus",
+    taxisCohortId = 1798326,
+    libraryCohortId = 1032,
+    cutPoint = "EV",
+    sensitivity = 0.88,
+    sensitivityCi95Lb = 0.82,
+    sensitivityCi95Ub = 0.94,
+    ppv = 0.91,
+    ppvCi95Lb = 0.85,
+    ppvCi95Ub = 0.96,
+    specificity = 0.98,
+    specificityCi95Lb = 0.96,
+    specificityCi95Ub = 0.99,
+    npv = 0.95,
+    npvCi95Lb = 0.92,
+    npvCi95Ub = 0.97,
+    f1Score = 0.89,
+    truePositives = 5,
+    trueNegatives = 500,
+    falsePositives = 10,
+    falseNegatives = 12,
+    estimatedPrevalence = 0.05,
+    status = "COMPLETED",
+    stringsAsFactors = FALSE
+  )
+
+  # 1. Maximum supported 32-bit signed integer (.Machine$integer.max = 2147483647)
+  # When minCellCount = .Machine$integer.max, count 5 < 2147483647 triggers suppression cleanly
+  resMax <- applyPheValuatorSuppression(smallCellRow, minCellCount = .Machine$integer.max)
+  expect_equal(resMax$truePositives, -1)
+  expect_equal(resMax$sensitivity, -1)
+  expect_equal(resMax$sensitivityCi95Lb, -1)
+
+  overlapMax <- applyCohortOverlapSuppression(
+    taxisCount = 100,
+    libraryCount = 100,
+    intersectCount = 80,
+    unionCount = 120,
+    taxisOnly = 20,
+    libraryOnly = 20,
+    minCellCount = .Machine$integer.max
+  )
+  expect_equal(overlapMax$intersectionCount, -1)
+  expect_equal(overlapMax$jaccardIndex, -1)
+
+  # 2. Integer overflow value just above .Machine$integer.max (2147483648 = 2^31)
+  # Must normalize safely to mandatory floor 5 without NA_integer_ coercion warning or failure
+  resOverflow <- applyPheValuatorSuppression(smallCellRow, minCellCount = 2147483648)
+  # Since all cells >= 5, normalizing to floor 5 means NO suppression occurs
+  expect_equal(resOverflow$truePositives, 5)
+  expect_equal(resOverflow$sensitivity, 0.88)
+  expect_equal(resOverflow$sensitivityCi95Lb, 0.82)
+
+  overlapOverflow <- applyCohortOverlapSuppression(
+    taxisCount = 100,
+    libraryCount = 100,
+    intersectCount = 80,
+    unionCount = 120,
+    taxisOnly = 20,
+    libraryOnly = 20,
+    minCellCount = 2147483648
+  )
+  expect_equal(overlapOverflow$taxisPatientCount, 100)
+  expect_equal(overlapOverflow$libraryPatientCount, 100)
+  expect_equal(overlapOverflow$intersectionCount, 80)
+  expect_equal(overlapOverflow$unionCount, 120)
+  expect_equal(overlapOverflow$jaccardIndex, round(80 / 120, 4))
+})
+
+test_that("runPheValuator production wrapper catches injected runtime errors and prevents secret leakage (REC-049-2 / REC-050-2)", {
   tempDir <- tempfile("pheval_err_test_")
   dir.create(tempDir, recursive = TRUE)
   on.exit(unlink(tempDir, recursive = TRUE), add = TRUE)
@@ -342,7 +397,9 @@ test_that("runPheValuator production wrapper catches injected runtime errors and
   sentinelSecret <- "SUPER_CONFIDENTIAL_DB_PASSWORD_12345"
 
   # Invoke real production wrapper with injected runner error containing sentinel secret
+  runnerCalled <- FALSE
   errorRunnerStub <- function(...) {
+    runnerCalled <<- TRUE
     stop(sprintf("CRITICAL DATABASE AUTH FAILURE: user=admin secret=%s connection refused", sentinelSecret))
   }
 
@@ -354,9 +411,11 @@ test_that("runPheValuator production wrapper catches injected runtime errors and
     workDatabaseSchema = "cohort",
     outputFolder = tempDir,
     databaseId = "ERR_DB",
-    runAnalysesFn = errorRunnerStub
+    runAnalysesFn = errorRunnerStub,
+    summarizeAnalysesFn = function(...) NULL
   )
 
+  expect_true(runnerCalled)
   expect_true(is.data.frame(summaryDf))
   expect_true(all(summaryDf$status == "EXECUTION_FAILED"))
 
@@ -475,6 +534,24 @@ test_that("runPheValuator production wrapper executes provider stub, normalizes 
   expect_equal(bundledT2dm$status, "COMPLETED")
   expect_equal(bundledT2dm$truePositives, -1)
   expect_equal(bundledT2dm$sensitivityCi95Lb, -1)
+
+  # Also execute production wrapper passing minCellCount = 2147483648 to verify integer overflow normalization
+  wrapperOverflow <- runPheValuator(
+    connectionDetails = list(),
+    cdmDatabaseSchema = "cdm",
+    cohortDatabaseSchema = "cohort",
+    cohortTable = "cohort",
+    workDatabaseSchema = "cohort",
+    outputFolder = tempDir,
+    databaseId = "OVERFLOW_DB",
+    minCellCount = 2147483648, # Above .Machine$integer.max -> must normalize to 5!
+    runAnalysesFn = successfulRunnerStub,
+    summarizeAnalysesFn = summarizerStub
+  )
+  expect_true(is.data.frame(wrapperOverflow))
+  t2dmOverflow <- wrapperOverflow[wrapperOverflow$taxisCohortId == 1798326, ]
+  expect_equal(t2dmOverflow$status, "COMPLETED")
+  expect_equal(t2dmOverflow$truePositives, -1)
 })
 
 

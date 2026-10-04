@@ -40,6 +40,15 @@ computeCohortOverlap <- function(connectionDetails,
                                  databaseId,
                                  minCellCount = 5) {
 
+  # Enforce mandatory privacy floor on minCellCount (DEC-GR-005 / REC-049-1 / REC-050-1)
+  if (is.null(minCellCount) || length(minCellCount) != 1 || !is.numeric(minCellCount) ||
+      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 ||
+      minCellCount > .Machine$integer.max || (minCellCount %% 1 != 0)) {
+    minCellCount <- 5
+  } else {
+    minCellCount <- as.integer(minCellCount)
+  }
+
   pathToPairs <- system.file("settings", "PhenotypePairs.csv", package = "TaxisPhenotypeEvaluation")
   pairs <- readr::read_csv(pathToPairs, col_types = readr::cols())
 
@@ -167,9 +176,10 @@ applyCohortOverlapSuppression <- function(taxisCount,
                                           libraryOnly,
                                           minCellCount = 5) {
 
-  # Enforce mandatory privacy floor (DEC-GR-005 / REC-049-1)
+  # Enforce mandatory privacy floor (DEC-GR-005 / REC-049-1 / REC-050-1)
   if (is.null(minCellCount) || length(minCellCount) != 1 || !is.numeric(minCellCount) ||
-      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 || (minCellCount %% 1 != 0)) {
+      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 ||
+      minCellCount > .Machine$integer.max || (minCellCount %% 1 != 0)) {
     minCellCount <- 5
   } else {
     minCellCount <- as.integer(minCellCount)

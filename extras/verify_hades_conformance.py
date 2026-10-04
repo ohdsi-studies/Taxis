@@ -576,13 +576,17 @@ def test_phevaluator_api_and_description_conformance():
                 if f"phevalSummary${bound}[i] <- -1" not in code and f"phevalSummary${bound}[maskIdx] <- -1" not in code:
                     errors.append(f"RunPheValuator.R suppression does not mask dependent metric: {bound} (REC-048-1)")
 
-        # Privacy floor enforcement (REC-049-1)
+        # Privacy floor and integer range overflow guards (REC-049-1, REC-050-1)
         if "minCellCount < 5" not in code or "minCellCount <- 5" not in code:
             errors.append("RunPheValuator.R missing mandatory privacy floor normalization (minCellCount < 5 -> 5) (REC-049-1)")
+        if "minCellCount > .Machine$integer.max" not in code:
+            errors.append("RunPheValuator.R missing integer range overflow guard (minCellCount > .Machine$integer.max) (REC-050-1)")
 
-        # Runner stub support for production wrapper testing (REC-049-2)
+        # Runner stub support and lazy summarizer resolution (REC-049-2, REC-050-2)
         if "runAnalysesFn" not in code or "summarizeAnalysesFn" not in code:
             errors.append("RunPheValuator.R missing runAnalysesFn/summarizeAnalysesFn injection parameters (REC-049-2)")
+        if "Resolve summarizer lazily after runner succeeds" not in code:
+            errors.append("RunPheValuator.R missing lazy summarizer resolution after runner execution (REC-050-2)")
 
         # Error hygiene (REC-048-2): No raw error messages embedded in outbound status
         if 'sprintf("FAILED: %s", e$message)' in code or 'status = sprintf("FAILED: %s"' in code:
@@ -594,13 +598,15 @@ def test_phevaluator_api_and_description_conformance():
         if "Provisional cohort role assignment" not in code:
             errors.append("RunPheValuator.R missing provisional cohort role assignment warning (REC-048-3)")
 
-    # 2. Inspect CohortOverlap.R for mandatory privacy floor (REC-049-1)
+    # 2. Inspect CohortOverlap.R for mandatory privacy floor and integer range guards (REC-049-1, REC-050-1)
     overlap_path = os.path.join(ROOT_DIR, "extras", "TaxisPhenotypeEvaluation", "R", "CohortOverlap.R")
     if os.path.exists(overlap_path):
         with open(overlap_path, "r", encoding="utf-8") as f:
             overlap_code = f.read()
         if "minCellCount < 5" not in overlap_code or "minCellCount <- 5" not in overlap_code:
             errors.append("CohortOverlap.R missing mandatory privacy floor normalization (minCellCount < 5 -> 5) (REC-049-1)")
+        if "minCellCount > .Machine$integer.max" not in overlap_code:
+            errors.append("CohortOverlap.R missing integer range overflow guard (minCellCount > .Machine$integer.max) (REC-050-1)")
 
     # 3. Inspect PhenotypePairs.csv for explicit cohort role columns (REC-048-3)
     pairs_path = os.path.join(ROOT_DIR, "extras", "TaxisPhenotypeEvaluation", "inst", "settings", "PhenotypePairs.csv")
@@ -613,13 +619,19 @@ def test_phevaluator_api_and_description_conformance():
             if role_col not in pairs_header:
                 errors.append(f"PhenotypePairs.csv missing explicit cohort role column: {role_col} (REC-048-3)")
 
-    # 4. Inspect unit test coverage in test-TaxisPhenotypeEvaluation.R (REC-049-1, REC-049-2)
+    # 4. Inspect unit test coverage in test-TaxisPhenotypeEvaluation.R (REC-049-1, REC-049-2, REC-050-1, REC-050-2)
     test_path = os.path.join(ROOT_DIR, "extras", "TaxisPhenotypeEvaluation", "tests", "testthat", "test-TaxisPhenotypeEvaluation.R")
     if os.path.exists(test_path):
         with open(test_path, "r", encoding="utf-8") as f:
             test_content = f.read()
         if "strictly enforces mandatory privacy floor >= 5" not in test_content:
             errors.append("test-TaxisPhenotypeEvaluation.R missing REC-049-1 privacy floor unit test block")
+        if "enforce integer range guards without NA coercion" not in test_content:
+            errors.append("test-TaxisPhenotypeEvaluation.R missing REC-050-1 integer range guard unit test block")
+        if "taxisPatientCount" not in test_content or "libraryPatientCount" not in test_content:
+            errors.append("test-TaxisPhenotypeEvaluation.R missing aligned overlap return assertions (REC-050-2)")
+        if "expect_true(runnerCalled)" not in test_content:
+            errors.append("test-TaxisPhenotypeEvaluation.R missing runnerCalled execution assertion in error test (REC-050-2)")
         if "production wrapper catches injected runtime errors" not in test_content:
             errors.append("test-TaxisPhenotypeEvaluation.R missing REC-049-2 wrapper error injection test block")
         if "production wrapper executes provider stub, normalizes floor" not in test_content:
@@ -640,7 +652,7 @@ def test_phevaluator_api_and_description_conformance():
             print(f"  FAILED: {err}")
         return False
 
-    print("  PASSED: PheValuator canonical API usage, privacy floor enforcement, wrapper testing stubs, error hygiene, and cohort roles verified.")
+    print("  PASSED: PheValuator canonical API usage, privacy floor & integer range guards, lazy summarizer, error proofing, and cohort roles verified.")
     return True
 
 

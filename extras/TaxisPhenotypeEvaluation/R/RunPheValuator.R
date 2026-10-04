@@ -35,12 +35,13 @@ applyPheValuatorSuppression <- function(phevalSummary, minCellCount = 5) {
     return(phevalSummary)
   }
 
-  # Enforce mandatory privacy floor (DEC-GR-005 / REC-049-1)
-  # Validate that minCellCount is a valid finite scalar integer >= 5.
-  # Sub-floor values (0, 1, 2, 3, 4), negatives, fractional, NA, NULL, or non-numeric types
-  # are strictly normalized to the mandatory floor of 5.
+  # Enforce mandatory privacy floor (DEC-GR-005 / REC-049-1 / REC-050-1)
+  # Validate that minCellCount is a valid finite scalar integer >= 5 and <= .Machine$integer.max.
+  # Sub-floor values (0, 1, 2, 3, 4), negatives, fractional, NA, NULL, non-numeric types,
+  # or out-of-range integers (> .Machine$integer.max) are strictly normalized to the mandatory floor of 5.
   if (is.null(minCellCount) || length(minCellCount) != 1 || !is.numeric(minCellCount) ||
-      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 || (minCellCount %% 1 != 0)) {
+      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 ||
+      minCellCount > .Machine$integer.max || (minCellCount %% 1 != 0)) {
     minCellCount <- 5
   } else {
     minCellCount <- as.integer(minCellCount)
@@ -344,9 +345,10 @@ runPheValuator <- function(connectionDetails,
                            runAnalysesFn = NULL,
                            summarizeAnalysesFn = NULL) {
 
-  # Enforce mandatory privacy floor on minCellCount (DEC-GR-005 / REC-049-1)
+  # Enforce mandatory privacy floor on minCellCount (DEC-GR-005 / REC-049-1 / REC-050-1)
   if (is.null(minCellCount) || length(minCellCount) != 1 || !is.numeric(minCellCount) ||
-      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 || (minCellCount %% 1 != 0)) {
+      is.na(minCellCount) || !is.finite(minCellCount) || minCellCount < 5 ||
+      minCellCount > .Machine$integer.max || (minCellCount %% 1 != 0)) {
     minCellCount <- 5
   } else {
     minCellCount <- as.integer(minCellCount)
@@ -386,7 +388,6 @@ runPheValuator <- function(connectionDetails,
   if (hasPheValuator) {
     summaryDf <- tryCatch({
       runner <- if (!is.null(runAnalysesFn)) runAnalysesFn else PheValuator::runPheValuatorAnalyses
-      summarizer <- if (!is.null(summarizeAnalysesFn)) summarizeAnalysesFn else PheValuator::summarizePheValuatorAnalyses
 
       referenceTable <- runner(
         phenotype = "TAXIS_5_Phenotypes",
@@ -402,6 +403,8 @@ runPheValuator <- function(connectionDetails,
         pheValuatorAnalysisList = pheValuatorAnalysisList
       )
 
+      # Resolve summarizer lazily after runner succeeds (REC-050-2)
+      summarizer <- if (!is.null(summarizeAnalysesFn)) summarizeAnalysesFn else PheValuator::summarizePheValuatorAnalyses
       summarizer(
         referenceTable = referenceTable,
         outputFolder = phevalFolder
