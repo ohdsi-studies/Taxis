@@ -1,8 +1,8 @@
 # TAXIS in the OHDSI Phenotype & Concept Set Engineering Ecosystem
 ## Universal Empirical Foundation for Agentic, Programmatic, and Classical Cohort Construction
 
-> **Document Type**: Scientific Architecture & Strategic Integration Specification  
-> **Status**: Approved OHDSI Network Study Design & Integration Architecture  
+> **Document Type**: Downstream Application Blueprint & Illustrative Integration Concepts  
+> **Operational Boundary Notice (`DEC-GR-027`, `DEC-GR-029`)**: This document explores prospective downstream tool integrations and conceptual architecture patterns that consume aggregate concept-pair tables produced by TAXIS. It is **NOT** part of the core OHDSI network study SQL execution on partner CDMs (`extras/CodeToRun.R`). External tools (e.g., OHDSI Keeper, ATLAS, Capr) are independent open-source projects; TAXIS supplies aggregate empirical data, not clinical adjudication guarantees.  
 > **Authorship & Study Leadership**: Stephen H. Bandeian, MD, JD (Principal Investigator & Original SQL Engine Author); J. Marc Overhage, MD, PhD (Co-Principal Investigator); Gowtham Rao, MD, PhD; Shaun Grannis, MD, MS  
 > **Applicable Decisions**: `DEC-GR-027`, `DEC-GR-028`, `DEC-GR-029`, `DEC-GR-030`, `DEC-GR-031`, `DEC-GR-032`  
 
@@ -58,9 +58,9 @@ Whether authored by a human clinical informatician or an autonomous LLM agent, c
 ### 2.1. The Ontological vs. Empirical Semantic Divergence
 Standard biomedical vocabularies (SNOMED-CT, RxNorm, LOINC) are formal ontologies that describe **taxonomic relationships** ("what clinical entities are"). Similarly, Large Language Models describe **textual semantic associations** ("how medical concepts are described in biomedical literature").
 
-Neither ontology nor linguistic semantics reflect **real-world healthcare operations** ("which clinical events actually co-occur, in what temporal order, and under what reimbursement or clinical documentation incentives across longitudinal electronic health records"):
-- An ontology will assert that *Acute Bronchitis* is a lower respiratory tract infection, but cannot indicate that in 73% of real-world outpatient encounters, oral acetaminophen is co-prescribed within 35 days, whereas invasive bronchoscopy is almost never performed.
-- An LLM prompted to generate diagnostic criteria for *Type 2 Diabetes Mellitus* will frequently recommend *C-peptide laboratory testing* based on medical textbook descriptions, whereas in routine outpatient primary care databases, C-peptide is ordered in fewer than 2% of patients, creating devastating cohort attrition if mandated as an inclusion criterion.
+Neither ontology nor linguistic semantics reflect **real-world healthcare operations** ("which clinical events actually co-occur, in what temporal order, and under what reimbursement or clinical documentation incentives across longitudinal electronic health records"). For illustrative purposes:
+- An ontology defines *Acute Bronchitis* as a lower respiratory tract infection, but does not quantify that outpatient encounters are frequently accompanied by supportive pharmacotherapy (e.g., antipyretics or analgesics) within 35 days, whereas invasive bronchoscopy is rarely performed.
+- Similarly, an LLM prompted to generate diagnostic criteria for *Type 2 Diabetes Mellitus* may recommend *C-peptide laboratory testing* based on textbook descriptions; however, in routine primary care databases, C-peptide testing is performed in only a small minority of patients, creating severe cohort attrition if mandated as an uncalibrated inclusion criterion.
 
 ### 2.2. The LLM Hallucination and Zero-Prevalence Trap
 When generative AI agents (e.g., Pythia, Phenelope, FastOMOP, or standalone GPT-4o/Claude agents) synthesize concept sets, they exhibit two vulnerabilities:
@@ -315,12 +315,12 @@ FROM read_parquet('/var/atlas3/cache/taxis/cab_s55_pair_all.parquet');
 
 ### 4.4. Paradigm 4: Clinical Case Adjudication & Diagnostic Evaluation (OHDSI KEEPER & PheValuator)
 
-#### 4.4.1. Automating the Expert-in-the-Loop in OHDSI KEEPER (v2.2.0)
-**KEEPER** (developed by Anna Ostropolets & Martijn Schuemie) automates clinical case validation by extracting de-identified patient timelines centered on an index event (Day 0) and submitting them to local sovereign LLMs (Ollama `llama3.3` on Port 11434) or cloud providers (OpenAI GPT-4o, Anthropic Claude 3.5 Sonnet) for clinical adjudication.
+#### 4.4.1. Conceptual Downstream Application: Empirical Grounding for Case Review (e.g., OHDSI KEEPER)
+**OHDSI KEEPER** (v2.2.0, developed by Anna Ostropolets & Martijn Schuemie) supports clinical case validation by extracting de-identified patient timelines centered on an index event (Day 0) for human and LLM-assisted case adjudication (via local sovereign models or cloud providers).
 
 However, as first identified by **Dr. Gowtham Rao** on the OHDSI Forums in October 2023 (*"Case Adjudication with the help of LLM"*), KEEPER historically faced a primary human bottleneck: **The Expert-in-the-Loop Filter**. In standard KEEPER workflows, human clinical informaticians had to hand-craft exclusion rules to remove hundreds of irrelevant, co-occurring concept IDs from the patient timeline (e.g., removing unrelated encounters for "ear pain" or "sore throat" when evaluating suspected cases of Rheumatoid Arthritis). Without this manual curation, LLMs became overwhelmed by non-informative noise, increasing prompt token costs, inducing cognitive distraction, and triggering hallucinations.
 
-TAXIS directly automates this expert filtering role and enhances KEEPER at three decisive levels:
+In a prospective downstream integration, aggregate association metrics from TAXIS could serve as an objective empirical reference to assist clinical case review tools:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -346,16 +346,13 @@ TAXIS directly automates this expert filtering role and enhances KEEPER at three
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-1. **Automated Noise Elimination**: By querying TAXIS pre-computed joint marginals and stratified lift, KEEPER automatically filters the patient profile to only clinical concepts with certified empirical relevance ($N \ge 5$, $\text{Lift}_{\text{strat}} \ge 1.50$), eliminating clinical noise while preserving informative clinical signal.
-2. **Resolving the Causation vs. Treatment Dilemma (The Rao-Reich Paradox)**:
-   - In the 2023 forum debate, Dr. Rao and Dr. Christian Reich demonstrated that naive LLM prompt filtering fails because high-frequency terms like *acetaminophen* are labeled as "Related" to *Acute Liver Injury*, confounding etiologic causes with therapeutic indications.
-   - TAXIS provides KEEPER with mathematical **Directionality Ratios ($DR$)**:
-     - Concepts with $DR \ge 1.50$ (e.g., Acetaminophen) are placed into the **Antecedent Etiologies & Risk Factors** section of the KEEPER timeline;
-     - Concepts with $DR \le 0.67$ (e.g., N-acetylcysteine, Lactulose) are placed into the **Therapeutic Interventions** section;
-     - Concepts with $0.67 < DR < 1.50$ (e.g., Elevated ALT/AST, Bilirubin, Ultrasound) are placed into the **Diagnostic Biomarkers & Signs** section.
-   - This transforms KEEPER's timeline presentation from an undifferentiated list of codes into a clinically structured, chronological diagnostic dossier, drastically improving LLM adjudication accuracy and preventing confabulation.
-3. **Adjudication Calibration & Operating Characteristics**: KEEPER’s LLM case adjudication decisions (Confirmed Case, Non-Case, Indeterminate) are cross-calibrated against TAXIS empirical co-occurrence distributions and evaluated via HADES `PheValuator` operating curves (Sensitivity, Specificity, PPV), ensuring that evaluations remain anchored in verifiable epidemiological ground truth.
-
+1. **Empirical Pre-Filtering as Hypothesis Context**: By querying TAXIS aggregate joint marginals and stratified lift, an adjudication pipeline could prioritize concepts with demonstrated empirical co-occurrence ($N \ge 5$, $\text{Lift}_{\text{strat}} \ge 1.50$) to assist clinical reviewers. Importantly, absence from a filtered pair table or low lift does not certify clinical irrelevance (e.g., rare manifestations or atypical presentations); candidate lists must serve as supporting context rather than rigid exclusion filters.
+2. **Temporal Structuring of Candidate Events**:
+   - In observational data, candidate concepts exhibit differing temporal patterns relative to the index condition. For example, hepatotoxic medications (e.g., acetaminophen overdose) typically precede acute liver injury records, whereas antidotes (e.g., N-acetylcysteine) typically follow.
+   - Rather than assuming an LLM can infer clinical roles from raw concept lists, downstream tools can use TAXIS temporal metrics ($DR$, $\text{obs\_after}$, $\text{obs\_before}$) to arrange candidate concepts chronologically (pre-index vs. post-index), providing organized timeline structure for human or model evaluation. Observational temporal ordering does not prove clinical causality or mechanisms, but provides descriptive sequence.
+3. **Governance and Evaluation Requirements for Prospective Integrations**:
+   - Any future patient-dossier-to-cloud workflow requires its own verified data-handling and de-identification contract compliant with institutional review and partner data use agreements; aggregate suppression in TAXIS output archives does not establish a patient-level cloud transmission contract.
+   - Any claim of improved adjudication accuracy or efficiency requires rigorous empirical evaluation against independently labeled clinical reference cases.
 ---
 
 ## 5. Comparative Evaluation: Cohort Builders With vs. Without TAXIS
@@ -365,10 +362,10 @@ The following matrix summarizes the technical and methodological contrast across
 | Evaluation Dimension | Without TAXIS (Current Baseline) | With TAXIS Empirical Foundation |
 |---|---|---|
 | **Concept Selection** | Lexical string matching and ontological tree traversal; vulnerable to selecting retired, experimental, or zero-prevalence codes. | Data-driven selection ranked by empirical database prevalence ($N \ge 5$) and Mantel-Haenszel Stratified Lift ($\text{Lift}_{\text{strat}}$). |
-| **Inclusion vs. Exclusion Logic** | Subjective clinician or LLM intuition; high risk of confusing diagnostic rule-out testing with true disease presence. | Mathematical directionality: Continuity-corrected Directionality Ratio ($DR$) formally separates causes ($DR \gg 1$) from treatments ($DR \ll 1$). |
+| **Inclusion vs. Exclusion Logic** | Subjective clinician or LLM intuition; high risk of confusing diagnostic rule-out testing with true disease presence. | Descriptive temporal ordering: Continuity-corrected Directionality Ratio ($DR$) characterizes whether Concept A was recorded predominantly before ($DR \gg 1$) or after ($DR \ll 1$) Concept B in observational records. |
 | **Temporal Window Specification** | Arbitrary standard intervals (e.g., fixed $\pm 30$ or $\pm 365$ days) chosen without justification. | Empirical lag decay distributions (`cab_s37_lag_all`) establish precise 90% observed clinical density bounds across $[-400, +400]$ days. |
 | **Attrition Behavior** | Uncontrolled post-hoc attrition; blanket exclusion rules eliminate 30% to 70% of valid patients during database instantiation. | Pre-flight attrition boundaries: Rule-out exclusion candidates capped at $\le 10\%$ co-occurrence to protect study sample size and power. |
-| **LLM Agent Reliability** | Frequent hallucination of plausibly sounding clinical criteria; ungrounded synthesis of non-existent code sets. | Deterministic grounding: Agent tools query TAXIS empirical knowledge graph, preventing hallucination and enforcing verifiable CDM validity. |
+| **LLM Agent Reliability** | Selection of clinically plausible but unobserved or retired codes; ungrounded synthesis of zero-prevalence concept sets. | Empirical grounding: Agent tools query TAXIS empirical summaries, anchoring concept suggestions in observed database counts and identifying zero-prevalence codes. |
 | **Database Execution Overhead** | Expensive full-table scans across hundreds of millions of CDM rows for every candidate inclusion rule trial. | $O(1)$ query short-circuiting in analytical caches (TrexSQL / DuckDB) and 60–80% reduction in SQL `IN (...)` clause sizes. |
 | **Phenotype Portability** | Algorithms optimized on one hospital's coding patterns fail unpredictably when executed across an international network. | Standardized network-wide mining metrics ensure reproducible, multi-site validated phenotypic definitions. |
 

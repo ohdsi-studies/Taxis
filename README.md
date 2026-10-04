@@ -142,20 +142,21 @@ We have verified this complete three-phase pipeline (`concept_ab_init.sql`, `con
 ### 2. The Clinical Knowledge Graph (Taxonomy v6.0)
 Statistical co-occurrence in observational data indicates association rather than clinical etiology. To assign explicit clinical semantics, TAXIS incorporates a 112-code clinical relationship taxonomy organized across five core relationship families: causal and pathophysiological mechanisms, clinical manifestations and symptoms, diagnostic laboratory and procedural evaluations, therapeutic interventions, and differential diagnostic mimics. An ensemble of clinical models evaluates co-occurring concept pairs, assigns structured taxonomy codes and empirical evidence grades, and documents the clinical rationale for each relationship.
 
-For the definitive scientific monograph on its provenance (including Dr. Stephen H. Bandeian's clinical concept-pair architecture and AHRQ/CMS episode-of-care foundation, and Dr. J. Marc Overhage's clinical validation architecture), pathophysiological foundations, and complete code specifications, see the [Scientific Foundations & Specification of the TAXIS Clinical Pair Taxonomy](docs/knowledge_graph/TAXONOMY_SCIENTIFIC_FOUNDATIONS_AND_SPECIFICATION.md).
+For the downstream application blueprint on clinical concept-pair classification, its historical provenance (Dr. Stephen H. Bandeian's concept-pair architecture and Dr. J. Marc Overhage's clinical validation architecture), and empirical metric coordination, see the [Downstream Application Blueprint: TAXIS Clinical Pair Taxonomy](docs/knowledge_graph/TAXONOMY_SCIENTIFIC_FOUNDATIONS_AND_SPECIFICATION.md).
 
 ### 3. Demonstrating Downstream Applications
-While our primary focus is releasing and maintaining TAXIS as a network study package, this repository includes proof-of-concept packages illustrating how TAXIS data can be consumed by downstream tools:
+While our primary focus is releasing and maintaining TAXIS as a network study package, this repository includes proof-of-concept applications and packages illustrating how TAXIS data can be consumed by downstream tools:
 - **`Taxis` (this package)**: The core network study package. It executes the large-scale association mining pipeline across local CDM databases and packages privacy-preserving, cell-suppressed aggregate results to help build our public concept pair resource.
+- **Concept Pair Classifier Demo (`extras/applications/concept_pair_classifier/`)**: A working proof-of-concept application demonstrating how downstream analytical workflows query mined pairs (`cab_s55_pair_all`), compute continuity-corrected Directionality Ratios, and categorize associations into candidate clinical relationship classes.
 - **`TaxisPhenotypeCreator`**: A companion proof-of-concept package showing how clinical descriptions and empirical graph edges could be translated into standards-compliant Circe JSON cohort definitions.
 - **`TaxisPhenotypeEvaluation`**: A companion evaluation package demonstrating how to assess cohort diagnostics and evaluate overlap against OHDSI Phenotype Library definitions across partner databases.
 
-### 4. Universal Compatibility with the OHDSI Tooling & Agentic Ecosystem
-TAXIS operates as an agnostic empirical foundation layer that integrates with both agentic (LLM-driven) and non-agentic (programmatic/graphical) cohort and concept set builders across the OHDSI community:
-- **Agentic & Generative AI Systems**: Supplies empirical co-occurrence matrices, continuity-corrected Directionality Ratios ($DR$), and temporal lag decay windows to **OHDSI Pythia** (ATLAS 3.0 AI Assistant), **Phenelope** (LLM concept set builder), **FastOMOP** (multi-agent RWE framework), **OHDSI KEEPER** (dual-hybrid LLM clinical case adjudication), and the **OHDSI Study Agent**, grounding generative models in empirical real-world evidence and eliminating hallucinations.
-- **Programmatic & Graphical Frameworks**: Integrates into **Capr** (HADES R domain-specific language), **ATLAS 3.0** (TrexSQL DuckDB query cache acceleration with $O(1)$ short-circuiting and descendant pruning), **PHOEBE** (concept set recommendation), and **Aphrodite** (anchor-based machine learning phenotyping).
+### 4. Downstream Application Integration Concepts
+TAXIS generates standardized empirical association summaries that can serve as an objective data resource for downstream authoring and evaluation frameworks across the OHDSI ecosystem:
+- **Generative AI & Review Systems**: Supplies empirical co-occurrence matrices, continuity-corrected Directionality Ratios ($DR$), and temporal lag decay windows as grounding context for concept set curation tools and clinical review pipelines, reducing reliance on ungrounded lexical matching.
+- **Programmatic & Analytical Frameworks**: Provides pre-computed pair counts and marginal summaries that can accelerate query compilation in **Capr** (HADES R domain-specific language) and **ATLAS 3.0** analytical caches (TrexSQL DuckDB).
 
-For complete architectural patterns, code examples, and Model Context Protocol (FastMCP) schemas, see the [TAXIS Cohort & Concept Set Builder Ecosystem Specification](docs/phenotyping/TAXIS_COHORT_AND_CONCEPT_SET_BUILDER_ECOSYSTEM.md).
+For conceptual integration blueprints and architectural patterns, see the [TAXIS Downstream Tool Integration Blueprint](docs/phenotyping/TAXIS_COHORT_AND_CONCEPT_SET_BUILDER_ECOSYSTEM.md).
 
 ---
 
