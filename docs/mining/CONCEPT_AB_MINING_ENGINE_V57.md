@@ -335,12 +335,12 @@ Comparing observed concept pairs to the theoretical maximum combinatorial space 
 | **4061** | `drug \| meas result` | 3,280 | 22,886 | 75,066,080 | 1,250,436 | **1.7%** |
 | **9999** | **ALL PAIR TYPES** | **Combinatorial Space** | — | **1,517,630,330** | **14,233,528** | **0.9%** |
 
-*Methodological Implication*: Because 99.1% of possible concept pairings never occur, observational data itself serves as a massive candidate-reduction filter before statistical thresholds or LLM semantic reasoning are applied.
+*Methodological Context*: Under the documented support filtering threshold ($N_{AB} \ge 5$ distinct persons required for statistical evaluation in the benchmark tables; batch filter `pair_total > @cab_min_ab_obs`), **0.9%** of theoretically possible concept pairs are retained as observed candidates. This establishes that minimum observed support alone filters out 99.1% of the theoretical combinatorial space prior to higher-order lift gating or LLM adjudication.
 
 ---
 
 ### 5.5 Longitudinal Timing & Directionality Dynamics (Table 5)
-Co-occurring event pairs exhibit distinct temporal signatures across encounter settings. Same-visit events represent a refinement of same-day events; the remaining proportions partition longitudinal precedence between Concept A preceding Concept B ($A \to B$) and Concept B preceding Concept A ($B \to A$).
+The temporal distribution of co-occurring event pairs partitions across calendar dates into **`% same day`** (10.3%), **`% A before B`** (42.7%), and **`% B before A`** (47.0%), which together partition 100.0% of pairwise event co-occurrences by calendar date. In parallel, **`% same visit`** (27.5%) measures encounter-level linkage using `visit_occurrence_id`: because inpatient hospitalizations, observation stays, and emergency-to-inpatient transfers span multiple calendar dates, events occurring on different days of the same hospital admission can exhibit directional precedence ($A \to B$ or $B \to A$) while simultaneously sharing an identical overarching visit identifier.
 
 | Pair Code | Domain Pair Name | Observed Concept Pairs | Event-Pair Observations | % Same Visit | % Same Day | % A before B ($A \to B$) | % B before A ($B \to A$) | Dominant Clinical Directionality |
 |---|---|---|---|---|---|---|---|---|
@@ -452,36 +452,36 @@ Evaluating ClinVec benchmark pairs across observational co-occurrence tiers demo
 
 ## 6. Concordance & Consistency Audit: OHDSI T-SQL vs. Bandeian Empirical Write-Up
 
-A comprehensive line-by-line concordance audit was conducted across the OHDSI T-SQL codebase (`inst/sql/sql_server/*.sql` and `docs/mining/sql/*.sql`) and Dr. Stephen H. Bandeian's original write-ups (`TAXIS_Supporting_Appendix_INPC 2M 4 Jun 2026.pdf`, `cab_summary_tables.docx`, and the 2025 OHDSI Symposium paper). The implementation is **100% consistent and mathematically identical** across all specifications:
+A structured architectural crosswalk was conducted comparing the released OHDSI T-SQL codebase (`inst/sql/sql_server/*.sql` and `docs/mining/sql/*.sql`) with Dr. Stephen H. Bandeian's authoritative write-ups (`TAXIS_Supporting_Appendix_INPC 2M 4 Jun 2026.pdf`, `cab_summary_tables.docx`, and the 2025 OHDSI Symposium paper). The comparison confirms structural, schema, and parametric concordance across core specifications, while identifying the exact functional locations for downstream transformations:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                        OHDSI T-SQL ENGINE vs. EMPIRICAL BENCHMARK CONCORDANCE MATRIX                   │
+│                        OHDSI T-SQL ENGINE vs. EMPIRICAL BENCHMARK CONCORDANCE CROSSWALK                │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
   Architectural Feature    OHDSI T-SQL Implementation                 Bandeian Empirical Write-Up     Status
  ──────────────────────   ────────────────────────────────────────── ─────────────────────────────   ────────
-  1. Domain IDs (src)      10=Cond, 20=Proc, 30=Dev, 40=Drug,         Table 2: 10, 20, 30, 40, 50,    100% MATCH
+  1. Domain IDs (src)      10=Cond, 20=Proc, 30=Dev, 40=Drug,         Table 2: 10, 20, 30, 40, 50,    Concordant
                            50=ObsTest, 51=ObsRes, 60=MeasTest,        51, 60, 61.                     (Exact)
                            61=MeasRes, 11=ChronicCond                                                         
                                                                                                               
-  2. Pair-Type Formula     a.src * 100 + b.src                        Table 3–7: 1010 to 4061         100% MATCH
+  2. Pair-Type Formula     a.src * 100 + b.src                        Table 3–7: 1010 to 4061         Concordant
                            (e.g., 1010, 1040, 1061, 2040, 4040)       (All 24 integer pair codes)     (Exact)
                                                                                                               
-  3. Key Packing Logic     concept_id = test * 1e9 + result_code      Lab/Obs result packing scheme    100% MATCH
+  3. Key Packing Logic     concept_id = test * 1e9 + result_code      Lab/Obs result packing scheme   Concordant
                            (Integer band 60000000..60099999)          (Packed surrogate keys)         (Exact)
                                                                                                               
-  4. Temporal Intervals    Interval 1: delta 0 (same day)             Table 5: % same visit,          100% MATCH
+  4. Temporal Intervals    Interval 1: delta 0 (same day)             Table 5: % same visit,          Concordant
                            Interval 2: delta +1..+W (B after A)       % same day, % A before B,       (Exact)
                            Interval 3: delta -W..-1 (B before A)      % B before A                                    
                                                                                                               
-  5. Directionality Math   dir_ab = obs_after / (obs_after+obs_before) DR = (N_A->B+0.5)/(N_B->A+0.5) 100% MATCH
-                           in cab_s55_pair_all; transformed to DR     (Haldane-Anscombe continuity)   (Exact)
+  5. Directionality Math   dir_ab = obs_after / (obs_after+obs_before) DR = (N_A->B+0.5)/(N_B->A+0.5) Concordant
+                           in cab_s55_pair_all; transformed to DR     (Downstream R/Python export)    (Mapped)
                                                                                                               
-  6. Lift Estimands        pers_lift = pers / pers_exp                Table 7: Person-level lift      100% MATCH
+  6. Lift Estimands        pers_lift = pers / pers_exp                Table 7: Person-level lift      Concordant
                            obs_lift = obs / obs_exp                   distributions (>=1, 2, 3, 5)    (Exact)
                            Stratified: cab_s33_mh_all (E_util)        Decile-adjusted expected                        
                                                                                                               
-  7. Output Table Set      All 18 canonical tables materialized:      Complete 18 export tables       100% MATCH
+  7. Output Table Set      All 18 canonical tables materialized:      Complete 18 export tables       Concordant
                            cab_s10, s20, s30, s40, s50, s55, s13,     profiled and documented         (Exact)
                            s23, s33, s33_mh, vocab, lag, timing...                                                    
 ```
@@ -511,17 +511,17 @@ A comprehensive line-by-line concordance audit was conducted across the OHDSI T-
 5. **Directionality Ratio ($DR$) vs. Directional Share (`dir_ab`)**:
    - In `inst/sql/sql_server/concept_ab_finalize.sql` (line 1348), the SQL engine computes the raw directional proportion:
      $$\text{dir\_ab} = \frac{\text{obs\_after}}{\text{obs\_after} + \text{obs\_before}}$$
-   - In the downstream R analytical engine (`R/RunMining.R`) and Bandeian's write-up, the continuity-corrected Directionality Ratio is calculated:
+   - In downstream post-processing pipelines (such as `examples/knowledge_graph/build_graph.py` and analytical exports), the continuity-corrected Directionality Ratio is calculated:
      $$DR = \frac{N_{A \to B} + 0.5}{N_{B \to A} + 0.5} = \frac{\text{obs\_after} + 0.5}{\text{obs\_before} + 0.5}$$
    - These formulations are monotonically equivalent: $DR = \frac{\text{dir\_ab} + 0.5/N}{(1 - \text{dir\_ab}) + 0.5/N}$. The SQL engine provides the unadjusted contingency base, while the export layer applies the Haldane-Anscombe continuity correction to safeguard against zero-division in sparse pairs.
 
 6. **Healthcare Utilization Decile Stratification**:
    - The SQL scripts `concept_ab_init.sql` (lines 205–250) and `concept_ab_finalize.sql` (lines 913–1054) implement utilization decile tables `cab_s13_strat_all`, `cab_s23_strat_all`, `cab_s33_strat_all`, and `cab_s33_mh_all`.
-   - Expected cell counts are formed inside each decile before summing ($E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A,k} \cdot N_{B,k} \cdot (2W+1)}{\text{person\_days}_k}$), exactly neutralizing contact-density bias as specified in Authoritative Decision `DEC-GR-010`.
+   - Expected cell counts are formed inside each decile before summing ($E_{AB, \text{util}} = \sum_{k=1}^{10} \frac{N_{A,k} \cdot N_{B,k} \cdot (2W+1)}{\text{person\_days}_k}$), mitigating contact-density bias as specified in Authoritative Decision `DEC-GR-010` (while recognizing that residual within-decile health-seeking variation may persist).
 
 7. **Harmonization of Pilot (1.04M) vs. Production (2.16M) Benchmark Runs**:
    - The repository documentation explicitly distinguishes Dr. Bandeian's exploratory pilot run (`cab_summary_tables.docx`, $N = 1,035,846$; 5.42M person-years; 87,963 concepts; 11,705,143 observed pairs) from the finalized production benchmark run (`TAXIS_Supporting_Appendix_INPC 2M 4 Jun 2026.pdf`, $N = 2,157,525$; 11,299,055 person-years; 95,968 concepts; 14,233,528 observed pairs).
-   - Both runs executed the identical Pipeline v57 T-SQL codebase, confirming perfect algorithmic stability and reproducible scaling across cohort expansions.
+   - Both runs share the Pipeline v57 architectural design and parameter conventions, while historical server execution binary hashes and runtime environment configurations remain unverified historical artifacts.
 
 ---
 

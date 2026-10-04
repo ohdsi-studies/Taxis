@@ -102,6 +102,7 @@ TAXIS synthesizes **three coordinated cohort tiers** for every clinical concept:
 - **Methodological Design**: Formulated as a **treatment-enriched, high-specificity cohort** designed to eliminate non-case rule-out evaluations in comparative effectiveness research. While clinical consensus definitions (e.g. Fourth Universal Definition of Myocardial Infarction) define ischemic injury biochemically and clinically regardless of whether invasive therapy occurs, requiring procedural or acute pharmacological intervention serves as an established epidemiological design filter for high Positive Predictive Value.
 - **Anchor Requirement**: Inpatient hospitalization or Emergency Department visit with primary diagnosis of interest.
 - **Intervention Gate**: Requires at least one definitive therapeutic procedure (`THER_INTERVENTION_PROC`) OR acute, disease-specific inpatient pharmacotherapy initiation (`THER_FIRST_LINE`) within $[0, +2]$ days of index.
+  - *Methodological Conditioning Note*: Requiring therapeutic intervention within $[0, +2]$ days of index and $\ge 90$ days secondary prevention persistence conditions on post-index events. For comparative-safety or causal studies, immortal time and post-index selection must be formally addressed (e.g., via landmark designs or time-dependent confounding adjustments) rather than treating raw Tier 1 as an unadjusted causal baseline.
 - **Confirmatory Testing**: Requires at least one documented diagnostic test or confirmatory laboratory measurement (`DIAG_LAB_CONFIRMATORY`) within $[-1, +2]$ days.
 - **Mimic Exclusions**: Excludes patients with primary competing diagnoses coded concurrently without definitive interventional therapy.
 - **Target Design Thresholds**: Specificity $\ge 98\%$, PPV $\ge 92\%$.
@@ -114,13 +115,15 @@ TAXIS synthesizes **three coordinated cohort tiers** for every clinical concept:
 
 ### Tier 3: Diagnostic Evaluator Cohorts for Automated PheValuator Calibration
 - **Extremely Specific Cohort (`xSpec`)**: Tier 1 + positive biomarker result + secondary prevention persistence $\ge 90$ days. Serves as noisy positive training set for `PheValuator::createEvaluationCohort`.
-- **Extremely Sensitive Cohort (`xSens`)**: Formulated strictly in accordance with OHDSI `PheValuator` methodology as a **broad non-case exclusion zone**. Encompasses any patient presenting with suggestive symptoms, related diagnostic codes, or work-up orders within $\pm 30$ days. During predictive model training, any patient inside the `xSens` boundary who is not in `xSpec` is **excluded from the negative training set**, preventing plausible, mild, or conservatively managed cases from contaminating the noisy control pool. Label-defining diagnosis, procedure, and drug features are strictly excluded from predictive covariates during model fitting.
+- **Extremely Sensitive Cohort (`xSens`)**: Formulated strictly in accordance with OHDSI `PheValuator` methodology as a **broad non-case exclusion zone**. Encompasses any patient presenting with suggestive symptoms, related diagnostic codes, or work-up orders within $\pm 30$ days. During predictive model training, any patient inside the `xSens` boundary who is not in `xSpec` is **excluded from the negative training set**, preventing plausible, mild, or conservatively managed cases from contaminating the noisy control pool. Label-defining diagnosis, procedure, drug, and laboratory measurement features are strictly excluded from predictive covariates during model fitting. Full model calibration additionally requires empirical prevalence calibration and validation on held-out test splits.
 
 ---
 
 ## 4. Flagship Case Study: Acute Myocardial Infarction (AMI)
 
 Acute Myocardial Infarction (AMI) serves as the primary flagship demonstration of the 6-bucket slot engine, formalizing the clinical adjudication patterns from the **10 synthetic educational case vignettes** analyzed in Phenotype Aphril Week 2 (Slides 18–48).
+
+*Synthetic Educational Vignette Generation Basis & Provenance*: The case vignettes below (labeled with illustrative scenario IDs 2751, 225, 1816, etc.) are newly authored synthetic educational prototypes modeled after public OHDSI Phenotype Development & Evaluation Workgroup teaching concepts (such as the community 'Phinding Phenotypes with Phriends' educational exercises). They do not represent real-world patient records, hospital EHR extracts, or PHI; all clinical sequences are synthetically generated to illustrate multi-tiered phenotype and knowledge-graph slot matching.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -213,13 +216,13 @@ In Phenotype Aphril Week 2, the community participated in interactive case adjud
 
 | Synthetic Case Vignette # | Adjudication Vignette Pattern | Community / Consensus Decision | TAXIS Knowledge Graph Evaluation |
 |---|---|---|---|
-| **Vignette 2751** | Day 0 Inpatient NSTEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4. High $DR$ forward revascularization confirms acute infarct in high-specificity tier. |
-| **Vignette 225** | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4, 5. Multi-admission recurrence confirms severe acute CAD. |
-| **Vignette 1816** | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Not a Case (Certainty: High)** | Fails Bucket 4 (zero interventions). Bucket 6 mimic (gastritis) triggered. Classic rule-out. |
-| **Vignette 129** | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Old Case (Pre-index)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical. |
-| **Vignette 626** | Outpatient carry-forward code at routine visit + zero cardiac meds | **Not a Case (Certainty: High)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact. |
-| **Vignette 5189** | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Case (Under-coded)** | Satisfies Buckets 3, 4 (Tenecteplase in acute presentation), 5. Flagged as rescue case in broad surveillance tier. |
-| **Vignette 1100** | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Not a Case (Certainty: Low)** | Fails Bucket 4. Cath without revascularization reflects negative rule-out for culprit lesion. |
+| **Vignette 2751** | Day 0 Inpatient NSTEMI + PCI (stent) on Day 0–2 + Clopidogrel | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4. Meets Tier 1 treatment-enriched criteria (acute diagnosis + forward revascularization), eliminating rule-out ambiguity for high-specificity studies. |
+| **Vignette 225** | Emergent admission + cath/PCI + cardiogenic shock + P2Y12 | **Case (Certainty: High)** | Satisfies Buckets 1, 3, 4, 5. Meets Tier 1 criteria; multi-admission recurrence confirms severe acute CAD presentation. |
+| **Vignette 1816** | Outpatient/ED single day + Troponin/ECG + gastritis + esomeprazole | **Not a Case (Certainty: High)** | Fails Tier 1 intervention gate (zero revascularization/acute pharmacotherapy). Bucket 6 mimic (gastritis) documented alongside negative work-up. Categorized as non-case rule-out in high-specificity tier. |
+| **Vignette 129** | Outpatient codes for "Old MI" + secondary prevention + PCI on day 406 | **Old Case (Pre-index)** | Fails incident wash-in criteria ($\ge 365$ days clean baseline). Correctly flagged as historical event. |
+| **Vignette 626** | Outpatient carry-forward code at routine visit + zero cardiac meds | **Not a Case (Certainty: High)** | Fails Buckets 3 and 4. Identified as problem-list administrative artifact; does not meet acute encounter or diagnostic criteria in either tier. |
+| **Vignette 5189** | Cardiac arrest + cardiogenic shock + Tenecteplase, NO explicit AMI code | **Case (Under-coded / Edge Case)** | Requires secondary clinical rescue logic (acute cardiac arrest, shock, and emergency thrombolysis without explicit primary AMI code); fails standard Tier 1/Tier 2 diagnosis anchor, illustrating edge-case capture under expanded rescue rules. |
+| **Vignette 1100** | Angina primary + secondary AMI + cath (normal) + NO PCI or acute DAPT | **Not a Case (Certainty: Low in Tier 1; Evaluated in Tier 2)** | Diagnostic cath without revascularization fails Tier 1 strict treatment gate, reflecting lack of acute intervention. Eligible for Tier 2 surveillance evaluation pending diagnostic troponin/ECG confirmation. |
 
 ---
 

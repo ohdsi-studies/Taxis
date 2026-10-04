@@ -290,8 +290,8 @@ def test_ohdsi_tsql_dialect_conformance():
 
 
 def test_empirical_benchmark_and_concordance_audit():
-    """Verify presence of empirical INPC 2.16M benchmark tables (Tables 1-7, Exhibits 1-2) and SQL concordance audit."""
-    print("--> Test 8: Validating empirical INPC 2.16M benchmark tables and SQL concordance audit...")
+    """Static document-content presence audit: verify presence of empirical INPC 2.16M benchmark tables (Tables 1-7, Exhibits 1-2) and SQL concordance audit in documentation."""
+    print("--> Test 8: Validating empirical INPC 2.16M benchmark tables and SQL concordance audit document-content presence...")
     with open(SPEC_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -331,7 +331,7 @@ def test_empirical_benchmark_and_concordance_audit():
         print(f"  [FAIL] Missing empirical benchmark metrics: {missing_metrics}")
         return False
 
-    print("  [PASS] Empirical INPC benchmark tables (1-7), ClinVec validation, and SQL concordance audit verified.")
+    print("  [PASS] Empirical INPC benchmark tables (1-7), ClinVec validation, and SQL concordance audit document-content presence verified.")
     return True
 
 
