@@ -47,13 +47,14 @@
 #' @param runBatches               Whether to execute the iterative batch loop (default: TRUE).
 #' @param runFinalize              Whether to execute the rollup and finalization phase (default: TRUE).
 #' @param outputFolder             Local directory where logs and diagnostic SQL dumps will be saved.
-#'
-#' @author Stephen H. Bandeian, MD, JD (Original SQL & Analytic Algorithms, Principal Investigator)
+#' @author Stephen H. Bandeian, MD, JD (Author of all SQL & Analytic Code, Principal Investigator)
 #' @author Gowtham Rao, MD, PhD (Study Package Implementation & Maintenance)
 #'
-#' @note All SQL scripts (init, batch, finalize), 40-batch random partitioning strategies,
-#' measurement key packing schemes, continuity-corrected directionality formulations, and
-#' underlying analytic algorithms were conceived, designed, and authored by Stephen H. Bandeian, MD, JD.
+#' @note ALL SQL code in this pipeline was written by Stephen H. Bandeian, MD, JD.
+#' Full credit, primary authorship, and scientific attribution for all SQL scripts
+#' (init, batch, finalize), 40-batch random partitioning strategies, measurement key
+#' packing schemes, healthcare utilization decile stratification, continuity-corrected
+#' directionality formulations, and underlying analytic algorithms belong to Dr. Stephen H. Bandeian.
 #'
 #' @export
 runConceptMining <- function(connectionDetails,

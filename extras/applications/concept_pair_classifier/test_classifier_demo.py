@@ -64,6 +64,18 @@ def main():
     # Sub-test: total obs < 5 must be withheld completely
     small_total_row = (99901, "Test Cond", 99903, "Rare Exp", 4, 1, 2, 1, 1.5, 0.66)
     assert sanitize_pair_record(small_total_row) is None, "Row with total < 5 was not withheld"
+
+    # Sub-test: after=0, before=0 (no directionality observed) must have None DR
+    no_dir_row = (99901, "Test Cond", 99904, "SameDay Only", 10, 10, 0, 0, 1.25, 0.5)
+    sanitized_nodir = sanitize_pair_record(no_dir_row)
+    assert sanitized_nodir is not None, "No-direction record unexpectedly withheld"
+    assert sanitized_nodir["obs_all"] == 10
+    assert sanitized_nodir["obs_same_day"] == 10
+    assert sanitized_nodir["obs_after"] == 0
+    assert sanitized_nodir["obs_before"] == 0
+    assert sanitized_nodir["temporal_category"] == "No Directional Precedence Observed"
+    assert sanitized_nodir["dr_corrected"] is None, f"Expected None dr_corrected for no-direction, got {sanitized_nodir['dr_corrected']}"
+    assert sanitized_nodir["dir_ab_sql"] == 0.5
     print("    [PASS] Small-cell suppression, subtraction protection, and anti-inversion verified.")
 
     # Test 3: Live execution against PostgreSQL fixture

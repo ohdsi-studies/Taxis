@@ -9,13 +9,19 @@
 # small-cell suppression (< 5 masked to -1), and packages non-identifiable aggregate
 # summary tables into an auditable zip archive for study coordination.
 #
-# Authorship & Attribution:
-#   All SQL scripts (init, batch, finalize), 40-batch partitioning strategies,
-#   directionality formulas, and original analytic algorithms were conceived,
-#   designed, and authored by Stephen H. Bandeian, MD, JD.
+# Authorship, Full Credit & Scientific Attribution:
+#   ALL SQL code and analytical algorithms in this study package were conceived,
+#   designed, and written by Stephen H. Bandeian, MD, JD (Principal Investigator,
+#   Johns Hopkins University School of Medicine).
+#
+#   Full credit, primary authorship, and intellectual attribution for all SQL
+#   scripts (init, batch, finalize), 40-batch partitioning strategies, healthcare
+#   utilization decile stratification, continuity-corrected directionality
+#   formulations, measurement key packing schemes, and core analytical code
+#   belong entirely to Dr. Stephen H. Bandeian.
 #
 # Study Leadership:
-#   • Stephen H. Bandeian, MD, JD - Principal Investigator, Johns Hopkins University School of Medicine
+#   • Stephen H. Bandeian, MD, JD - Principal Investigator & Author of all SQL & Analytic Code, Johns Hopkins University School of Medicine
 #   • J. Marc Overhage, MD, PhD - Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine
 #   • Gowtham Rao, MD, PhD - Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup
 #   • Shaun Grannis, MD, MS - Investigator, Regenstrief Institute / Indiana University School of Medicine

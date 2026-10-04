@@ -30,6 +30,13 @@
 #' @param databaseId               Unique identifier for the participating database (e.g. "INPC", "JNJ").
 #' @param minCellCount             Minimum cell count threshold for disclosure suppression (default: 5, mandatory floor: 5).
 #'
+#' @author Stephen H. Bandeian, MD, JD (Author of all SQL & Analytic Code, Principal Investigator)
+#' @author Gowtham Rao, MD, PhD (Study Package Implementation & Maintenance)
+#'
+#' @note All underlying SQL code, cumulative and final analytical tables, association
+#' metrics, and statistical schemas processed and packaged by this function were conceived,
+#' designed, and written by Stephen H. Bandeian, MD, JD.
+#'
 #' @export
 packageMiningResults <- function(connectionDetails,
                                  resultsDatabaseSchema,

@@ -46,13 +46,14 @@
 #' @param runMining                Whether to execute the Concept AB mining pipeline (default: TRUE).
 #' @param packageResults           Whether to extract and package non-PHI aggregate results (default: TRUE).
 #' @param minCellCount             Minimum count threshold for small-cell suppression (< 5 masked to -1, default: 5).
-#'
-#' @author Stephen H. Bandeian, MD, JD (Original SQL & Analytic Algorithms, Principal Investigator)
+#' @author Stephen H. Bandeian, MD, JD (Author of all SQL & Analytic Code, Principal Investigator)
 #' @author Gowtham Rao, MD, PhD (Study Package Implementation & Maintenance)
 #'
-#' @note All SQL scripts (init, batch, finalize), 40-batch random partitioning strategies,
-#' and underlying analytic algorithms in the Concept AB Mining Engine were conceived, designed,
-#' and authored by Stephen H. Bandeian, MD, JD.
+#' @note ALL SQL code in this pipeline was written by Stephen H. Bandeian, MD, JD.
+#' Full credit, primary authorship, and scientific attribution for all SQL scripts
+#' (init, batch, finalize), 40-batch random partitioning strategies, healthcare
+#' utilization decile stratification, and underlying analytic algorithms belong to
+#' Dr. Stephen H. Bandeian.
 #'
 #' @export
 execute <- function(connectionDetails,

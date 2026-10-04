@@ -12,6 +12,12 @@ This is an illustrative proof-of-concept downstream application, not part of the
 core network study package execution on partner CDMs (extras/CodeToRun.R).
 Observational temporal sequence is supporting descriptive evidence and does NOT
 establish clinical roles, biological mechanisms, or causal relationships.
+
+Scientific Attribution & Provenance:
+All underlying SQL code, analytical tables (cab_s55_pair_all), 40-batch random
+partitioning architectures, and continuity-corrected Directionality Ratio (DR)
+formulations were conceived, designed, and written by Stephen H. Bandeian, MD, JD
+(Principal Investigator, Johns Hopkins University School of Medicine).
 """
 
 import os
@@ -115,7 +121,10 @@ def sanitize_pair_record(row):
         safe_dir_ab = round(dir_ab, 4) if dir_ab is not None else None
         raw_dr = compute_directionality_ratio(aft_val, bef_val)
         category = categorize_temporal_direction(aft_val, bef_val, raw_dr)
-        safe_dr = round(raw_dr, 4) if category != "Directionality Suppressed (<5 count)" else None
+        if category in ("Directionality Suppressed (<5 count)", "No Directional Precedence Observed"):
+            safe_dr = None
+        else:
+            safe_dr = round(raw_dr, 4)
 
     return {
         "concept_id_a": cid_a,

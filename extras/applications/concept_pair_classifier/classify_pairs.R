@@ -5,6 +5,12 @@
 #' descriptive temporal sequence categories while enforcing strict small-cell
 #' privacy protection.
 #'
+#' Scientific Attribution & Provenance:
+#' All underlying SQL code, analytical tables (cab_s55_pair_all), 40-batch
+#' partitioning architectures, and continuity-corrected Directionality Ratio (DR)
+#' formulations queried by this tool were conceived, designed, and written by
+#' Stephen H. Bandeian, MD, JD (Principal Investigator, Johns Hopkins University).
+#'
 #' Operational Boundary Notice (DEC-GR-027, DEC-GR-029):
 #' This is an illustrative proof-of-concept application, not part of the core
 #' network study package execution (extras/CodeToRun.R). Observational temporal
@@ -70,13 +76,30 @@ classifyConceptPairs <- function(connection = NULL,
     return(data.frame())
   }
 
+  return(sanitizeConceptPairRows(raw_df))
+}
+
+#' Sanitize and Classify Concept Pair Rows
+#'
+#' Applies anti-reconstruction privacy rules and descriptive temporal categorization
+#' across a data frame of concept pair query results.
+#'
+#' @param raw_df Data frame containing raw query results from cab_s55_pair_all.
+#' @return Data frame containing sanitized, cell-suppressed concept pairs.
+#' @export
+sanitizeConceptPairRows <- function(raw_df) {
+  if (is.null(raw_df) || nrow(raw_df) == 0) {
+    return(data.frame())
+  }
+  names(raw_df) <- tolower(names(raw_df))
+
   sanitized_rows <- list()
   for (i in seq_len(nrow(raw_df))) {
     row <- raw_df[i, ]
-    all_val <- if (is.na(row$obs_all)) 0 else as.numeric(row$obs_all)
-    sd_val  <- if (is.na(row$obs_same_day)) 0 else as.numeric(row$obs_same_day)
-    aft_val <- if (is.na(row$obs_after)) 0 else as.numeric(row$obs_after)
-    bef_val <- if (is.na(row$obs_before)) 0 else as.numeric(row$obs_before)
+    all_val  <- if (is.na(row$obs_all)) 0 else as.numeric(row$obs_all)
+    sd_val   <- if (is.na(row$obs_same_day)) 0 else as.numeric(row$obs_same_day)
+    aft_val  <- if (is.na(row$obs_after)) 0 else as.numeric(row$obs_after)
+    bef_val  <- if (is.na(row$obs_before)) 0 else as.numeric(row$obs_before)
     lift_val <- if (is.na(row$lift_after)) NA else as.numeric(row$lift_after)
     dir_val  <- if (is.na(row$dir_ab)) NA else as.numeric(row$dir_ab)
 
