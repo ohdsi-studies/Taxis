@@ -50,16 +50,16 @@ while ($attempt -lt $maxAttempts) {
 if (-not $isHealthy) {
     Write-Error "PostgreSQL container failed to become healthy. Check logs with 'docker logs taxis-synthea-postgres'."
 }
-Write-Host "    PostgreSQL is ready and healthy on localhost:5432." -ForegroundColor Green
+Write-Host "    PostgreSQL is ready and healthy on localhost:5433." -ForegroundColor Green
 
 # 4. Load Synthetic OMOP CDM Data
 Write-Host "--> Step 4: Loading Synthetic OMOP CDM data..." -ForegroundColor Yellow
-python "$ScriptDir\load_synthea.py" --host localhost --port 5432 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
+python "$ScriptDir\load_synthea.py" --host localhost --port 5433 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
 
 # 5. Run TAXIS PostgreSQL Integration Test
 Write-Host "--> Step 5: Executing TAXIS integration test on PostgreSQL..." -ForegroundColor Yellow
 $rootDir = Resolve-Path "$ScriptDir\..\.."
-python "$rootDir\extras\test_postgres_synthea_integration.py"
+python "$rootDir\extras\test_postgres_synthea_integration.py" --port 5433
 
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host " PostgreSQL Synthea-OMOP Setup & Integration Test Complete!" -ForegroundColor Green

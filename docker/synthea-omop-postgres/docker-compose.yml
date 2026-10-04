@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: ohdsi_app
       POSTGRES_PASSWORD: ohdsi_app_pass_2026
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - ./init_scripts:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data

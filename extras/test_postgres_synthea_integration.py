@@ -216,7 +216,7 @@ def run_postgres_tests(host, port, dbname, user, password):
 def main():
     parser = argparse.ArgumentParser(description="TAXIS PostgreSQL Synthea Integration Test")
     parser.add_argument("--host", default=os.environ.get("POSTGRES_HOST", "localhost"))
-    parser.add_argument("--port", default=int(os.environ.get("POSTGRES_PORT", 5432)), type=int)
+    parser.add_argument("--port", default=int(os.environ.get("POSTGRES_PORT", 5433)), type=int)
     parser.add_argument("--db", default=os.environ.get("POSTGRES_DB", "synthea"))
     parser.add_argument("--user", default=os.environ.get("POSTGRES_USER", "ohdsi_app"))
     parser.add_argument("--password", default=os.environ.get("POSTGRES_PASSWORD", "ohdsi_app_pass_2026"))

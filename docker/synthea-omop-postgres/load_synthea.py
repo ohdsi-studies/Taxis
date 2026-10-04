@@ -143,7 +143,7 @@ def load_tables_to_postgres(csv_dir, host, port, dbname, user, password):
 def main():
     parser = argparse.ArgumentParser(description="Load Synthetic OMOP CDM into PostgreSQL")
     parser.add_argument("--host", default=os.environ.get("POSTGRES_HOST", "localhost"), help="Postgres host")
-    parser.add_argument("--port", default=int(os.environ.get("POSTGRES_PORT", 5432)), type=int, help="Postgres port")
+    parser.add_argument("--port", default=int(os.environ.get("POSTGRES_PORT", 5433)), type=int, help="Postgres port")
     parser.add_argument("--db", default=os.environ.get("POSTGRES_DB", "synthea"), help="Postgres database name")
     parser.add_argument("--user", default=os.environ.get("POSTGRES_USER", "ohdsi_app"), help="Postgres user")
     parser.add_argument("--password", default=os.environ.get("POSTGRES_PASSWORD", "ohdsi_app_pass_2026"), help="Postgres password")

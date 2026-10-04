@@ -31,13 +31,13 @@ until [ "$(docker inspect --format='{{.State.Health.Status}}' taxis-synthea-post
     echo "    Waiting for postgres to become healthy (${attempt}/${max_attempts})..."
     sleep 2
 done
-echo "    PostgreSQL is ready and healthy on localhost:5432."
+echo "    PostgreSQL is ready and healthy on localhost:5433."
 
 echo "--> Step 4: Loading Synthetic OMOP CDM data..."
-python3 "${SCRIPT_DIR}/load_synthea.py" --host localhost --port 5432 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
+python3 "${SCRIPT_DIR}/load_synthea.py" --host localhost --port 5433 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
 
 echo "--> Step 5: Executing TAXIS integration test on PostgreSQL..."
-python3 "${ROOT_DIR}/extras/test_postgres_synthea_integration.py"
+python3 "${ROOT_DIR}/extras/test_postgres_synthea_integration.py" --port 5433
 
 echo "======================================================================"
 echo " PostgreSQL Synthea-OMOP Setup & Integration Test Complete!"
