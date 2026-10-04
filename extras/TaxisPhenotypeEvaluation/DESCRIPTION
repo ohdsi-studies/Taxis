@@ -27,6 +27,9 @@ Imports:
     zip
 Suggests:
     testthat (>= 3.0.0)
+Remotes:
+    ohdsi/CohortDiagnostics,
+    ohdsi/PheValuator
 License: Apache License 2.0
 Encoding: UTF-8
 RoxygenNote: 7.2.3

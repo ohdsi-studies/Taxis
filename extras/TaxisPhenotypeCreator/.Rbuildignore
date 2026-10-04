@@ -1,5 +1,6 @@
 ^\.git$
 ^\.gitignore$
+^extras$
 ^\.vscode$
 \.Renviron.*
 \.DS_Store$

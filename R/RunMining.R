@@ -130,15 +130,26 @@ runConceptMining <- function(connectionDetails,
     )
     sqlFinal <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
 
-    tryCatch(
-      DatabaseConnector::executeSql(conn, sqlFinal, progressBar = TRUE),
-      error = function(e) {
-        ParallelLogger::logWarn(sprintf("Init failed: %s - attempting reconnect & retry...", conditionMessage(e)))
-        try(DatabaseConnector::disconnect(conn), silent = TRUE)
-        conn <<- DatabaseConnector::connect(connectionDetails)
+    initSuccess <- FALSE
+    for (attempt in 1:2) {
+      status <- tryCatch({
         DatabaseConnector::executeSql(conn, sqlFinal, progressBar = TRUE)
+        initSuccess <- TRUE
+        "SUCCESS"
+      }, error = function(e) {
+        ParallelLogger::logWarn(sprintf("Init failed (attempt %d): %s", attempt, conditionMessage(e)))
+        "RETRY"
+      })
+      if (status == "SUCCESS") {
+        break
       }
-    )
+      if (attempt == 1) {
+        try(DatabaseConnector::disconnect(conn), silent = TRUE)
+        conn <- DatabaseConnector::connect(connectionDetails)
+      } else {
+        stop("Phase 1 initialization failed after retry.")
+      }
+    }
     ParallelLogger::logInfo("Phase 1: Initialization completed successfully.")
   }
 
