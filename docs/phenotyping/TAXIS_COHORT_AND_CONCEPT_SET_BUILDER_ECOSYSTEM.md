@@ -324,24 +324,25 @@ In a prospective downstream integration, aggregate association metrics from TAXI
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   TAXIS-AUTOMATED KEEPER ADJUDICATION PIPELINE                                  │
+│              CONCEPTUAL DOWNSTREAM WORKFLOW: AGGREGATE EVIDENCE IN CLINICAL TIMELINE REVIEW                     │
 ├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                                 │
-│   1. Raw Patient EHR Record around Index Date (Day 0)                                                           │
-│      • 300+ Unfiltered OMOP Concept IDs (Condition, Drug, Measurement, Procedure, Observation)                 │
+│   1. Patient EHR Timeline Extraction around Index Date (Day 0)                                                  │
+│      • De-identified patient encounter occurrences (Condition, Drug, Measurement, Procedure, Observation)       │
 │                                                                                                                 │
-│   2. TAXIS Empirical Noise Filter (Automated Expert-in-the-Loop)                                                │
-│      • Queries pre-computed joint marginals (cab_s20) and stratified lifts (cab_s55)                            │
-│      • Automatically strips unassociated background noise (Lift < 1.50) without human rule curation            │
+│   2. Empirical Aggregate Context Overlay (Downstream Exploration)                                               │
+│      • Queries pre-computed aggregate marginals (cab_s20) and association summaries (cab_s55)                   │
+│      • Highlights concepts with observed empirical co-occurrence as supporting context for review              │
 │                                                                                                                 │
-│   3. Directionality-Driven Timeline Structuring (Resolving the Rao-Reich Dilemma)                              │
-│      • Classifies retained clinical concepts into structured chronological categories based on DR:             │
-│        - Antecedent Exposures & Etiologies (DR >= 1.50, e.g., Acetaminophen before Liver Injury)                │
-│        - Diagnostic Biomarkers & Signs (0.67 < DR < 1.50, e.g., Elevated ALT/AST, Ultrasound)                    │
-│        - Therapeutic Interventions (DR <= 0.67, e.g., N-acetylcysteine, Lactulose after Liver Injury)           │
+│   3. Descriptive Temporal Grouping                                                                              │
+│      • Organizes concepts into chronological panels based on observed temporal sequence:                        │
+│        - Predominantly Preceding Concepts (observed primarily prior to index date)                              │
+│        - Contemporaneous Concepts (observed on or near index date)                                              │
+│        - Predominantly Following Concepts (observed primarily after index date)                                 │
 │                                                                                                                 │
-│   4. De-Identified Dossier Delivered to Sovereign / Cloud LLM (KEEPER Port 8105)                                │
-│      • Concise, noise-free, chronologically structured narrative yielding deterministic, calibrated decisions  │
+│   4. Clinical Adjudicator Review (Human Expert or Audited Local Model)                                         │
+│      • Presents chronologically structured timeline to adjudicators for clinical evaluation                     │
+│      • Requires independent site-level governance, clinical adjudication, and validation against reference cases│
 │                                                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
