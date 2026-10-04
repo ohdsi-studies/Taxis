@@ -32,7 +32,7 @@ The protocol establishes:
 
 ---
 
-## 2. Rationale, Background & The 0.4% Vocabulary Limitation
+## 2. Rationale, Background & The 0.4% Vocabulary Coverage Gap
 
 ### 2.1 The Clinical Knowledge Bottleneck in Observational Research
 Generating reliable real-world evidence requires answering detailed clinical questions: *What medications treat this disorder? What laboratory tests confirm its diagnosis? What clinical findings represent exclusionary mimics? What downstream complications are expected?* 
@@ -49,7 +49,7 @@ Standard clinical terminologies were engineered primarily for administrative bil
 - Of those 119 documented pairs, **72 (60.5%)** were simple hierarchical *is-a* relationships.
 - Cross-domain clinical connections (e.g., condition-to-lab, condition-to-drug, or procedure-to-complication) were virtually unrepresented.
 
-When standardized clinical terminology links do exist, they exhibit high positive predictive value (0.99 PPV against clinical consensus). Within this audited sample of frequently co-occurring pairs, 99.6% lacked explicit multi-domain relational links in native vocabularies, illustrating that standard terminologies focus on administrative coding and ontological hierarchy rather than multi-domain clinical co-occurrence. TAXIS is designed to bridge this gap through reproducible observational association mining.
+When standardized clinical terminology links do exist, they exhibit high positive predictive value (0.99 PPV against clinical consensus). Within this audited sample of frequently co-occurring pairs, 99.6% lacked explicit multi-domain relational links in native vocabularies, illustrating that standard terminologies focus on administrative coding and ontological hierarchy rather than multi-domain clinical co-occurrence. TAXIS is designed to bridge this operational gap through reproducible observational association mining, with clinical validity evaluated against independent clinical benchmarks.
 
 ---
 

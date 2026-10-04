@@ -146,7 +146,7 @@ To demonstrate the unique value of the TAXIS clinical relationship layer, an aud
 | **Combined Standard Ontologies** | **119** (72 are hierarchical is-a links) | **0.44%** |
 | **TAXIS Clinical Knowledge Graph (Audited Pairs)** | **26,901** | **100.0%** |
 
-**Conclusion**: Within this audited sample of 26,901 frequently co-occurring concept pairs, **99.56% (26,782 / 26,901)** lack pre-existing operational relationships in standard medical terminologies, establishing the critical necessity of an empirical, OMOP-native clinical relationship layer. This finding is sample-bounded to the evaluated high-frequency co-occurrence pairs and is not an extrapolated claim across all possible biomedical concepts.
+**Conclusion**: Within this audited sample of 26,901 frequently co-occurring concept pairs, **99.56% (26,782 / 26,901)** lack pre-existing relational links in standard medical terminologies, demonstrating that researchers cannot rely on vocabularies alone to identify longitudinal EHR co-occurrences. Rather than assuming all unlinked pairs represent valid clinical relationships, TAXIS filters candidate associations through a structured clinical taxonomy, with clinical validity confirmed by independent external benchmarks (e.g., ClinVec AUC 0.81, PACES 99% directionality, and Phenotype Library Jaccard 0.97–0.995). This finding is sample-bounded to the evaluated high-frequency co-occurrence pairs and does not claim a universal deficit across all biomedical concepts.
 
 ---
 

@@ -49,7 +49,7 @@ The physical and digital presentation poster is engineered across three balanced
 
 #### 1.1 The Operational Vocabulary Crisis in OMOP
 - Standard terminologies (SNOMED-CT, RxNorm, LOINC) provide hierarchical taxonomies (*is-a* trees) within isolated domains.
-- However, standard vocabularies capture **less than 0.5%** of the operational cross-domain relationships necessary for real-world clinical phenotyping:
+- In an empirical audit of frequently co-occurring EHR pairs ($N_{AB} \ge 100$), standard vocabularies documented relational links for only **0.44%** of pairs (with over half being simple hierarchical *is-a* links). Standard vocabularies do not capture operational cross-domain care patterns:
   - Which laboratory test confirms an acute condition?
   - Which medication represents first-line guideline therapy versus symptom management?
   - Which co-occurring diagnosis represents an exclusionary phenotypic mimic?

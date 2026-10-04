@@ -21,7 +21,7 @@ Observational health research has long been constrained by a project-by-project 
 
 However, authoring rich phenotypes at scale faces a fundamental barrier:
 - Across **1,104 cohorts in the OHDSI Phenotype Library**, two-thirds remain basic single-concept code lists without logic rules, and **only ~2%** incorporate multi-domain laboratory or medication criteria.
-- **The 0.4% Vocabulary Limitation**: Controlled vocabularies (SNOMED-CT, RxNorm, LOINC) capture *what things are* via *is-a* hierarchies, but in empirical testing across **26,901 clinical concept pairs**, existing standard vocabularies carried relationships for **only 0.4%** (119 pairs, 72 of which were simply *is-a* links). Over 99% of operational care relationships (which drug treats what disease, which lab confirms what diagnosis) are absent from standard terminology tables.
+- **The 0.4% Vocabulary Coverage Gap**: Controlled vocabularies (SNOMED-CT, RxNorm, LOINC) capture *what things are* via *is-a* hierarchies, but in an empirical audit of **26,901 frequently co-occurring EHR concept pairs** ($N_{AB} \ge 100$), existing standard vocabularies carried relationships for **only 0.44%** (119 pairs, 72 of which were simple *is-a* links). Over 99.5% of these high-frequency EHR co-occurrences lack relational links in standard terminology tables, demonstrating that researchers building computable phenotypes cannot rely on ontologies alone to identify real-world clinical connections.
 
 ### Methodological Framework
 TAXIS investigates whether empirical association rule mining combined with structured clinical taxonomies can help generate and evaluate candidate cohort definitions by uniting three components:
