@@ -1,5 +1,8 @@
 # TaxisPhenotypeEvaluation: OHDSI Network Study Package
 
+[![Build Status](https://github.com/ohdsi-studies/Taxis/workflows/R-CMD-check/badge.svg)](https://github.com/ohdsi-studies/Taxis/actions?query=workflow%3AR-CMD-check)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 > **Study Type**: Multi-Center Phenotype Evaluation & Comparative Benchmark  
 > **Collaborator Showcase**: 2026 OHDSI Global Symposium (Entry #127, October 20–22, 2026, New Brunswick, NJ)  
 > **Study Leadership**:  

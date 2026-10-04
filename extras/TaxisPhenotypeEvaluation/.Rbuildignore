@@ -1,8 +1,13 @@
 ^\.git$
+^\.github$
 ^\.gitignore$
+^\.lintr$
+^.*\.Rproj$
+^\.Rproj\.user$
+^deploy\.sh$
+^compare_versions$
 ^\.Rhistory$
 ^\.RData$
-^\.Rproj\.user$
 ^extras$
 ^local-private$
 .*\.zip$

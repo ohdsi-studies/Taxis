@@ -1,5 +1,11 @@
 ^\.git$
+^\.github$
 ^\.gitignore$
+^\.lintr$
+^.*\.Rproj$
+^\.Rproj\.user$
+^deploy\.sh$
+^compare_versions$
 ^extras$
 ^\.vscode$
 \.Renviron.*

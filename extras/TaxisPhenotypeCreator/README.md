@@ -1,6 +1,9 @@
 # TaxisPhenotypeCreator: Automated Clinical Phenotype Creation Engine
 ## Neuro-Symbolic Circe JSON Synthesis from TAXIS Knowledge Graph Associations
 
+[![Build Status](https://github.com/ohdsi-studies/Taxis/workflows/R-CMD-check/badge.svg)](https://github.com/ohdsi-studies/Taxis/actions?query=workflow%3AR-CMD-check)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 > **Package**: `TaxisPhenotypeCreator`  
 > **Framework**: OHDSI HADES (`CirceR`, `SqlRender`)  
 > **Licensing**: Apache 2.0 Open Source  

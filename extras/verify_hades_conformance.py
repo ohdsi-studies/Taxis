@@ -7,16 +7,18 @@ Validates that all 3 packages in the TAXIS repository comply with the official O
 2. TaxisPhenotypeCreator (extras/TaxisPhenotypeCreator)
 3. TaxisPhenotypeEvaluation (extras/TaxisPhenotypeEvaluation)
 
-Checks across 9 HADES Conformance Dimensions:
+Checks across 11 HADES Conformance Dimensions:
 1. Standard Structural Files (.lintr, NEWS.md, README.md, DESCRIPTION, NAMESPACE, LICENSE, .Rbuildignore)
 2. Apache License 2.0 Compliance & Source File Copyright Headers
 3. DESCRIPTION Metadata, Semver 3-digit versioning, and Remotes for Non-CRAN HADES packages
 4. Dependency Conformance with Official HADES Registry (C:\\files\\git\\github\\ohdsi\\Hades\\extras\\packages.csv)
-5. Invisible Side Effects Prevention (no library/require in functions, no <<- global assignments)
+5. Invisible Side Effects Prevention (no library/require in functions, no options(), no <<- global assignments)
 6. Code Style, CamelCase Naming, and Lintr Configuration
 7. Cross-Platform Database Integration (DatabaseConnector, SqlRender, Parameterized SQL) & Multi-OS CI
 8. Unit Test Suite Completeness (testthat.R and test-*.R with test_that blocks)
 9. Scientific Governance & Attribution Integrity (zero prohibited terms, exact investigator designations)
+10. .Rbuildignore Patterns & extras/PackageMaintenance.R Structure
+11. README.md HADES Badges & NEWS.md Release Semver Structure
 
 Usage:
   python extras/verify_hades_conformance.py
@@ -255,6 +257,7 @@ def test_hades_no_invisible_side_effects():
     # Patterns for invisible side effects inside functions
     bad_patterns = [
         (re.compile(r"^\s*(library|require)\s*\(", re.MULTILINE), "Disallowed library()/require() call in function (use pkg::fun)"),
+        (re.compile(r"^\s*options\s*\(", re.MULTILINE), "Disallowed options() call in function (HADES side-effect prohibition)"),
         (re.compile(r"<<-"), "Disallowed global assignment <<-"),
         (re.compile(r"assign\s*\([^,]+,[^,]+,\s*envir\s*=\s*\.?GlobalEnv"), "Disallowed assignment to .GlobalEnv")
     ]
@@ -418,6 +421,100 @@ def test_hades_governance_and_attribution():
     return True
 
 
+def test_hades_rbuildignore_and_maintenance():
+    """Verify .Rbuildignore rules and extras/PackageMaintenance.R structure."""
+    print("--> Test 10: Validating .Rbuildignore patterns and PackageMaintenance.R...")
+    errors = []
+
+    required_buildignore_patterns = [
+        r"^\.lintr\$",
+        r"^\.\*\.Rproj\$",
+        r"^\^\.Rproj\\\.user\$",
+        r"\^extras\$",
+        r"\^deploy\\\.sh\$",
+        r"\^compare_versions\$"
+    ]
+
+    for pkg in PACKAGES:
+        pdir = pkg["dir"]
+        pname = pkg["name"]
+
+        # Check .Rbuildignore content
+        rb_path = os.path.join(pdir, ".Rbuildignore")
+        if os.path.exists(rb_path):
+            with open(rb_path, "r", encoding="utf-8") as f:
+                rb_lines = [line.strip() for line in f.readlines()]
+            rb_text = "\n".join(rb_lines)
+
+            patterns = [r"\.lintr", r"\.Rproj", r"extras", r"deploy(\\\.)?sh", r"compare_versions"]
+            for pat in patterns:
+                if not re.search(pat, rb_text):
+                    errors.append(f"[{pname}] .Rbuildignore missing required HADES pattern for: {pat}")
+        else:
+            errors.append(f"[{pname}] Missing .Rbuildignore")
+
+        # Check PackageMaintenance.R content
+        pm_path = os.path.join(pdir, pkg["pkg_maint"])
+        if os.path.exists(pm_path):
+            with open(pm_path, "r", encoding="utf-8") as f:
+                pm_text = f.read()
+            if "Apache License" not in pm_text or "Observational Health Data Sciences" not in pm_text:
+                errors.append(f"[{pname}] {pkg['pkg_maint']} missing standard OHDSI Apache 2.0 header")
+            if "PackageMaintenance.R" in pm_path and "devtools::" not in pm_text and "OhdsiRTools::" not in pm_text:
+                errors.append(f"[{pname}] {pkg['pkg_maint']} missing standard maintenance commands (devtools/OhdsiRTools)")
+        else:
+            errors.append(f"[{pname}] Missing {pkg['pkg_maint']}")
+
+    if errors:
+        for err in errors:
+            print(f"  FAILED: {err}")
+        return False
+
+    print("  PASSED: .Rbuildignore patterns and PackageMaintenance.R verified across all packages.")
+    return True
+
+
+def test_hades_readme_badges_and_news():
+    """Verify README.md badges and NEWS.md semver release documentation."""
+    print("--> Test 11: Validating README.md HADES badges and NEWS.md release documentation...")
+    errors = []
+
+    for pkg in PACKAGES:
+        pdir = pkg["dir"]
+        pname = pkg["name"]
+
+        # Check README.md
+        readme_path = os.path.join(pdir, "README.md")
+        if os.path.exists(readme_path):
+            with open(readme_path, "r", encoding="utf-8") as f:
+                readme_text = f.read()
+            if "workflows/R-CMD-check/badge.svg" not in readme_text:
+                errors.append(f"[{pname}] README.md missing official R-CMD-check build status badge")
+            if "License-Apache" not in readme_text and "License: Apache" not in readme_text:
+                errors.append(f"[{pname}] README.md missing Apache 2.0 license badge")
+        else:
+            errors.append(f"[{pname}] Missing README.md")
+
+        # Check NEWS.md
+        news_path = os.path.join(pdir, "NEWS.md")
+        if os.path.exists(news_path):
+            with open(news_path, "r", encoding="utf-8") as f:
+                news_text = f.read()
+            header_match = re.search(r"^#\s+([A-Za-z0-9]+)\s+(\d+\.\d+\.\d+)", news_text, re.MULTILINE)
+            if not header_match:
+                errors.append(f"[{pname}] NEWS.md missing required semver release header '# <Package> x.y.z'")
+        else:
+            errors.append(f"[{pname}] Missing NEWS.md")
+
+    if errors:
+        for err in errors:
+            print(f"  FAILED: {err}")
+        return False
+
+    print("  PASSED: README.md badges and NEWS.md release notes meet HADES specifications.")
+    return True
+
+
 def run_all_tests():
     print("======================================================================")
     print("       TAXIS HADES CONFORMANCE VERIFICATION SUITE                     ")
@@ -433,12 +530,14 @@ def run_all_tests():
         test_hades_code_style_and_lintr(),
         test_hades_cross_platform_and_ci(),
         test_hades_unit_tests(),
-        test_hades_governance_and_attribution()
+        test_hades_governance_and_attribution(),
+        test_hades_rbuildignore_and_maintenance(),
+        test_hades_readme_badges_and_news()
     ]
 
     print("======================================================================")
     if all(results):
-        print("ALL HADES CONFORMANCE AUDIT CHECKS PASSED (9/9).")
+        print("ALL HADES CONFORMANCE AUDIT CHECKS PASSED (11/11).")
         print("Notice: Static pre-flight verified. Native R CMD check and network interoperability pending partner execution.")
         print("======================================================================")
         return 0
