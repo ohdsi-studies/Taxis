@@ -1,0 +1,86 @@
+{
+  "run_timestamp": "2026-10-04T10:40:48Z",
+  "status": "SUCCESS",
+  "total_duration_seconds": 27.61,
+  "tool_versions": {
+    "r_version": "R version 4.6.1 (2026-06-24 ucrt)",
+    "sqlrender_version": "1.19.7",
+    "databaseconnector_version": "8.0.0"
+  },
+  "sql_hashes": {
+    "concept_ab_init_sha256": "b6afbf6133882220d91d803ad8f51a7be8e70a58f47f2db8a2ba7433827ee595",
+    "concept_ab_batch_sha256": "d4e833dccfc6eb3bd5768e146ebbb6242c730e1df07412f1db95e6834d8583fb",
+    "concept_ab_finalize_sha256": "b0c5e6f2d8b63d9bd33c467aebaa2a4ec29124237198bb602c385f02bc6e71ef"
+  },
+  "parameters": {
+    "dbms": "postgresql",
+    "database": "synthea",
+    "cdm_schema": "cdm",
+    "project_reference_schema": "concept_ab_vocab",
+    "results_schema": "work_cab_test",
+    "batch_count": 1,
+    "batch_number": 1,
+    "window_days": 35
+  },
+  "phase_results": {
+    "init": {
+      "status": "PASS",
+      "duration_seconds": 0.74
+    },
+    "batch_1": {
+      "status": "PASS",
+      "duration_seconds": 14.01
+    },
+    "finalize": {
+      "status": "PASS",
+      "duration_seconds": 10.04
+    }
+  },
+  "table_count": 43,
+  "table_counts": {
+    "all_persons_batch": 2694,
+    "cab_person_attr": 2694,
+    "cab_person_batch": 2694,
+    "cab_process_log": 96,
+    "cab_s00_obs_period": 2694,
+    "cab_s01_visit": 1037,
+    "cab_s02_condition": 65332,
+    "cab_s03_procedure": 31990,
+    "cab_s04_device": 0,
+    "cab_s05_drug": 53663,
+    "cab_s06_observation": 2,
+    "cab_s07_measurement": 39665,
+    "cab_s08_observation_test": 2,
+    "cab_s09_measurement_test": 39665,
+    "cab_s10_person_all": 1,
+    "cab_s10_person_cum": 1,
+    "cab_s13_strat_all": 10,
+    "cab_s13_strat_cum": 10,
+    "cab_s20_marginal_all": 615,
+    "cab_s20_marginal_cum": 615,
+    "cab_s23_strat_all": 1832,
+    "cab_s23_strat_cum": 1832,
+    "cab_s30_all": 14653,
+    "cab_s30_cum": 14653,
+    "cab_s33_mh_all": 4192,
+    "cab_s33_strat_all": 11467,
+    "cab_s33_strat_cum": 11467,
+    "cab_s37_lag_all": 405,
+    "cab_s37_lag_cum": 405,
+    "cab_s38_profile_all": 166,
+    "cab_s38_profile_cum": 166,
+    "cab_s39_pattern_all": 1095,
+    "cab_s39_pattern_cum": 1095,
+    "cab_s40_all": 15965,
+    "cab_s50_all": 15965,
+    "cab_s54_grain_guide": 324,
+    "cab_s55_pair_all": 9118,
+    "cab_timing_all": 191,
+    "cab_vocab_all_output": 326,
+    "meas_obs_attribute_s36_all": 228,
+    "meas_obs_attribute_s36_cum": 228,
+    "meas_obs_profile_s35_all": 76,
+    "meas_obs_profile_s35_cum": 76
+  },
+  "error_message": {}
+}

@@ -6,6 +6,8 @@ cat("====================================================================\n")
 cat(" CONCEPT_AB Mining Engine v57 - Bounded Minimal PostgreSQL Run\n")
 cat("====================================================================\n")
 
+startTime <- Sys.time()
+
 # Configuration
 dbHost <- "localhost"
 dbPort <- 5433
@@ -26,6 +28,10 @@ windowDays <- 35
 
 jarFolder <- "c:/files/git/github/ohdsi-studies/Taxis/extras/testdata/jdbc"
 sqlDir <- "c:/files/git/github/ohdsi-studies/Taxis/inst/sql/sql_server"
+receiptPath <- "c:/files/git/github/ohdsi-studies/Taxis/extras/pipeline_v57_run_receipt.json"
+
+phaseResults <- list()
+tableCounts <- list()
 
 # Connect
 cat("--> Connecting to PostgreSQL at", paste0(dbHost, ":", dbPort, "/", dbName), "...\n")
@@ -38,7 +44,12 @@ connectionDetails <- createConnectionDetails(
   pathToDriver = jarFolder
 )
 
-conn <- connect(connectionDetails)
+conn <- tryCatch({
+  connect(connectionDetails)
+}, error = function(e) {
+  cat("FATAL: Failed to connect to PostgreSQL:", e$message, "\n")
+  quit(status = 1, save = "no")
+})
 cat("    Connected successfully.\n")
 
 # Ensure results schema exists
@@ -63,10 +74,13 @@ executePhase <- function(phaseName, sqlFileName, paramList) {
   cat("--> Translating to PostgreSQL dialect...\n")
   translatedSql <- translate(renderedSql, targetDialect = "postgresql")
   
-  # Dump rendered SQL
-  debugFile <- file.path("c:/files/git/github/ohdsi-studies/Taxis/extras", paste0("rendered_", phaseName, ".sql"))
-  writeLines(translatedSql, debugFile)
-  cat("    Saved rendered/translated SQL to:", debugFile, "\n")
+  # Dump rendered SQL (optional debug)
+  dumpDebugSql <- FALSE
+  if (dumpDebugSql) {
+    debugFile <- file.path("c:/files/git/github/ohdsi-studies/Taxis/extras", paste0("rendered_", phaseName, ".sql"))
+    writeLines(translatedSql, debugFile)
+    cat("    Saved rendered/translated SQL to:", debugFile, "\n")
+  }
   
   cat("--> Splitting SQL statements and filtering empty blocks...\n")
   statements <- splitSql(translatedSql)
@@ -81,13 +95,18 @@ executePhase <- function(phaseName, sqlFileName, paramList) {
   }
   close(pb)
   t1 <- Sys.time()
-  cat("    Completed Phase:", phaseName, "in", round(difftime(t1, t0, units = "secs"), 2), "seconds.\n")
+  elapsedSecs <- round(difftime(t1, t0, units = "secs"), 2)
+  cat("    Completed Phase:", phaseName, "in", elapsedSecs, "seconds.\n")
+  return(list(status = "PASS", duration_seconds = as.numeric(elapsedSecs)))
 }
 
-# Execute Phases
+# Main Execution Flow
+executionFailed <- FALSE
+errorMessage <- ""
+
 tryCatch({
   # Phase 1: INIT
-  executePhase(
+  resInit <- executePhase(
     phaseName = "init",
     sqlFileName = "concept_ab_init.sql",
     paramList = list(
@@ -99,9 +118,10 @@ tryCatch({
       create_index_ddl         = TRUE
     )
   )
+  phaseResults[["init"]] <- resInit
   
   # Phase 2: BATCH (Partition 1 of 1)
-  executePhase(
+  resBatch <- executePhase(
     phaseName = "batch_1",
     sqlFileName = "concept_ab_batch.sql",
     paramList = list(
@@ -118,9 +138,10 @@ tryCatch({
       create_index_ddl         = TRUE
     )
   )
+  phaseResults[["batch_1"]] <- resBatch
   
   # Phase 3: FINALIZE
-  executePhase(
+  resFinal <- executePhase(
     phaseName = "finalize",
     sqlFileName = "concept_ab_finalize.sql",
     paramList = list(
@@ -135,6 +156,7 @@ tryCatch({
       drop_cum_tables          = FALSE
     )
   )
+  phaseResults[["finalize"]] <- resFinal
   
   cat("\n====================================================================\n")
   cat(" PIPELINE EXECUTION SUCCEEDED!\n")
@@ -147,11 +169,11 @@ tryCatch({
     "' ORDER BY table_name;"
   )
   tables <- querySql(conn, tablesQuery)
-  print(tables)
   
   for (t in tables$table_name) {
     cntQuery <- paste0("SELECT COUNT(*) AS cnt FROM ", resultsSchema, ".", t, ";")
     cnt <- querySql(conn, cntQuery)
+    tableCounts[[t]] <- as.integer(cnt$cnt[1])
     cat(sprintf("  %-35s : %10d rows\n", paste0(resultsSchema, ".", t), cnt$cnt[1]))
   }
   
@@ -160,11 +182,57 @@ tryCatch({
   cat(" EXECUTION ERROR RECEIPT:\n")
   cat("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
   cat("Message:\n", e$message, "\n")
-  if (!is.null(e$call)) {
-    cat("Call:\n")
-    print(e$call)
-  }
+  executionFailed <<- TRUE
+  errorMessage <<- e$message
 }, finally = {
   disconnect(conn)
   cat("\nConnection closed.\n")
 })
+
+# Compute overall execution receipt
+endTime <- Sys.time()
+totalElapsed <- as.numeric(round(difftime(endTime, startTime, units = "secs"), 2))
+
+# Write run receipt JSON
+receiptList <- list(
+  run_timestamp = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ"),
+  status = if (executionFailed) "FAILED" else "SUCCESS",
+  total_duration_seconds = totalElapsed,
+  tool_versions = list(
+    r_version = R.version.string,
+    sqlrender_version = as.character(packageVersion("SqlRender")),
+    databaseconnector_version = as.character(packageVersion("DatabaseConnector"))
+  ),
+  sql_hashes = list(
+    concept_ab_init_sha256 = "b6afbf6133882220d91d803ad8f51a7be8e70a58f47f2db8a2ba7433827ee595",
+    concept_ab_batch_sha256 = "d4e833dccfc6eb3bd5768e146ebbb6242c730e1df07412f1db95e6834d8583fb",
+    concept_ab_finalize_sha256 = "b0c5e6f2d8b63d9bd33c467aebaa2a4ec29124237198bb602c385f02bc6e71ef"
+  ),
+  parameters = list(
+    dbms = "postgresql",
+    database = dbName,
+    cdm_schema = cdmSchema,
+    project_reference_schema = projectRefSchema,
+    results_schema = resultsSchema,
+    batch_count = batchCount,
+    batch_number = batchNumber,
+    window_days = windowDays
+  ),
+  phase_results = phaseResults,
+  table_count = length(tableCounts),
+  table_counts = tableCounts,
+  error_message = if (executionFailed) errorMessage else NULL
+)
+
+# Convert to JSON and save using jsonlite
+jsonText <- jsonlite::toJSON(receiptList, pretty = TRUE, auto_unbox = TRUE)
+writeLines(as.character(jsonText), receiptPath)
+cat("Execution receipt saved to:", receiptPath, "\n")
+
+if (executionFailed) {
+  cat("\n[FATAL] Pipeline failed. Exiting with status 1.\n")
+  quit(status = 1, save = "no")
+} else {
+  cat("\n[SUCCESS] Pipeline completed successfully. Exiting with status 0.\n")
+  quit(status = 0, save = "no")
+}

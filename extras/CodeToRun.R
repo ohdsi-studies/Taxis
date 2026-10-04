@@ -47,12 +47,15 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
 # --- Step 2: Database Environment & Schema Specification ----------------------
 cdmDatabaseSchema      <- Sys.getenv("CDM_SCHEMA", "cdm")
 resultsDatabaseSchema  <- Sys.getenv("RESULTS_SCHEMA", "taxis_results")
+# Pre-loaded TAXIS reference tables: cab_vocab_all_visit_hierarchy, cab_vocab_all_procedure,
+# cab_vocab_all_device, cab_vocab_all_chronic_conditions, cab_vocab_all_meas_obs_test, cab_vocab_all_drug_ing_form
+# (3.51M rows total; loaded via extras/load_cab_vocab_postgres.py or Load/cab_vocab_lookups_postgres.sql)
 projectReferenceSchema <- Sys.getenv("PROJECT_REFERENCE_SCHEMA", "taxis_lookups")
 omopReferenceSchema    <- Sys.getenv("OMOP_REFERENCE_SCHEMA", cdmDatabaseSchema)
 databaseId             <- Sys.getenv("DATABASE_ID", "My_Site_CDM")
 outputFolder           <- file.path(getwd(), sprintf("taxis_output_%s", databaseId))
 
-# Execution parameters
+# Execution parameters (defaults: 40 batches, 182-day window; set CAB_PARTIAL_RUN_BATCH_LIMIT=1 for test run)
 batchCount             <- as.integer(Sys.getenv("CAB_BATCH_COUNT", "40"))
 partialRunBatchLimit   <- as.integer(Sys.getenv("CAB_PARTIAL_RUN_BATCH_LIMIT", "40"))
 # Set createIndexDdl = FALSE for cloud columnar platforms (Snowflake, BigQuery)

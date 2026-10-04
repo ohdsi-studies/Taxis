@@ -61,19 +61,26 @@ The pipeline executes entirely inside the partner's database engine via **OHDSI 
 ## 2. Prerequisites & Setup
 
 ### Software Requirements
-1. **R (version $\ge$ 4.0.0)**.
-2. **Java Runtime Environment (JRE $\ge$ 8 or 17, 64-bit)** for DatabaseConnector JDBC connectivity.
-3. **Target Database JDBC Driver** (e.g., PostgreSQL, Redshift, Snowflake, SQL Server JARs placed in a local folder).
+1. **R (version $\ge$ 4.0.0)** (tested on R 4.6.1).
+2. **Java Runtime Environment (JRE $\ge$ 8, 17, or 21, 64-bit)** for DatabaseConnector JDBC connectivity (e.g. OpenJDK 21). Ensure `JAVA_HOME` is set.
+3. **Target Database JDBC Driver** (e.g., PostgreSQL JDBC `postgresql-42.7.3.jar` placed in `extras/testdata/jdbc` or site driver folder).
 4. **Required R Packages**:
    ```r
-   install.packages(c("SqlRender", "DatabaseConnector", "getPass"))
+   install.packages(c("SqlRender", "DatabaseConnector", "ParallelLogger", "jsonlite", "getPass"))
    ```
 
 ### Database Permissions
 The executing database user requires:
 - `SELECT` permission on the OMOP CDM schema (`person`, `observation_period`, `visit_occurrence`, `condition_occurrence`, `procedure_occurrence`, `device_exposure`, `drug_exposure`, `measurement`, `observation`).
 - `SELECT` permission on the OMOP vocabulary schema (`concept`, `concept_ancestor`, `concept_relationship`).
-- `SELECT` permission on the project lookup schema containing the 6 pre-loaded reference tables (`cab_vocab_all_*`).
+- `SELECT` permission on the project lookup schema (`PROJECT_REFERENCE_SCHEMA`, e.g. `concept_ab_vocab`) containing the **6 pre-loaded reference tables**:
+  1. `cab_vocab_all_visit_hierarchy` (20 rows) — visit level hierarchy
+  2. `cab_vocab_all_procedure` (151,868 rows) — procedure concept classification
+  3. `cab_vocab_all_device` (32,517 rows) — device concept classification
+  4. `cab_vocab_all_chronic_conditions` (29,346 rows) — chronic condition definitions
+  5. `cab_vocab_all_meas_obs_test` (299,934 rows) — measurement and observation test classification
+  6. `cab_vocab_all_drug_ing_form` (2,996,686 rows) — ingredient and clinical drug form mappings
+  *(Total: 3,510,371 rows; loaded via `Load/cab_vocab_lookups_postgres.sql` and `extras/load_cab_vocab_postgres.py`)*.
 - `CREATE`, `DROP`, `INSERT`, `UPDATE`, `SELECT` permissions on the designated **results schema** (the pipeline creates, drops, and populates tables *only* in this schema).
 
 ---
@@ -92,45 +99,78 @@ The executing database user requires:
 | `DBMS` | `postgresql`, `redshift`, `sql server`, `snowflake` | Drives `DatabaseConnector` connection and `SqlRender` translation. |
 | `DB_SERVER` | `<host>/<database>` | Database host and database name. |
 | `CDM_SCHEMA` | e.g. `cdm` | Read-only OMOP CDM schema. |
-| `PROJECT_REFERENCE_SCHEMA` | e.g. `taxis_lookups` | Read-only schema holding the 6 vocabulary lookup tables. |
-| `OMOP_REFERENCE_SCHEMA` | e.g. `vocabulary` | Read-only OMOP vocabulary schema. |
-| `RESULTS_SCHEMA` | e.g. `taxis_results` | Read/write schema where all output tables are built. |
-| `CAB_BATCH_COUNT` | `40` (default) | Partitions the patient cohort to optimize disk and memory utilization. |
+| `PROJECT_REFERENCE_SCHEMA` | e.g. `concept_ab_vocab` | Read-only schema holding the 6 vocabulary lookup tables. |
+| `OMOP_REFERENCE_SCHEMA` | e.g. `cdm` | Read-only OMOP vocabulary schema. |
+| `RESULTS_SCHEMA` | e.g. `work_cab_test` or `taxis_results` | Read/write schema where all output tables are built. |
+| `CAB_BATCH_COUNT` | `40` (default; `1` for minimal test) | Partitions the patient cohort to optimize disk and memory utilization. |
 | `CAB_PARTIAL_RUN_BATCH_LIMIT` | `40` (or `1` for test) | Number of batches to process. Set to 1 for a fast end-to-end dry-run. |
 | `CAB_CREATE_INDEX_DDL` | `true` (default; set `false` for Snowflake/BigQuery) | Controls generation of `CREATE INDEX` and `UPDATE STATISTICS` DDL. Columnar platforms must disable this. |
 
-> **Portability & Dialect Status Note**: The SQL pipeline templates have undergone static syntax audits to eliminate platform-specific functions (replacing non-standard `GREATEST()` with portable `CASE WHEN` and PostgreSQL-specific default timestamps with standard ANSI `CURRENT_TIMESTAMP`) and enclose all index/statistics DDL inside `{@create_index_ddl}` guards. Live multi-dialect translation and execution across target DBMS engines remain subject to partner-site validation in live HADES environments.
+> **Statement-Splitter & Empty-Statement Filter Protocol (`REC-063-1`)**: In the released T-SQL batch script (`concept_ab_batch.sql`), standalone semicolons follow comments preceding CTEs to satisfy SQL Server syntax requirements. When transpiled via `SqlRender::translate()` for PostgreSQL, standard JDBC drivers crash with a NullPointerException if empty statements are executed. All execution runners implement the statement-splitter protocol: `statements <- splitSql(sql); statements <- statements[nchar(trimws(statements)) > 0]`, ensuring seamless execution while preserving 100% SHA256 binary identity of all released SQL files.
 
 ---
 
-## 4. Execution
+## 4. Execution Options
 
-To run the complete pipeline:
+### Option A: Bounded Minimal PostgreSQL Execution Runner (Recommended for Verification)
+Executes a bounded, partition-isolated run (`batch_count=1`, `partial_run_batch_limit=1`) against PostgreSQL with fail-closed error handling and generates an audit receipt:
 ```bash
-Rscript concept_ab_run.R
+Rscript extras/run_cab_pipeline_postgres_minimal.R
 ```
+Upon completion, verify the execution with the automated known-answer test harness:
+```bash
+python extras/test_pipeline_v57_postgres_execution.py
+```
+This suite verifies:
+- Audit of `extras/pipeline_v57_run_receipt.json` (asserts `"status": "SUCCESS"`).
+- Presence and population of all 43 materialized output tables.
+- 3 independent known-answer test vectors in `cab_s55_pair_all` (Acute bronchitis $\leftrightarrow$ acetaminophen, Otitis media $\leftrightarrow$ acetaminophen, Suture open wound $\leftrightarrow$ acetaminophen).
+- Synthetic fixture boundaries (noting 0 device exposures in synthetic GiBleed CDM as an explicit fixture limit).
 
-The runner automatically executes:
+### Option B: Standalone SQL Runner (`concept_ab_run.R`)
+Executes the full pipeline via environment-driven configuration:
+```bash
+Rscript docs/mining/sql/concept_ab_run.R
+```
+The runner loads `concept_ab.env`, establishes a JDBC connection, and orchestrates:
 1. **Scaffolding (`init`)**: Verifies table dependencies, assigns patients to random batches, and creates cumulative summary tables.
 2. **Batch Processing Loop (`batch`)**: Loops across batches $1 \dots N$, logging step execution times to `cab_process_log`.
 3. **Statistical Finalization (`finalize`)**: Aggregates batch counts, applies utilization stratification, computes lifts and directionality ratios, and outputs final analytical tables.
 
+### Option C: Study Package Network Execution Driver (`CodeToRun.R`)
+For federated OHDSI network studies, sites execute the packaged R study module:
+```bash
+Rscript extras/CodeToRun.R
+```
+This invokes `Taxis::execute()`, running both mining (`runMining = TRUE`) and non-PHI aggregate packaging with small-cell suppression ($<5 \to -1$, `packageResults = TRUE`).
+
 ---
 
-## 5. Output Tables Summary
+## 5. Output Tables Summary (43 Materialized Tables)
 
-Upon completion, the results schema contains the following finalized tables:
+Upon completion of the 3 phases, the results schema contains 43 materialized tables:
 
+### Master Association & Longitudinal Tables
 | Table Name | Description | Key Analytical Fields |
 |---|---|---|
-| **`cab_s55_pair_all`** | Master association summary table per concept pair | `concept_id_a`, `concept_id_b`, `person_lift_unadj`, `person_lift_strat`, `event_lift`, `directionality_ratio`, `contingency_or`, `a_before_b`, `b_before_a`, `same_day_count` |
-| **`cab_s50_all`** | Unpivoted longitudinal interval counts | Temporal counts across windows: $[1, 30]$, $[1, 90]$, $[1, 365]$, $[1, 730]$ days, and all follow-up |
+| **`cab_s55_pair_all`** | Master association summary table per concept pair | `concept_id_a`, `concept_id_b`, `concept_name_a`, `concept_name_b`, `obs_all`, `obs_same_day`, `obs_after`, `obs_before`, `dir_ab`, `lift_to_read`, `lift_same_day`, `lift_after`, `lift_before` |
+| **`cab_s50_all`** | Unpivoted longitudinal interval counts | Temporal counts across follow-up windows: $[1, 30]$, $[1, 90]$, $[1, 365]$, $[1, 730]$ days, and all follow-up |
 | **`cab_s40_all`** | Contingency counts joined with marginals | Observed counts, expected counts, marginal totals |
-| **`cab_s30_all`** | Raw observed co-occurrence counts | Pair counts across all 6 domain intersections |
+| **`cab_s30_all`** | Raw observed co-occurrence counts | Pair counts across all domain intersections |
 | **`cab_s13_strat_all`** | Utilization decile denominators | Person counts and person-days per utilization decile ($U_1 \dots U_{10}$) |
-| **`cab_s33_mh_all`** | Stratified expected counts | Cochran-Mantel-Haenszel expected counts adjusted for encounter frequency |
+| **`cab_s23_strat_all`** | Concept marginals by decile | Person and event marginals stratified across utilization deciles |
+| **`cab_s33_strat_all`** | Stratified observed pair counts | Observed pair co-occurrences within each contact decile |
+| **`cab_s33_mh_all`** | Stratified expected counts | Cochran-Mantel-Haenszel expected counts adjusted for contact frequency |
 | **`cab_vocab_all_output`** | Decoded concept metadata | Human-readable concept names, domains, vocabularies, and packed measurement results |
-| **`cab_timing_all`** | Step-by-step performance metrics | Execution durations per step and batch for auditability |
+| **`cab_process_log`** | Step-by-step performance metrics | Execution durations per step and batch for auditability |
+| **`cab_timing_all`** | Step-by-step summary timings | Aggregated execution metrics |
+
+### Profile & Diagnostic Tables
+- `cab_s37_lag_all`: Distribution of longitudinal lag days across pair types.
+- `cab_s38_profile_all`: Data profiling summaries across clinical domains.
+- `cab_s39_pattern_all`: Concept recording gap patterns and event densities.
+- `cab_s54_grain_guide`: Longitudinal recording granularity guide per concept.
+- Staging tables: Domain-specific staging (`cab_s10_10`, `cab_s10_20`, `cab_s10_30`, `cab_s10_40`, `cab_s10_50`, `cab_s10_60`, `cab_s10_80`) and cumulative batch tables (`cab_s20_marginal_cum`, `cab_s30_cum`, `cab_s40_cum`, `cab_s50_cum`).
 
 ---
 

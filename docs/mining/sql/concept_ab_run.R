@@ -208,12 +208,27 @@ read_sql      <- function(p) paste(readLines(p, warn = FALSE, encoding = "UTF-8"
 # Optional debug dump: set CAB_DEBUG=1 in the .env to write the SQL that is
 # actually sent to the DBMS -- rendered AND translated to the target dialect --
 # into the working directory. This is what executeSql() receives, so it is the
-# right artifact for diagnosing dialect/translation problems. Off by default.
 cabDebug <- tolower(Sys.getenv("CAB_DEBUG", "false")) %in% c("true","1","yes","t","y")
 dump_sql <- function(sqlText, fileName) {
   if (cabDebug) {
     writeLines(sqlText, fileName)
     cat("[driver] CAB_DEBUG: wrote ", fileName, "\n", sep = "")
+  }
+}
+
+# Canonical statement splitter & empty-block filter to prevent JDBC NullPointerException on standalone semicolons (REC-063-1)
+executeSqlSafely <- function(connection, sql, progressBar = TRUE) {
+  statements <- SqlRender::splitSql(sql)
+  statements <- statements[nchar(trimws(statements)) > 0]
+  if (length(statements) > 0) {
+    if (progressBar) {
+      pb <- txtProgressBar(min = 0, max = length(statements), style = 3)
+    }
+    for (i in seq_along(statements)) {
+      DatabaseConnector::executeSql(connection, statements[i], progressBar = FALSE)
+      if (progressBar) setTxtProgressBar(pb, i)
+    }
+    if (progressBar) close(pb)
   }
 }
 
@@ -259,12 +274,12 @@ sql <- SqlRender::render(
 sqlFinal <- SqlRender::translate(sql, targetDialect = databaseDialect)
 dump_sql(sqlFinal, "rendered_init.sql")
 tryCatch(
-  executeSql(conn, sqlFinal, progressBar = TRUE),
+  executeSqlSafely(conn, sqlFinal, progressBar = TRUE),
   error = function(e) {
     cat("[driver] init failed: ", conditionMessage(e), " — reconnecting & retrying once...\n", sep = "")
     try(DatabaseConnector::disconnect(conn), silent = TRUE)
     conn <<- DatabaseConnector::connect(connectionDetails)  # reuse, no new prompt
-    executeSql(conn, sqlFinal, progressBar = TRUE)
+    executeSqlSafely(conn, sqlFinal, progressBar = TRUE)
   }
 )
 
@@ -291,7 +306,7 @@ for (b in batchList) {
   )
   sqlFinal <- SqlRender::translate(sql, targetDialect = databaseDialect)
   if (b == batchList[1]) dump_sql(sqlFinal, "rendered_batch.sql")  # batches differ only in @batch_number
-  executeSql(conn, sqlFinal, progressBar = TRUE)
+  executeSqlSafely(conn, sqlFinal, progressBar = TRUE)
 }
 
 # compute time to compute batches and display it
@@ -326,7 +341,7 @@ sql <- suppressWarnings(
 )
 sqlFinal <- SqlRender::translate(sql, targetDialect = databaseDialect)
 dump_sql(sqlFinal, "rendered_finalize.sql")
-executeSql(conn, sqlFinal, progressBar = TRUE)
+executeSqlSafely(conn, sqlFinal, progressBar = TRUE)
 
 cat("[driver] all done.\n")
 

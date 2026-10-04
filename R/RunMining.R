@@ -123,6 +123,26 @@ runConceptMining <- function(connectionDetails,
 
   read_sql <- function(p) paste(readLines(p, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
 
+  # Helper: execute SQL by splitting statements and filtering empty blocks to avoid JDBC driver NPE on standalone semicolons (REC-063-1)
+  executeSqlFiltered <- function(connection, sql, progressBar = TRUE) {
+    statements <- SqlRender::splitSql(sql)
+    statements <- statements[nchar(trimws(statements)) > 0]
+    if (length(statements) > 0) {
+      if (progressBar) {
+        pb <- txtProgressBar(min = 0, max = length(statements), style = 3)
+      }
+      for (i in seq_along(statements)) {
+        DatabaseConnector::executeSql(connection, statements[i], progressBar = FALSE)
+        if (progressBar) {
+          setTxtProgressBar(pb, i)
+        }
+      }
+      if (progressBar) {
+        close(pb)
+      }
+    }
+  }
+
   # ---------------------------------------------------------
   # Phase 1: Init (Scaffolding & Population Partitioning)
   # ---------------------------------------------------------
@@ -140,7 +160,7 @@ runConceptMining <- function(connectionDetails,
     initSuccess <- FALSE
     for (attempt in 1:2) {
       status <- tryCatch({
-        DatabaseConnector::executeSql(conn, sqlFinal, progressBar = TRUE)
+        executeSqlFiltered(conn, sqlFinal, progressBar = TRUE)
         initSuccess <- TRUE
         "SUCCESS"
       }, error = function(e) {
@@ -185,7 +205,7 @@ runConceptMining <- function(connectionDetails,
         now_expr                 = nowExpr
       )
       sqlFinal <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
-      DatabaseConnector::executeSql(conn, sqlFinal, progressBar = TRUE)
+      executeSqlFiltered(conn, sqlFinal, progressBar = TRUE)
     }
 
     elapsedSeconds <- (proc.time() - startTime)["elapsed"]
@@ -211,7 +231,7 @@ runConceptMining <- function(connectionDetails,
       drop_cum_tables           = dropCumTables
     )
     sqlFinal <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
-    DatabaseConnector::executeSql(conn, sqlFinal, progressBar = TRUE)
+    executeSqlFiltered(conn, sqlFinal, progressBar = TRUE)
     ParallelLogger::logInfo("Phase 3: Finalization completed successfully.")
   }
 

@@ -527,6 +527,22 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
    - The mined empirical pairs ($N = 14,233,528$) and continuity-corrected directionality ratios ($DR$) serve as the empirical substrate for the OHDSI Phenotype Development & Evaluation Workgroup initiatives ([Topic 20940](https://forums.ohdsi.org/t/ohdsi-phenotype-workgroup-updates/20940) and [Topic 25158](https://forums.ohdsi.org/t/ohdsi-phenotype-phebruary-in-aphril-2026/25158)).
    - Associational pairs map deterministically into the 6-bucket slot architecture (Bucket 1: Primary Anchor, Bucket 2: Symptoms, Bucket 3: Confirmatory Labs, Bucket 4: Therapeutic Interventions with $DR \ge 1.50$, Bucket 5: Complications, Bucket 6: Exclusionary Mimics). Full integration details: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](../phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
 
+9. **Statement-Splitter & Empty-Statement Filter Protocol (`REC-063-1`)**:
+   - In the released T-SQL batch script (`inst/sql/sql_server/concept_ab_batch.sql`), certain sections (such as line 1108) contain standalone semicolons following explanatory comments to satisfy SQL Server CTE termination conventions.
+   - When transpiled to PostgreSQL via `SqlRender::translate()`, standard JDBC drivers and `DatabaseConnector` encounter an empty statement string between consecutive semicolons, triggering a driver NullPointerException if passed directly to JDBC `execute()`.
+   - The verified execution runner (`extras/run_cab_pipeline_postgres_minimal.R`) implements the canonical OHDSI statement-splitter protocol: invoking `SqlRender::splitSql(translatedSql)` and filtering empty blocks (`nchar(trimws(stmt)) > 0`) before executing statements. This guarantees flawless execution while preserving strict 100% SHA256 binary identity between `inst/sql/sql_server/*.sql` and `docs/mining/sql/*.sql`.
+
+10. **Verified Bounded Minimal Pipeline Execution on PostgreSQL (`REC-062-1`, `REC-063-2`)**:
+    - The full 3-phase pipeline (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`) was executed natively against PostgreSQL 16 on `localhost:5433` (database `synthea`, CDM schema `cdm`, reference vocabulary schema `concept_ab_vocab`, results schema `work_cab_test`) using the canonical OHDSI R stack (`SqlRender` 1.19.7, `DatabaseConnector` 8.0.0, OpenJDK 21, PostgreSQL JDBC 42.7.3).
+    - Runtime parameters: `batch_count = 1`, `batch_number = 1`, `partial_run_batch_limit = 1`, `data_profile_batch_limit = 1`, `window_days = 35`, `create_index_ddl = TRUE`.
+    - Output verification: Materialized all 43 tables in `work_cab_test`, producing 9,118 mined concept pairs in master table `cab_s55_pair_all`.
+    - Known-Answer Verification: Validated with 3 independent test vectors in `extras/test_pipeline_v57_postgres_execution.py`:
+      1. *Acute bronchitis* (260139) $\leftrightarrow$ *acetaminophen* (1000960169): `obs_all = 8228`, `obs_same_day = 8102`, `obs_after = 92`, `obs_before = 34`, `dir_ab = 0.7302`, continuity-corrected $DR = \frac{92 + 0.5}{34 + 0.5} = 2.6812 \ge 1.50$ (confirmed forward-directed).
+      2. *Otitis media* (372328) $\leftrightarrow$ *acetaminophen* (1000960169): `obs_all = 1415`, `obs_same_day = 1359`, `obs_after = 31`, `obs_before = 25`, `dir_ab = 0.5536`, $DR = \frac{31 + 0.5}{25 + 0.5} = 1.2353$ (confirmed symmetric association, $0.67 \le DR \le 1.50$).
+      3. *Suture open wound* (4125906) $\leftrightarrow$ *acetaminophen* (1000960169): `obs_all = 1062`, `obs_same_day = 1035`, `obs_after = 12`, `obs_before = 15`, `dir_ab = 0.4444`.
+    - Coverage Limit: The synthetic test CDM fixture contains 2,694 persons, 1,037 visits, 1,477 observations, and 0 device records (`cdm.device_exposure = 0`), which is maintained as an explicit synthetic fixture coverage boundary.
+    - Audit Receipt & Controlled Failure: Execution emits a structured receipt (`extras/pipeline_v57_run_receipt.json`) recording phase statuses, parameters, and table counts. A controlled failure test (`test_controlled_failure.R`) confirmed that errors produce a nonzero process exit status (1) and a `FAILED` receipt.
+
 ---
 
 ## 7. Complete Output Data Dictionary (18 Export Tables)
