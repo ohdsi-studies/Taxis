@@ -217,11 +217,9 @@ TAXIS is designed to explore applications across four areas of observational res
 - **Evidence Grading**: Edges include versioned evidence vectors and ordinal grades (**Strong**, **Moderate**, **Candidate**, **Weak**, **Refuted**). Strong and Moderate edges are prioritized for cohort evaluation.
 
 ### Pillar 3: Automated Phenotype Recreation & Multi-Database Evaluation
-- **Graph-to-Circe Synthesis (`build_1032.py`)**: Knowledge graph edge traversals populate candidate Circe JSON criteria slots (Anchor Disorder, Confirmatory Labs, Required Drugs, Rule-Out Mimics).
-- **10% Anchor Patient Rule-Out Cap**: Sourced from INPC co-occurrence counts to prevent overly aggressive exclusionary criteria from eliminating valid patient populations.
-- **Integration with CohortDiagnostics (Phenotype Development & Evaluation)**: Executes `CohortDiagnostics` across OMOP CDMs to evaluate orphan concepts, index event breakdowns, time distributions, and inclusion rule attrition as an integral step in phenotype development and evaluation.
-- **Iterative Refinement via PheValuator Model Covariates**: Quantitatively evaluates diagnostic operating characteristics (ROC-AUC, sensitivity, specificity, PPV). Evaluates non-zero predictive model covariates from `PheValuator` diagnostic models as an empirical feedback loop back into the TAXIS knowledge graph traversal, identifying omitted clinical criteria or refining rule-out boundaries.
-- **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate 5 target phenotypes (COPD, Obesity, CKD, Hyperkalemia, Type 2 Diabetes) against comparator cohorts from the OHDSI Phenotype Library across partner OMOP CDM databases. Located in [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/README.md).
+- **Automated Phenotype Creation Package (`TaxisPhenotypeCreator`)**: Dedicated HADES R package for translating clinical descriptions and knowledge graph association edges into standards-compliant Circe JSON cohort expressions and target DBMS SQL queries. Located in [`extras/TaxisPhenotypeCreator/`](extras/TaxisPhenotypeCreator/README.md).
+- **Multi-CDM Evaluation Package (`TaxisPhenotypeEvaluation`)**: HADES-compliant R study package developed to evaluate target phenotypes against comparator cohorts from the OHDSI Phenotype Library across partner OMOP CDM databases. Located in [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/README.md).
+- **Concept AB Mining Network Study Package (`Taxis`)**: The root repository forms the official OHDSI Network Study Package executing the 40-batch association mining engine across federated OMOP CDMs. Configured via [`extras/CodeToRun.R`](extras/CodeToRun.R).
 
 ---
 
@@ -322,25 +320,33 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
 
 ---
 
-## 7. Repository Organization
-
-```
-├── docs/                        # Public study documentation & specifications
-│   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
-│   │   ├── README.md            # Symposium overview & presentation roadmap
-│   │   ├── TAXIS_Brief_Report_v6.md # Showcase #127 4-page Brief Report
-│   │   └── Poster_Presentation_Guide.md # 48"x36" horizontal digital poster guide
-│   ├── governance/              # Network data use agreements & privacy policies
-│   ├── protocol/                # Study protocol & design specifications
-│   ├── mining/                  # Concept AB association mining engine (v57) & SQL architecture
-│   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
-│   ├── phenotyping/             # Automated phenotype builder specifications
-│   └── validation/              # ClinVec empirical benchmark and concordance results
-├── extras/                      # Study execution packages
-│   └── TaxisPhenotypeEvaluation/# HADES R study package for network partners
-├── examples/                    # Sanitized output schemas and reference data
-└── README.md                    # Repository overview and entry point
-```
+## 7. Repository Organization & R Package Ecosystem
+ 
+ ```
+ ├── DESCRIPTION                  # Official OHDSI Study Package definition (Package: Taxis)
+ ├── NAMESPACE                    # Package exports: execute(), runConceptMining(), packageMiningResults()
+ ├── R/                           # Core R study functions for Concept AB Mining Engine
+ │   ├── Main.R                   # Primary execute() entry point
+ │   ├── RunMining.R              # 3-phase SqlRender pipeline orchestrator
+ │   └── PackageMiningResults.R   # Non-PHI aggregate packaging with <5 suppression
+ ├── inst/                        # Bundled package resources
+ │   ├── sql/sql_server/          # Canonical OHDSI T-SQL scripts (init, batch, finalize)
+ │   └── settings/                # Environment configuration templates
+ ├── docs/                        # Public study documentation & scientific specifications
+ │   ├── symposium_2026/          # 2026 OHDSI Global Symposium showcase materials
+ │   ├── governance/              # Network data use agreements & privacy policies
+ │   ├── protocol/                # Study protocol & design specifications
+ │   ├── mining/                  # Concept AB association mining engine specifications
+ │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
+ │   ├── phenotyping/             # Automated phenotype builder specifications
+ │   └── validation/              # ClinVec empirical benchmark and concordance results
+ ├── extras/                      # Multi-site study packages and execution drivers
+ │   ├── CodeToRun.R              # Push-button network execution driver for root Taxis package
+ │   ├── TaxisPhenotypeEvaluation/# Standalone HADES study package for phenotype evaluation
+ │   └── TaxisPhenotypeCreator/   # Standalone HADES R package for automated Circe phenotype creation
+ ├── examples/                    # Sanitized output schemas and reference data
+ └── README.md                    # Repository overview and entry point
+ ```
 
 ---
 
