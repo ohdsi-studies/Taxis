@@ -306,17 +306,24 @@ Following the 2026 symposium demonstration, TAXIS will advance across two parall
      - *Metadata Completeness*: Intake hygiene and documentation scores from Phenotype Library 3.0.
    - **Workgroup Peer Review**: Support human-in-the-loop review within the **OHDSI Phenotype Development and Evaluation Workgroup**, providing clinicians and epidemiologists with structured rationale and validation data to evaluate candidate definitions for official library adoption.
 
+6. **ATLAS v3.0, Pythia AI Agent & TrexSQL Native Integration**:
+   - **Pythia AI Empirical Tooling**: Author ClojureScript tools (`taxis_recommend_associations`, `taxis_get_lag_window`, `taxis_evaluate_phenotype`) for the `@ohdsi/pythia-agent` in ATLAS v3.0, grounding conversational card proposals in empirical CDM co-occurrence ($N \ge 5$), Stratified Lift, and Directionality Ratios ($DR$) rather than lexical matching or static Library regexes.
+   - **TrexSQL DuckDB Query Cache Acceleration**: Ingest TAXIS pre-computed marginal and pair co-occurrence tables into TrexSQL's DuckDB cache (`TREXSQL_CACHE_PATH=/data/cache`). Enables $O(1)$ dead-end query short-circuiting ($N(A \cap B) = 0$), pruning inactive descendants from concept sets, and reducing Circe SQL compilation and execution times by up to $80\%$.
+   - **ATLAS v3.0 Single-SPA UI Plugin (`@ohdsi/taxis-atlas-plugin`)**: Develop a native Vue 3 / `@ohdsi/atlas-ui` parcel providing an interactive ECharts knowledge-graph visualizer, empirical lag decay curves $[-400, +400]$ days, and one-click cohort injection via `pythiaBridge.ts`.
+   - **WebMCP Browser Agent Capability Surface**: Register TAXIS capabilities into ATLAS v3 `CAPABILITIES` (`src/plugins/host/capabilities/registry.ts`) under `navigator.modelContext`, enabling in-browser AI agents and multi-agent study orchestrators to programmatically design and validate phenotypes.
+   - **In-Browser Real-Time Phenotype Evaluation**: Integrate `TaxisPhenotypeEvaluation` (2x2 Jaccard Overlap and HADES `PheValuator` operating curves) directly into ATLAS v3 cohort definitions with strict small-cell suppression ($<5 \to -1$). Detailed in [TAXIS Atlas3 & Pythia Integration Architecture](docs/phenotyping/TAXIS_Atlas3_Pythia_Integration_Architecture.md).
+
 #### Track B: Causal Study Design, Negative Controls & Error Calibration
-6. **Candidate Negative Control Generation & Empirical Error Calibration**:
+7. **Candidate Negative Control Generation & Empirical Error Calibration**:
    - **Candidate Negative Control Hypothesis Screening**: Systematically identify candidate negative control outcomes by querying the clinical relationship layer for concept pairs with an absence of documented pathophysiologic, etiologic, or therapeutic mechanisms across all 112 taxonomy codes.
    - **Causal Null Candidacy vs. Observational Diagnostics**: Rather than conditioning candidate eligibility on observed null association in evaluation data (which risks discarding the very confounding bias calibration is meant to measure), TAXIS uses clinical relationship absence to generate causal-null candidates for independent clinical and literature review. Baseline observational metrics ($\text{Lift}$, $DR$) are reported as characterization diagnostics. Pre-specified negative control sets are then evaluated across partner CDMs to generate empirical null distributions that calibrate residual systematic error in comparative studies.
 
-7. **Confounder Identification & Confounder Balance Evaluation**:
+8. **Confounder Identification & Confounder Balance Evaluation**:
    - **Informing Study Design Choices**: Leverage explicit clinical relationship semantics (causal, manifestation, contraindication) to assist investigators in identifying true common-cause confounders when defining cohort inclusion and baseline covariate criteria.
    - **Protecting Intermediate Mediators & Colliders**: Use directional relationship data to differentiate intermediate variables on the causal pathway (preventing over-adjustment bias) and avoid collider conditioning.
    - **Evaluating Confounder Balance & Residual Confounding**: Complement causal inference workflows by using clinical relationship graphs to inspect whether recognized clinical confounders achieve empirical balance across treatment arms, and inform sensitivity analyses for residual unmeasured confounding.
 
-8. **Network Evidence Adjudication & Bias Evaluation**:
+9. **Network Evidence Adjudication & Bias Evaluation**:
    - **Contextualizing Distributed Findings**: Provide a structured clinical knowledge layer to assist investigators in evaluating observed associations across data networks.
    - **Adjudicating Alternative Explanations**: Distinguish genuine therapeutic effects from confounding by indication, protopathic bias (early manifestations treated prior to formal diagnosis), or detection artifacts.
 

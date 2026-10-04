@@ -413,17 +413,24 @@ To enforce rigorous data governance, mitigate disclosure risks, and adhere stric
 
 ### 6.2. Phased Release Roadmap
 
-#### Phase 1: Prototype Site-Local REST Bridge (`taxis-service`) (Q4 2026)
-- Package TAXIS 40-batch query logic (`cab_s54_grain_guide`, `cab_s37_lag_all`) into a lightweight, site-local FastAPI microservice residing behind the local database firewall.
-- Expose site-local endpoints: `/api/v1/recommend`, `/api/v1/audit-exclusion`, and `/api/v1/grain` with strict small-cell suppression ($< 5$).
+#### Phase 1: TrexSQL DuckDB Cache Ingestion & Site-Local REST Bridge (Q4 2026)
+- **TrexSQL DuckDB Ingestion**: Export TAXIS pre-computed tables (`cab_s20_marginal`, `cab_s30_pairs`, `cab_s37_lag`) into standardized Parquet files and ingest into TrexSQL's DuckDB cache volume (`TREXSQL_CACHE_PATH=/data/cache`).
+- **Dead-End Short-Circuiting & Pruning**: Enable $O(1)$ zero-count detection ($N(A \cap B) = 0$) in `trexsql.service.ts` to immediately bypass redundant table scans on empty cohort branches; prune zero-marginal descendants from concept sets to shrink SQL queries by up to 80%.
+- **Site-Local REST Service**: Package TAXIS query logic into a lightweight, site-local FastAPI microservice behind the local firewall, exposing `/WebAPI/taxis/{sourceKey}/associations` and `/WebAPI/taxis/{sourceKey}/lag` with strict small-cell suppression ($< 5 \to -1$).
 
-#### Phase 2: Dynamic Browser Tool Mount in Atlas v3 (Q1 2027)
-- Ship `@ohdsi/atlas-plugin-taxis` for Atlas v3.
-- Register browser tools via `window.__pythiaClientTools` for zero-friction client-side integration connecting strictly to the site-local API.
+#### Phase 2: Pythia AI Agent ClojureScript & Dynamic Tools (Q1 2027)
+- **Pythia Core Agent Tools**: Author ClojureScript tools (`taxis_recommend_associations.cljs`, `taxis_get_lag_window.cljs`, `taxis_evaluate_phenotype.cljs`) in `Pythia/agent/src/pythia/tools/`.
+- **Pythia Prompt Augmentation**: Update `instructions.md` with Section 3.1 directives, mandating empirical grounding via TAXIS Stratified Lift and Directionality Ratios ($DR$) before generating inclusion or exclusion proposal cards.
+- **Dynamic Browser Tool Fallback**: Mount tools via `window.__pythiaClientTools` for immediate zero-friction use in ATLAS v3 without requiring server-side agent recompilation.
 
-#### Phase 3: Upstream Pythia Agent Contribution (Q2 2027)
-- Submit Pull Request to `OHDSI/Pythia` adding `taxis-associations.cljs` and `taxis-attrition.cljs` into Pythia core agent tools.
-- Update Pythia eval suite (`plugin/evals/*.eval.ts`) asserting zero over-exclusion attrition on benchmark conditions.
+#### Phase 3: ATLAS v3.0 Native Single-SPA UI Plugin (Q2 2027)
+- **Plugin Delivery**: Ship `@ohdsi/taxis-atlas-plugin` as a Single-SPA parcel (`system` format) using `@ohdsi/atlas-ui` and Vue 3.
+- **Interactive Visualizers**: Provide an ECharts force-directed knowledge-graph explorer (linking diseases to co-occurring conditions, drugs, and labs) and empirical lag decay histograms $[-400, +400]$ days.
+- **One-Click Cohort Injection**: Connect UI selections to `pythiaBridge.ts` via `pythia.applyProposal` events to automatically populate concept sets, entry events, and inclusion rules into the open cohort editor.
+
+#### Phase 4: In-Browser HADES Validation Scorecard & WebMCP Surface (Q3 2027)
+- **Real-Time PheValuator Scorecards**: Embed `TaxisPhenotypeEvaluation` directly into ATLAS v3 cohort definitions, rendering 2x2 Jaccard Overlap and `PheValuator` operating curves (Sensitivity, Specificity, PPV) with automatic small-cell masking.
+- **WebMCP Capability Registration**: Register TAXIS capabilities into ATLAS v3 `CAPABILITIES` (`src/plugins/host/capabilities/registry.ts`) under `navigator.modelContext`, enabling in-browser AI agents and multi-agent study orchestrators to programmatically design and validate phenotypes.
 
 ---
 
