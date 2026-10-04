@@ -7,9 +7,9 @@
 > **Source Empirical Data**: Concept AB Association Mining Pipeline v57 (2.16M Longitudinal Patients in INPC OMOP CDM)  
 > **Study Leadership**:  
 > • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
+> • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
-> • J. Marc Overhage, MD, PhD – Investigator, The Overhage Group / Indiana University School of Medicine  
 
 ---
 

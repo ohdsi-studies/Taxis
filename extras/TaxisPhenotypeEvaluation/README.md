@@ -7,9 +7,9 @@
 > **Collaborator Showcase**: 2026 OHDSI Global Symposium (Entry #127, October 20–22, 2026, New Brunswick, NJ)  
 > **Study Leadership**:  
 > • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
+> • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
-> • J. Marc Overhage, MD, PhD – Investigator, The Overhage Group / Indiana University School of Medicine  
 > **Governing Framework**: OHDSI HADES (`DatabaseConnector`, `CohortGenerator`, `CohortDiagnostics`, `PheValuator`)  
 > **Target Data Assets**: Federated OMOP Common Data Model (CDM) partner databases  
 

@@ -4,7 +4,7 @@
 > **Document Version**: 1.0.0  
 > **Status**: Technical Architecture & Research Specification  
 > **Target Platforms**: [OHDSI Atlas 3.0](https://github.com/OHDSI/Atlas3), [OHDSI Pythia](https://github.com/OHDSI/Pythia), [OHDSI HADES](https://github.com/OHDSI/Hades)  
-> **Investigators**: Stephen H. Bandeian, MD (Principal Investigator); Gowtham Rao, MD, PhD; Shaun Grannis, MD, MS; J. Marc Overhage, MD, PhD  
+> **Investigators**: Stephen H. Bandeian, MD (Principal Investigator); J. Marc Overhage, MD, PhD (Co-Principal Investigator); Gowtham Rao, MD, PhD; Shaun Grannis, MD, MS  
 
 ---
 

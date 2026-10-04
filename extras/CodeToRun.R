@@ -6,9 +6,9 @@
 # Component: Concept AB Association Mining Engine (Pipeline v57)
 # Study Leadership:
 #   • Stephen H. Bandeian, MD, JD - Principal Investigator, Johns Hopkins University
+#   • J. Marc Overhage, MD, PhD - Co-Principal Investigator, The Overhage Group / Indiana Univ
 #   • Gowtham Rao, MD, PhD - Investigator, CoReason, Inc. / OHDSI
 #   • Shaun Grannis, MD, MS - Investigator, Regenstrief Institute / Indiana Univ
-#   • J. Marc Overhage, MD, PhD - Investigator, The Overhage Group / Indiana Univ
 #
 # Privacy & Governance Safeguards:
 #   - Zero patient-level data leaves the partner database.

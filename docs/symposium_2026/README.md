@@ -117,9 +117,9 @@ While structured clinical knowledge graphs provide a computable foundation acros
 | Investigator | Role & Primary Institutional Affiliation |
 |---|---|
 | **Stephen H. Bandeian, MD, JD** | Principal Investigator, Johns Hopkins University School of Medicine (Biomedical Informatics & Data Science) |
+| **J. Marc Overhage, MD, PhD** | Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine |
 | **Gowtham Rao, MD, PhD** | Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group) |
 | **Shaun Grannis, MD, MS** | Investigator, Regenstrief Institute / Indiana University School of Medicine |
-| **J. Marc Overhage, MD, PhD** | Investigator, The Overhage Group / Indiana University School of Medicine |
 
 ---
 

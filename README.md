@@ -16,9 +16,9 @@
 > - [2026 Symposium Dissemination Overview](docs/symposium_2026/README.md)  
 > **Study Leadership**:  
 > - **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine  
+> - **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
 > - **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup  
 > - **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine  
-> - **J. Marc Overhage, MD, PhD** – Investigator, The Overhage Group / Indiana University School of Medicine  
 
 ---
 
