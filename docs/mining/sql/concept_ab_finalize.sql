@@ -84,7 +84,9 @@
                                    ratio involving that batch would be wrong in a
                                    way nothing downstream could detect.
 */
- 
+
+{DEFAULT @create_index_ddl = true}
+
 
 -- =========================
 -- finalize (PIT)
@@ -240,9 +242,8 @@ group by
 
 {@create_index_ddl} ? {
   create index ix_cab3_all on @results_database_schema.cab_s30_all (pair_type, anchor_code, concept_a, concept_b);
+  update statistics @results_database_schema.cab_s30_all;
 }
-
-update statistics @results_database_schema.cab_s30_all;
 
 
 
@@ -492,9 +493,8 @@ where a.pair_type in (1010, 2020, 3030, 4040)
 
 {@create_index_ddl} ? {
   create index ix_cab4_all on @results_database_schema.cab_s40_all (pair_type, anchor_code, concept_a, concept_b);
+  update statistics @results_database_schema.cab_s40_all;
 }
-
-update statistics @results_database_schema.cab_s40_all;
 
 
 -- ============================================================
@@ -643,8 +643,10 @@ into @results_database_schema.cab_vocab_all_output
 from s4 a
 where a.rn = 1
 ;
-create index ix_cab_vocab_all_output on @results_database_schema.cab_vocab_all_output (concept_id);
-update statistics @results_database_schema.cab_vocab_all_output;
+{@create_index_ddl} ? {
+  create index ix_cab_vocab_all_output on @results_database_schema.cab_vocab_all_output (concept_id);
+  update statistics @results_database_schema.cab_vocab_all_output;
+}
 
 
 
@@ -670,7 +672,9 @@ where batch_number <= @max_batch_number
 group by pair_type, lag_bucket
 ;
 
-update statistics @results_database_schema.cab_s37_lag_all;
+{@create_index_ddl} ? {
+  update statistics @results_database_schema.cab_s37_lag_all;
+}
 
 drop table if exists @results_database_schema.cab_s38_profile_all;
 
@@ -686,7 +690,9 @@ where batch_number <= @max_batch_number
 group by metric, src, bucket
 ;
 
-update statistics @results_database_schema.cab_s38_profile_all;
+{@create_index_ddl} ? {
+  update statistics @results_database_schema.cab_s38_profile_all;
+}
 
 
 -- ============================================================
@@ -713,9 +719,8 @@ group by
 
 {@create_index_ddl} ? {
   create index ix_cab39_all on @results_database_schema.cab_s39_pattern_all (concept_id, src, metric);
+  update statistics @results_database_schema.cab_s39_pattern_all;
 }
-
-update statistics @results_database_schema.cab_s39_pattern_all;
 
 
 -- ============================================================
@@ -882,9 +887,8 @@ from s8 a
 
 {@create_index_ddl} ? {
   create index ix_cab54_guide on @results_database_schema.cab_s54_grain_guide (concept_id, src);
+  update statistics @results_database_schema.cab_s54_grain_guide;
 }
-
-update statistics @results_database_schema.cab_s54_grain_guide;
 
 
 -- ============================================================
@@ -930,9 +934,8 @@ update statistics @results_database_schema.cab_s54_grain_guide;
 
   {@create_index_ddl} ? {
     create index ix_cab23_strat on @results_database_schema.cab_s23_strat_all (concept_id, src, util_decile);
+    update statistics @results_database_schema.cab_s23_strat_all;
   }
-
-  update statistics @results_database_schema.cab_s23_strat_all;
 
   drop table if exists @results_database_schema.cab_s33_strat_all;
 
@@ -952,9 +955,8 @@ update statistics @results_database_schema.cab_s54_grain_guide;
 
   {@create_index_ddl} ? {
     create index ix_cab33_strat on @results_database_schema.cab_s33_strat_all (pair_type, concept_a, concept_b);
+    update statistics @results_database_schema.cab_s33_strat_all;
   }
-
-  update statistics @results_database_schema.cab_s33_strat_all;
 
 -- ============================================================
 -- OPTIONAL: drop the cum tables no longer needed  (part 2 of 2)
@@ -1027,9 +1029,8 @@ update statistics @results_database_schema.cab_s54_grain_guide;
 
   {@create_index_ddl} ? {
     create index ix_cab33_mh on @results_database_schema.cab_s33_mh_all (pair_type, concept_a, concept_b);
+    update statistics @results_database_schema.cab_s33_mh_all;
   }
-
-  update statistics @results_database_schema.cab_s33_mh_all;
 
 
 
@@ -1201,13 +1202,12 @@ update statistics @results_database_schema.cab_s54_grain_guide;
 
   {@create_index_ddl} ? {
     create index ix_cab5_all on @results_database_schema.cab_s50_all (pair_type, anchor_code, concept_a, concept_b);
+    update statistics @results_database_schema.cab_s10_person_all;
+    update statistics @results_database_schema.cab_s20_marginal_all;
+    update statistics @results_database_schema.cab_s30_all;
+    update statistics @results_database_schema.cab_s40_all;
+    update statistics @results_database_schema.cab_s50_all;
   }
-
-  update statistics @results_database_schema.cab_s10_person_all;
-  update statistics @results_database_schema.cab_s20_marginal_all;
-  update statistics @results_database_schema.cab_s30_all;
-  update statistics @results_database_schema.cab_s40_all;
-  update statistics @results_database_schema.cab_s50_all;
 
 
 -- ============================================================
@@ -1345,9 +1345,8 @@ from s1 a
 
 {@create_index_ddl} ? {
   create index ix_cab55_pair on @results_database_schema.cab_s55_pair_all (pair_type, concept_a, concept_b);
+  update statistics @results_database_schema.cab_s55_pair_all;
 }
-
-update statistics @results_database_schema.cab_s55_pair_all;
 
 
 

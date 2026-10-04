@@ -136,7 +136,8 @@ and tuned (see diagnostics/timing_report.sql).
 
 */
 
-{DEFAULT @now_expr = clock_timestamp()}
+{DEFAULT @now_expr = CURRENT_TIMESTAMP}
+{DEFAULT @create_index_ddl = true}
 
 ---===================================Build of Pipeline Batch Files===============================================
 
@@ -153,9 +154,10 @@ from @results_database_schema.all_persons_batch a
 where a.batch_number = @batch_number
 ;
 
+{@create_index_ddl} ? {
 create index idx_cpb_pid on @results_database_schema.cab_person_batch (person_id);
-
 update statistics @results_database_schema.cab_person_batch;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_person_batch' as table_name, 1 as step, @now_expr as step_datetime;
@@ -226,9 +228,10 @@ from s3 a inner join s0 b on a.person_id = b.person_id and b.observation_period_
 where span_status >= 1
 ;
 
+{@create_index_ddl} ? {
 create index ix_s00_pd on @results_database_schema.cab_s00_obs_period (person_id, observation_period_start_date, observation_period_end_date);
-
 update statistics @results_database_schema.cab_s00_obs_period;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s00_obs_period' as table_name, 1 as step, @now_expr as step_datetime;
@@ -265,10 +268,11 @@ into @results_database_schema.cab_s01_visit
 from s1 a
 ;
 
+{@create_index_ddl} ? {
 create index ix_cab_s01_visit_person_visit on @results_database_schema.cab_s01_visit
 (person_id, visit_occurrence_id);
-
 update statistics @results_database_schema.cab_s01_visit;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s01_visit' as table_name, 1 as step, @now_expr as step_datetime;
@@ -335,9 +339,10 @@ from @results_database_schema.cab_person_batch a
   left outer join s2 c on a.person_id = c.person_id
 ;
 
+{@create_index_ddl} ? {
 create index ix_cpa_pid on @results_database_schema.cab_person_attr (person_id);
-
 update statistics @results_database_schema.cab_person_attr;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_person_attr' as table_name, 1 as step, @now_expr as step_datetime;
@@ -402,9 +407,10 @@ from s2 a
 where a.rn = 1
 ;
 
+{@create_index_ddl} ? {
 create index ix_s02_pb on @results_database_schema.cab_s02_condition (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s02_condition;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s02_condition' as table_name, 1 as step, @now_expr as step_datetime;
@@ -474,9 +480,10 @@ from s2 a
 where a.rn = 1
 ;
 
+{@create_index_ddl} ? {
 create index ix_s03_pb on @results_database_schema.cab_s03_procedure (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s03_procedure;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s03_procedure' as table_name, 1 as step, @now_expr as step_datetime;
@@ -496,7 +503,12 @@ select
   b.concept_id,
   a.device_exposure_start_date as start_date,
   case
-    when b.implant_flag = 1 then greatest(device_exposure_end_date, dateadd(day, 365, a.device_exposure_start_date))
+    when b.implant_flag = 1 then
+      case
+        when a.device_exposure_end_date is not null and a.device_exposure_end_date > dateadd(day, 365, a.device_exposure_start_date)
+        then a.device_exposure_end_date
+        else dateadd(day, 365, a.device_exposure_start_date)
+      end
     when a.device_exposure_end_date is not null then a.device_exposure_end_date
     else dateadd(day, 0, a.device_exposure_start_date)
   end as end_date
@@ -542,9 +554,10 @@ from s2 a
   left outer join @results_database_schema.cab_person_attr pa on a.person_id = pa.person_id
 where a.rn = 1;
 
+{@create_index_ddl} ? {
 create index ix_s04_pb on @results_database_schema.cab_s04_device (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s04_device;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s04_device' as table_name, 1 as step, @now_expr as step_datetime;
@@ -622,9 +635,10 @@ from s2 a
   left outer join @results_database_schema.cab_person_attr pa on a.person_id = pa.person_id
 where a.rn = 1;
 
+{@create_index_ddl} ? {
 create index ix_s05_pb on @results_database_schema.cab_s05_drug (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s05_drug;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s05_drug' as table_name, 1 as step, @now_expr as step_datetime;
@@ -792,9 +806,10 @@ from s7 a
 where a.rn = 1
 ;
 
+{@create_index_ddl} ? {
 create index ix_s06_pb on @results_database_schema.cab_s06_observation (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s06_observation;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s06_observation' as table_name, 1 as step, @now_expr as step_datetime;
@@ -939,9 +954,10 @@ from s7 a0
 where a0.rn = 1
 ;
 
+{@create_index_ddl} ? {
 create index ix_s07_pb on @results_database_schema.cab_s07_measurement (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s07_measurement;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s07_measurement' as table_name, 1 as step, @now_expr as step_datetime;
@@ -972,9 +988,10 @@ into @results_database_schema.cab_s08_observation_test
 from @results_database_schema.cab_s06_observation
 ;
 
+{@create_index_ddl} ? {
 create index ix_s08_pb on @results_database_schema.cab_s08_observation_test (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s08_observation_test;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s08_observation_test' as table_name, 1 as step, @now_expr as step_datetime;
@@ -1005,9 +1022,10 @@ into @results_database_schema.cab_s09_measurement_test
 from @results_database_schema.cab_s07_measurement
 ;
 
+{@create_index_ddl} ? {
 create index ix_s09_pb on @results_database_schema.cab_s09_measurement_test (person_id, start_bucket);
-
 update statistics @results_database_schema.cab_s09_measurement_test;
+}
 
 insert into @results_database_schema.cab_process_log
 select @batch_number as batch_number, 'cab_s09_measurement_test' as table_name, 1 as step, @now_expr as step_datetime;

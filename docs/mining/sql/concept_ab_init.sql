@@ -58,11 +58,14 @@ PARAMETERS
   @source_cdm_schema        -- OMOP CDM (source of the person table)
   @results_database_schema  -- where the cumulative tables are created
   @batch_count              -- number of batches to partition persons into
+  @create_index_ddl         -- whether to emit create index statements (default: true)
 
 NOTE. init takes no profiling parameter. The descriptive tables are CREATED
 here unconditionally and empty; whether a given batch WRITES to them is decided
 in the batch script by @data_profile_batch_limit.
 ========================================================= */
+
+{DEFAULT @create_index_ddl = true}
 
 
 -- =====================================================
@@ -406,5 +409,7 @@ into @results_database_schema.all_persons_batch
 from s1 a
 ;
 
+{@create_index_ddl} ? {
 create index idx_apb_batch on @results_database_schema.all_persons_batch (batch_number);
 create index idx_apb_pid on @results_database_schema.all_persons_batch (person_id);
+}

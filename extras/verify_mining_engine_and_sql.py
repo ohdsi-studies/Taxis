@@ -230,6 +230,61 @@ def test_table_coverage_in_specification():
     return True
 
 
+def test_ohdsi_tsql_dialect_conformance():
+    """Verify universal OHDSI Transact-SQL (T-SQL) dialect conformance and SqlRender guards."""
+    print("--> Test 7: Validating universal OHDSI T-SQL dialect & SqlRender guards...")
+    sql_files = ["concept_ab_init.sql", "concept_ab_batch.sql", "concept_ab_finalize.sql"]
+    errors = []
+
+    for fname in sql_files:
+        fpath = os.path.join(SQL_DIR, fname)
+        with open(fpath, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        if "{DEFAULT @create_index_ddl = true}" not in content:
+            errors.append(f"Missing '{{DEFAULT @create_index_ddl = true}}' in {fname}")
+
+        if "greatest(" in content.lower():
+            errors.append(f"Non-standard function 'greatest(' found in {fname}; must use portable CASE WHEN")
+
+        if "{DEFAULT @now_expr = clock_timestamp()}" in content:
+            errors.append(f"PostgreSQL-specific 'clock_timestamp()' hardcoded in DEFAULT of {fname}")
+
+        # Verify all CREATE INDEX and UPDATE STATISTICS are guarded
+        lines = content.splitlines()
+        in_idx_block = 0
+        for i, line in enumerate(lines, 1):
+            if "{@create_index_ddl} ? {" in line:
+                in_idx_block += 1
+            if in_idx_block > 0 and "}" in line and "{@" not in line:
+                in_idx_block -= 1
+
+            l = line.strip().lower()
+            if l.startswith("--") or l.startswith("/*") or l.startswith("*"):
+                continue
+            if ("create index" in l or "update statistics" in l) and "@create_index_ddl" not in l:
+                if in_idx_block == 0:
+                    errors.append(f"Unguarded index/statistics statement in {fname}:{i} -> {line.strip()}")
+
+    # Check R runner script parameter passing
+    r_runner = os.path.join(SQL_DIR, "concept_ab_run.R")
+    with open(r_runner, "r", encoding="utf-8") as f:
+        r_content = f.read()
+
+    if "create_index_ddl" not in r_content:
+        errors.append("create_index_ddl parameter missing from concept_ab_run.R")
+    if "CURRENT_TIMESTAMP" not in r_content:
+        errors.append("Standard ANSI / OHDSI T-SQL CURRENT_TIMESTAMP missing from concept_ab_run.R")
+
+    if errors:
+        for err in errors:
+            print(f"  [FAIL] {err}")
+        return False
+
+    print(f"  [PASS] All {len(sql_files)} SQL files strictly conform to universal OHDSI T-SQL with guarded DDL.")
+    return True
+
+
 def main():
     print("=====================================================================")
     print("TAXIS Verification Suite: Concept AB Mining Engine & SQL Pipeline v57")
@@ -242,6 +297,7 @@ def main():
         test_utilization_decile_stratification,
         test_measurement_key_packing,
         test_table_coverage_in_specification,
+        test_ohdsi_tsql_dialect_conformance,
     ]
 
     passed = 0

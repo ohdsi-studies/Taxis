@@ -182,8 +182,8 @@ if (is.na(data_profile_batch_limit) || data_profile_batch_limit < 1L) {
 
 # Current-time function for the cab_process_log step timestamps.
 # postgresql: clock_timestamp() is statement-scoped (current_timestamp is
-# transaction-scoped). sql server: getdate() (clock_timestamp does not exist).
-now_expr <- if (tolower(databaseDialect) == "postgresql") "clock_timestamp()" else "getdate()"
+# transaction-scoped). other dialects: CURRENT_TIMESTAMP (standard ANSI / OHDSI T-SQL).
+now_expr <- if (tolower(databaseDialect) == "postgresql") "clock_timestamp()" else "CURRENT_TIMESTAMP"
 
 # ---- helpers ----
 read_sql      <- function(p) paste(readLines(p, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
@@ -235,7 +235,8 @@ sql <- SqlRender::render(
   read_sql(initSqlPath),
   source_cdm_schema       = sourceCdmSchema,
   results_database_schema = resultsSchema,
-  batch_count             = batchCount
+  batch_count             = batchCount,
+  create_index_ddl        = createIdx
 )
 # Execute the init Script
 sqlFinal <- SqlRender::translate(sql, targetDialect = databaseDialect)
@@ -268,6 +269,7 @@ for (b in batchList) {
     omop_reference_schema   = omopReferenceSchema,
     window_days             = window_days,
     data_profile_batch_limit = data_profile_batch_limit,
+    create_index_ddl        = createIdx,
     now_expr                = now_expr
   )
   sqlFinal <- SqlRender::translate(sql, targetDialect = databaseDialect)
