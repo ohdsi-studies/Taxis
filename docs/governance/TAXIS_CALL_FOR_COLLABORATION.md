@@ -77,7 +77,17 @@ Track A operates under a **two-tiered governance model** designed to protect ins
 
 ## 3. Track B: Application Validators
 
-Track B invites collaborators to empirically evaluate downstream translational applications of the TAXIS knowledge graph. Track B features three distinct sub-tracks:
+Track B invites collaborators to empirically evaluate downstream translational applications and audit the clinical veracity of the TAXIS knowledge graph. 
+
+Grounded in the **Six-Point Empirical Validation Framework**, Track B establishes a structured, multi-dimensional protocol to answer the central scientific question: *"Did the algorithm get it right?"*
+1. **Candidate Set Efficiency & Threshold Sensitivity**: Evaluating whether association screening ($N_{AB} \ge 100, \text{Lift}_{\text{strat}} \ge 1.50$) filters billions of pairs into a tractable review set without dropping benchmark edges.
+2. **Formal Comparison Against Curated Sources**: Measuring edge recovery against established clinical resources (PheKB, ClinVec, OHDSI Phenotype Library).
+3. **Expected-Pair Recovery & Missingness Audit**: Auditing sensitivity and systematically diagnosing why any expected clinical relationship was missed.
+4. **Adjudication Validity Yield**: Evaluating the distribution of valid, invalid, and uncertain edges across the 112 taxonomy codes.
+5. **Statistical Evidence vs. Clinical Concordance**: Confirming that clinically validated edges exhibit significantly stronger empirical support (higher lift, odds ratios, and consistent directionality).
+6. **Focused Discordant-Edge Error Taxonomy**: Analyzing high-information edge cases (e.g., coding artifacts, threshold cutoffs, or novel clinical practices).
+
+Track B features three distinct sub-tracks:
 
 ### 3.1 Sub-track B1: Phenotype Evaluation Across Partner CDMs
 * **Execution Vehicle**: The standalone HADES companion package [`TaxisPhenotypeEvaluation`](../../extras/TaxisPhenotypeEvaluation/README.md).

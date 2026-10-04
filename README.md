@@ -30,6 +30,11 @@ However, observational health research requires knowing how clinical care is ope
 
 When this disconnect was empirically evaluated across an audited sample of 26,901 frequently co-occurring EHR concept pairs ($N_{AB} \ge 100$) mined from 2.16 million patient records in the Indiana Network for Patient Care (INPC), standard biomedical ontologies documented explicit relationships for only **0.44%** of pairs (119 pairs, of which 72 were simple hierarchical *is-a* links). The remaining 99.56% of these frequently co-occurring pairs had no relational links in standard terminologies, demonstrating that researchers cannot rely on vocabularies alone to identify real-world clinical connections.
 
+Furthermore, standard vocabularies leave critical operational gaps unaddressed:
+- **The Order vs. Result Split**: SNOMED/CPT encodes the *act* of ordering a test (procedure), while LOINC encodes the *discrete measurement value*, with no native crosswalk connecting orders to results in routine clinical data.
+- **The Missing Chronicity Flag**: Vocabularies lack native attributes to distinguish 'ongoing' (chronic) from 'time-limited' (acute) conditions, confounding longitudinal co-occurrence calculations.
+- **Flat Billing vs. Nested Processes of Care**: Clinical care is not a flat list of billing codes; it is a nested hierarchy of clinical processes and subprocesses—analogous to a manufacturing **Bill of Materials (BOM)**—where principal procedural anchors orchestrate supporting pre-service risk evaluations, intra-service support, and post-service recovery surveillance.
+
 To bridge this operational gap, the **TAXIS** (*Transparent Analytic Knowledge Graph for Interoperable Science*) network study was established. Rather than treating raw co-occurrences as clinical truth, TAXIS combines empirical association mining with temporal precedence analysis and a structured two-stage clinical taxonomy, with early analyses indicating an **AUC of 0.81** against clinician relevance ratings on curated benchmark pairs (ClinVec) and **Jaccard similarities of 0.97 to 0.995** in preliminary single-site evaluations recreating three target OHDSI Phenotype Library definitions. Our core focus is engineering, releasing, and maintaining an international OHDSI network study across heterogeneous health systems to generate open, public concept-pair summary datasets for the observational research community.
 
 ---
@@ -43,6 +48,7 @@ The primary deliverable of this repository is the execution-ready network study 
 2. **Candidate Negative Controls**: Identifies clinical concepts that rarely co-occur across databases to propose candidate negative controls for clinical review.
 3. **Smarter Confounder Selection**: Knowing which event occurred first helps researchers review candidate baseline variables (present before treatment) and avoid adjusting for intermediate steps caused by the treatment; causal relevance requires study-specific clinical evaluation.
 4. **Context for Unexpected Signals**: Provides baseline co-occurrence benchmarks so investigators can determine whether an unexpected drug-outcome link reflects clinical reality or high healthcare utilization.
+5. **Toward Judea Pearl's Causal Inference**: In observational epidemiology, valid causal effect estimation requires constructing Directed Acyclic Graphs (DAGs) to identify confounders and avoid collider bias. By systematically establishing what causes what, what indicates what, and what treats what across all OMOP domains, TAXIS provides the structural knowledge substrate needed to automate DAG generation across the OHDSI network.
 
 ---
 

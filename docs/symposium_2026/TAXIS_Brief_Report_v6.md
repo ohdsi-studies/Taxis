@@ -166,8 +166,10 @@ TAXIS establishes a knowledge backend for emerging autonomous agent frameworks i
 - **Dynamic Knowledge Provider for `PhenotypingAgent`**: In LangGraph state machines (such as `schuemie/PhenotypingAgent`), TAXIS acts as a Model Context Protocol (MCP) server providing structured clinical mechanisms during error-profile sampling and iterative logic refinement.
 - **Syntactic Minimization via `ConceptSetCondenser`**: Pairing TAXIS's substantive clinical association discovery with Martijn Schuemie's `ConceptSetCondenser` enables set-covering optimization that produces minimal, human-auditable Circe expressions without altering patient cohort membership.
 
-### 4.4 Causal Inference & Confounder Selection
-Beyond phenotyping, the TAXIS clinical relationship layer supports rigorous study design. By distinguishing underlying causes and presenting symptoms from downstream treatments and complications, TAXIS helps researchers identify true baseline confounders (present before treatment) and avoid accidentally adjusting for intermediate steps or side effects caused by the treatment.
+### 4.4 Toward Automated Causal Inference (Judea Pearl DAGs) & Process-of-Care Modeling
+Beyond phenotyping, the TAXIS clinical relationship layer supports rigorous observational study design:
+- **Automating Judea Pearl Causal DAGs**: Valid causal inference in observational comparative effectiveness requires constructing Directed Acyclic Graphs (DAGs) to identify true confounders while avoiding collider-stratification and intermediate-variable biases. By systematically establishing what causes what, what indicates what, and what treats what across OMOP domains, TAXIS provides the computable structural knowledge substrate needed to automate principled DAG generation.
+- **The "Bill of Materials" (BOM) for Healthcare**: Clinical care is a nested hierarchy of processes—analogous to a manufacturing Bill of Materials—where principal procedural anchors (e.g., major surgeries) orchestrate supporting pre-operative risk evaluations, intra-operative support, and post-operative complication surveillance. TAXIS lays the empirical foundation to model complete episodes and evaluate deviations from optimal care.
 
 ---
 

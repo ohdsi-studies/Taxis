@@ -262,8 +262,8 @@ $$
 - $\text{dir\_ab} = 0.50$: Perfect temporal symmetry ($N_{A \to B} = N_{B \to A}$).
 - $\text{dir\_ab} = 0.0$: 100% of non-same-day co-occurrences occur with Concept B preceding Concept A.
 
-#### Directionality Ratio ($DR$ in Dr. Stephen H. Bandeian's Write-Up)
-In Dr. Bandeian's foundational study protocol and analytical design, temporal precedence is expressed as the directional odds ratio:
+#### Continuity-Corrected Directionality Ratio ($DR$)
+In the foundational study protocol and analytical design, temporal precedence is expressed as the directional odds ratio:
 
 $$
 DR = \frac{N_{A \to B}}{N_{B \to A}} = \frac{O_{\text{after}}}{O_{\text{before}}}
@@ -345,6 +345,57 @@ To qualify for downstream clinical knowledge graph inclusion and network dissemi
 3. **Utilization-Stratified Lift Floor**: $\text{Lift}_{\text{strat}} > 1.50$.
 4. **Contingency Statistical Significance**: Cochran-Mantel-Haenszel (CMH) common odds ratio test with continuity correction requiring $p < 0.001$.
 5. **Mandatory Cell Suppression**: Any count $< 5$ is suppressed to $-1$ to strictly guarantee patient privacy under HIPAA and GDPR.
+
+---
+
+### 2.8 The "Bill of Materials" (BOM) Nested Process-of-Care Architecture
+
+Clinical care is not a flat sequence of disconnected billing codes; it is a **nested hierarchy of clinical processes and subprocesses**, directly analogous to a manufacturing **Bill of Materials (BOM)** (e.g., how an aircraft or automobile is assembled from assemblies, subassemblies, and components). To capture this reality, the TAXIS process-of-care architecture organizes care into three hierarchical tiers:
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                   LEVEL 1 (L1): PROBLEM CARE EPISODE                   │
+│   • Triggered by index recognition of an illness, injury, or risk      │
+│   • Spans initial presentation, evaluation, treatment, and follow-up   │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ Orchestrates
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                   LEVEL 2 (L2): PROCEDURAL ANCHOR                      │
+│   • Principal unit of care per encounter (inpatient or ambulatory)     │
+│   • Ranked deterministically via clinical invasiveness (CMS RBCS/BTOS) │
+│     (Major Surgery > Inpatient > Emergency > Therapy > Imaging > Lab)  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ Bundles Supporting Care
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                  SUPPORTING SERVICE NESTED HIERARCHY                   │
+│   • Pre-Service Suitability & Risk: [-30, 0] days before anchor        │
+│   • Intra-Service Support: Anesthesia, perfusion, vein harvest, ECG    │
+│   • Post-Service Surveillance: [0, +90] days recovery & complications  │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+This BOM framework allows researchers to evaluate whether an entire process of care was completed safely and appropriately, distinguishing principal clinical interventions from peripheral supporting services.
+
+---
+
+### 2.9 Concept Granularity: Reconciling Anchor Concepts and Atomic Codes
+
+A core methodological tension in designing the Concept AB engine was balancing **concept aggregation** against **atomic code specificity**:
+* **The Case for "Anchor Concepts"**: Grouping fragmented clinical variations (e.g., rolling 120 minor variants of Type 2 Diabetes into a single anchor concept) is a mathematical necessity to avoid combinatorial explosion and prevent spurious temporal noise.
+* **The Case for Atomic Granularity**: Clinical informaticians require granular atomic codes for community trust and clinical fidelity—for example, distinguishing between a mild lateral malleolar ankle fracture (which correlates with a plain radiograph) versus an open trimalleolar fracture (which correlates with pre-operative CT imaging, surgical reduction, and hardware immobilization).
+* **The Reconciled Solution**: Pipeline v57 supports **dual processing**. Temporal associations are mined at both the aggregated anchor level (to identify macro clinical pathways) and at the atomic concept level (to preserve clinical nuances). The threat of database combinatorial explosion is controlled by enforcing strict minimum co-occurrence and significance thresholds ($N_{AB} \ge 100$, $\text{Lift}_{\text{strat}} \ge 1.50$), safely pruning noisy micro-variants while preserving high-yield clinical distinctions.
+
+---
+
+### 2.10 Empirical LOINC Measurement ↔ SNOMED Procedure Crosswalking
+
+Standard biomedical vocabularies maintain an architectural separation between orders and results:
+* **SNOMED-CT / CPT**: Encodes the **procedure or order**—the clinical *act* of measuring (e.g., ordering a fasting plasma glucose test).
+* **LOINC**: Encodes the **discrete result**—the numerical value or analyte level (e.g., blood glucose = 142 mg/dL).
+
+In routine electronic health records, provider orders are rarely coded in SNOMED, and standard terminologies lack an official, granular crosswalk connecting the procedure order to its specific resulting LOINC measurement values. Pipeline v57 resolves this ontology gap empirically: by evaluating longitudinal co-occurrences between measurements and clinical findings within a $\pm 60$-day window, the mining engine discovers which discrete laboratory results and abnormal findings systematically accompany specific disorders and clinical interventions directly from real-world data.
 
 ---
 

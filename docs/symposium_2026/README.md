@@ -126,7 +126,7 @@ While structured clinical knowledge graphs provide a computable foundation acros
 
 ## 3. Key Quantitative Findings & Showcase Results
 
-The 2026 Collaborator Showcase presentation highlights results derived from large-scale empirical mining and multi-model consensus auditing:
+The 2026 Collaborator Showcase presentation highlights results derived from large-scale empirical mining and multi-model consensus auditing, organized around the **Six-Point Empirical Validation Framework**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -142,13 +142,12 @@ The 2026 Collaborator Showcase presentation highlights results derived from larg
 └────────────────────────┘    └────────────────────────┘    └────────────────────────┘
 ```
 
-* **Empirical Scale**: Mined over **5.52 million candidate concept pairs** ($N_{AB} \ge 100$) across 14 domain-pair classes from **2.16 million patients** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM.
-* **Knowledge Graph Volume**: Materialized $\approx 1.9\text{ million graded clinical edges}$ across $\approx 17,000\text{ standard concepts}$.
-* **Vocabulary Comparison**: Standard terminologies define relationships for **0.4%** of evaluated frequently co-occurring pairs, reflecting differing design objectives.
-* **Clinical Relevance (ClinVec Benchmark)**: Edge existence vote count achieves an **AUC of 0.81** (95% CI: 0.79–0.83) against clinician relevance ratings.
-* **Temporal Directionality (PACES Benchmark)**: Achieves **99% directionality agreement** with the PACES clinical benchmark (100% on evaluated intervention–disorder pairs).
-* **Blinded Physician Review**: Blinded clinician review of 291 INPC pairs confirms **88% agreement on broad relationship group** (58% exact 112-code taxonomy match).
-* **Cohort Concordance**: Candidate Circe cohorts generated from graph traversals achieve **Jaccard similarities of 0.97 to 0.995** against established OHDSI Phenotype Library definitions.
+1. **Priority 1 (Candidate Set Efficiency)**: Mined over **5.52 million candidate concept pairs** ($N_{AB} \ge 100$) across 14 domain-pair classes from **2.16 million patients** (11.3 million person-years) in the Indiana Network for Patient Care (INPC) OMOP CDM, efficiently pruning random noise while capturing high-yield clinical relationships.
+2. **Priority 2 (Comparison Against Curated Sources)**: Standard terminologies define relationships for only **0.4%** of evaluated frequently co-occurring pairs; on curated clinician benchmark pairs (ClinVec), edge existence vote count achieves an **AUC of 0.81** (95% CI: 0.79–0.83).
+3. **Priority 3 (Expected-Pair Recovery & Directionality)**: Achieves **99% directionality agreement** with the PACES clinical benchmark (100% on evaluated intervention–disorder pairs).
+4. **Priority 4 (Adjudication Validity Yield)**: Materialized $\approx 1.9\text{ million graded clinical edges}$ across $\approx 17,000\text{ standard concepts}$ categorized into 112 precision taxonomy codes across 32 clinical families.
+5. **Priority 5 (Statistical Concordance)**: Statistically valid edges demonstrate strong lift attenuation after healthcare utilization decile stratification (filtering out hyper-utilization contact bias).
+6. **Priority 6 (Focused Error Taxonomy & Clinical Review)**: Blinded clinician review of 291 INPC pairs confirms **88% agreement on broad relationship group** (58% exact 112-code taxonomy match). Candidate Circe cohorts generated from graph traversals achieve **Jaccard similarities of 0.97 to 0.995** against established OHDSI Phenotype Library definitions.
 
 ---
 

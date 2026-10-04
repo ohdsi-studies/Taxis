@@ -51,6 +51,12 @@ Standard clinical terminologies were engineered primarily for administrative bil
 
 When standardized clinical terminology links do exist, they exhibit high positive predictive value (0.99 PPV against clinical consensus). Within this audited sample of frequently co-occurring pairs, 99.6% lacked explicit multi-domain relational links in native vocabularies, illustrating that standard terminologies focus on administrative coding and ontological hierarchy rather than multi-domain clinical co-occurrence. TAXIS is designed to bridge this operational gap through reproducible observational association mining, with early benchmark analyses indicating promising concordance against clinical standards.
 
+### 2.3 The Structural Divide Between Procedure Orders and Lab Results (LOINC vs. SNOMED)
+A second critical vocabulary deficit identified by study leadership is the architectural divide between diagnostic orders and laboratory results:
+* **The Conceptual Split**: SNOMED-CT and CPT represent the *clinical act* of ordering or executing a test (a procedure), whereas LOINC represents the *discrete resulting value or observation* (a measurement).
+* **Missing Ontology Linkages**: In standard electronic health records, provider orders are rarely mapped to SNOMED procedure codes, and official terminology crosswalks linking specific procedure orders to their corresponding LOINC measurement values do not exist in practice.
+* **Empirical Resolution in TAXIS**: Because static vocabularies lack these connections, TAXIS deduces them empirically directly from patient data. By evaluating pairwise co-occurrences across condition, procedure, and measurement domains within configured temporal intervals (e.g., $\pm 60$ days), the pipeline organically discovers which laboratory analytes and abnormal findings systematically accompany specific disorders and clinical interventions.
+
 ---
 
 ## 3. Protocol Genesis & Architectural Evolution
@@ -102,6 +108,20 @@ Applying the initial design to 2.16M longitudinal patient records (11.3 million 
 2. **Hyper-Utilization Confounding**: Patients with frequent healthcare encounters ("high utilizers") exhibit elevated co-occurrence across clinically unrelated concepts simply because they are observed more often. Pipeline v57 introduced **healthcare utilization decile stratification**, normalizing lift against baseline encounter frequency.
 3. **Multi-Domain Expansion**: The feature space was expanded beyond condition–condition pairs to systematically evaluate condition–drug, condition–measurement, condition–procedure, and procedure–procedure relationships.
 4. **Structured Taxonomy Classification**: Moving beyond binary association, Pipeline v57 introduced a two-stage ensemble clinical classifier mapping edges into 112 standardized clinical taxonomy codes across 32 clinical families.
+
+### 3.3 The "Bill of Materials" (BOM) Nested Process-of-Care Architecture
+Clinical care is not an unorganized list of billing codes; it is a **nested hierarchy of clinical processes and subprocesses**, directly analogous to a manufacturing **Bill of Materials (BOM)** (e.g., how an aircraft or automobile is assembled from assemblies, subassemblies, and components). In TAXIS, care is structured into:
+1. **Level 1 (L1) Problem Episodes**: Triggered by an index event (e.g., onset of acute appendicitis or initial diagnosis of diabetes), representing the overarching patient journey from initial evaluation to resolution or chronic disease management.
+2. **Level 2 (L2) Procedural Anchors**: The principal unit of care within an encounter, deterministically identified by ranking services according to clinical invasiveness (using CMS RBCS/BTOS classifications crosswalked to SNOMED: major surgical procedures > inpatient admissions > emergency services > therapies > imaging > lab assays > E&M visits).
+3. **Supporting Service Hierarchy**: Surrounding care cataloged in defined temporal windows around the anchor:
+   - *Pre-procedure suitability and risk evaluation* ($[-30, 0]$ days before anchor).
+   - *Intra-procedure support* (anesthesia, hemodynamic monitoring, vein harvesting).
+   - *Post-procedure recovery and complication surveillance* ($[0, +90]$ days after anchor).
+
+This nested process framework enables health systems and observational researchers to systematically evaluate deviations from optimal care and quantify missed opportunities to improve health outcomes at scale.
+
+### 3.4 Concept Granularity: Reconciling Anchor Concepts and Atomic Codes
+A central architectural debate during protocol formation was whether to mine associations at the level of aggregated "Anchor Concepts" (e.g., rolling 120 diabetes variants into Diabetes Mellitus) or granular atomic codes (e.g., specific trimalleolar fracture vs. closed lateral malleolar fracture). Grouping into anchor concepts is mathematically necessary to avoid combinatorial explosion and eliminate coding noise; however, atomic codes are essential for community transparency, auditable provenance, and capturing clinical distinctions (e.g., a mild fracture correlating with a plain X-ray vs. a trimalleolar fracture correlating with a CT scan and surgical reduction). TAXIS resolved this by supporting **dual processing**: candidate pairs are mined and reported at both the anchor level and atomic concept levels, with combinatorial database overload prevented by enforcing strict minimum co-occurrence and significance thresholds ($N_{AB} \ge 100$, $\text{Lift}_{\text{strat}} \ge 1.50$).
 
 ---
 
@@ -172,6 +192,18 @@ TAXIS is designed as a **multicenter, observational, federated network study** e
 As detailed in the companion [TAXIS Network Data Use Term Sheet](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md):
 - **Tier 1 (Internal Concept Co-Occurrence Matrices)**: Full pairwise co-occurrence matrices, patient-level counts, and internal edge weights remain strictly internal to the partner's secure infrastructure.
 - **Tier 2 (Aggregate Phenotype Performance & Overlap Summaries)**: Masked, site-level summary metrics (Jaccard similarity matrices, cohort counts with small-cell suppression, and PheValuator operating characteristics: Sensitivity, Specificity, PPV, NPV, F1 Score) are approved for network synthesis.
+
+### 5.3 The Six-Point Empirical Validation Framework
+To establish definitive scientific credibility and provide an objective answer to the community's core question—*"Did the algorithm get it right?"*—TAXIS codifies a formal six-priority validation framework:
+
+| Priority | Empirical Analysis | Methodological Rationale | Deliverable for OHDSI Network |
+|:---:|---|---|---|
+| **1** | **Candidate Set Efficiency & Threshold Sensitivity** | Proves that the statistical extraction step ($N_{AB} \ge 100, \text{Lift}_{\text{strat}} \ge 1.50$) reduces billions of possible co-occurrences into a tractable review set without arbitrary heuristic dropping of true clinical relationships. | Sensitivity curve table showing candidate count, retained proportion, and recovery of benchmark edges under 3–4 threshold scenarios. |
+| **2** | **Formal Comparison Against Curated Computable Sources** | Evaluates whether empirical knowledge graph edges successfully recover peer-reviewed computable relationships extracted from PheKB, ClinVec, and the OHDSI Phenotype Library across all domain pairs. | Precision/recall and recovery matrices by clinical source and domain pair (`Dx-Dx`, `Dx-Drg`, `Dx-Proc`, `Dx-Meas`). |
+| **3** | **Benchmark Expected-Pair Recovery & Missingness Audit** | Direct sensitivity audit evaluating whether expected clinical connections (e.g., standard of care treatments or pathognomonic labs) are present, statistically recovered, and classified, with systematic root-cause diagnosis of any missed pairs. | Edge recovery audit table: benchmark edge present in KG? statistically recovered? clinically valid? failure taxonomy if missed. |
+| **4** | **LLM Validity Yield & Domain Distribution** | Audits whether clinical adjudication produces clinically interpretable output across condition, drug, procedure, and measurement pairings. | Distribution tables and visualizations of valid, invalid, uncertain, and relationship-type breakdowns across the 32 clinical families. |
+| **5** | **Statistical Evidence vs. Clinical Validity Concordance** | Tests whether clinically validated edges are supported by stronger empirical observational evidence than invalid edges, and identifies "clinically plausible but empirically weak" relationships. | Empirical contrast table comparing observed count, expected count, stratified lift, Z-score, and Directionality Ratio by clinical validity status. |
+| **6** | **Focused Discordant-Edge Review & Error Taxonomy** | High-information case analysis diagnosing systematic edge discrepancies (statistically strong but clinically invalid, clinically valid but statistically weak, or missing from traditional references). | Structured error taxonomy categorizing discrepancies: mapping/vocabulary artifact, threshold cutoff, clinical coding artifact, or true underobserved practice. |
 
 ---
 
@@ -325,6 +357,10 @@ To convert massive observational associations into a computable, typed clinical 
 #### 3. Confounder Identification & Balance Evaluation
 - **Informing Study Design**: Uses explicit relationship semantics to help investigators distinguish true baseline confounders from downstream complications or treatment side effects, preventing over-adjustment bias.
 - **Confounder Balance**: Provides a clinical basis to evaluate whether essential confounders achieve balance across treatment cohorts.
+
+#### 4. Foundation for Judea Pearl's Causal Inference & Automated DAG Construction
+- **Automating Structural Causal Models**: In observational epidemiology (e.g., comparative effectiveness and drug safety surveillance), identifying valid causal effects requires constructing Directed Acyclic Graphs (DAGs) under Judea Pearl's structural causal framework. In current practice, epidemiologists must draw DAGs by hand based on subjective clinical intuition, manually guessing which covariates represent true confounders, intermediate mediators, colliders, or instruments.
+- **The TAXIS Structural Graph Substrate**: By establishing an empirical, evidence-weighted knowledge graph of what causes what ($A \to B$ complications and disease evolution in Class IV), what indicates what (diagnostic tests and therapeutic indications in Classes II and III), and what causes adverse events, TAXIS provides the **computable ontological substrate to automate principled, structural causal DAG generation**. This allows automated identification of minimal sufficient adjustment sets and shields observational studies from collider-stratification bias and intermediate-variable overadjustment.
 
 ### 6.7 Independent Development vs. Final Evaluation Boundary Protocol
 To guard against circular overfitting—where a phenotype algorithm is iteratively modified simply to reproduce an evaluation model rather than genuine clinical truth:
