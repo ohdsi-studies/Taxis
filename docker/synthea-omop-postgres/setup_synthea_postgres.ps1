@@ -19,6 +19,7 @@ try {
     Write-Host "    Found: $dockerVersion" -ForegroundColor Green
 } catch {
     Write-Error "Docker is not installed or not in PATH. Please install Docker Desktop."
+    exit 1
 }
 
 # 2. Start container via docker compose
@@ -26,6 +27,10 @@ Write-Host "--> Step 2: Starting PostgreSQL container via docker compose..." -Fo
 Push-Location $ScriptDir
 try {
     docker compose up -d
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "docker compose up -d failed with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
 } finally {
     Pop-Location
 }
@@ -49,12 +54,17 @@ while ($attempt -lt $maxAttempts) {
 
 if (-not $isHealthy) {
     Write-Error "PostgreSQL container failed to become healthy. Check logs with 'docker logs taxis-synthea-postgres'."
+    exit 1
 }
 Write-Host "    PostgreSQL is ready and healthy on localhost:5433." -ForegroundColor Green
 
 # 4. Load Synthetic OMOP CDM Data
 Write-Host "--> Step 4: Loading Synthetic OMOP CDM data..." -ForegroundColor Yellow
 python "$ScriptDir\load_synthea.py" --host localhost --port 5433 --db synthea --user ohdsi_app --password ohdsi_app_pass_2026
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Loading Synthea OMOP CDM data failed with exit code $LASTEXITCODE."
+    exit $LASTEXITCODE
+}
 
 # 5. Run TAXIS PostgreSQL Integration Test
 Write-Host "--> Step 5: Executing TAXIS integration test on PostgreSQL..." -ForegroundColor Yellow

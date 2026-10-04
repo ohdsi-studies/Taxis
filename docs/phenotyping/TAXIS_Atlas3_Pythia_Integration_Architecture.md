@@ -415,7 +415,7 @@ To enforce rigorous data governance, mitigate disclosure risks, and adhere stric
 
 #### Phase 1: TrexSQL DuckDB Cache Ingestion & Site-Local REST Bridge (Q4 2026)
 - **TrexSQL DuckDB Ingestion**: Export TAXIS pre-computed tables (`cab_s20_marginal`, `cab_s30_pairs`, `cab_s37_lag`) into standardized Parquet files and ingest into TrexSQL's DuckDB cache volume (`TREXSQL_CACHE_PATH=/data/cache`).
-- **Dead-End Short-Circuiting & Pruning**: Enable $O(1)$ zero-count detection ($N(A \cap B) = 0$) in `trexsql.service.ts` to immediately bypass redundant table scans on empty cohort branches; prune zero-marginal descendants from concept sets to shrink SQL queries by up to 80%.
+- **Dead-End Short-Circuiting & Pruning**: Enable prospective $O(1)$ zero-count detection when marginals are certified zero ($N(A)=0$ or $N(B)=0$) in `trexsql.service.ts` to immediately bypass redundant table scans on empty cohort branches; prune certified zero-marginal descendants from concept sets. When pairs are merely absent from threshold-filtered co-occurrence tables (`@cab_min_ab_obs` filtering), fall back safely to standard cohort SQL. These acceleration optimizations represent prospective, unbenchmarked design targets aimed at reducing Circe SQL query size and execution overhead by up to 80%.
 - **Site-Local REST Service**: Package TAXIS query logic into a lightweight, site-local FastAPI microservice behind the local firewall, exposing `/WebAPI/taxis/{sourceKey}/associations` and `/WebAPI/taxis/{sourceKey}/lag` with strict small-cell suppression ($< 5 \to -1$).
 
 #### Phase 2: Pythia AI Agent ClojureScript & Dynamic Tools (Q1 2027)
