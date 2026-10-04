@@ -25,7 +25,7 @@
 > **Study Leadership**:  
 > • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
-> • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup Lead  
+> • Gowtham Rao, MD, PhD – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI Phenotype Development & Evaluation Workgroup Lead  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
 
 ---

@@ -17,7 +17,7 @@
 > **Study Leadership**:  
 > - **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine (Author of all SQL & Analytic Code)  
 > - **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
-> - **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup  
+> - **Gowtham Rao, MD, PhD** – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI Phenotype Development & Evaluation Workgroup  
 > - **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine  
 
 ---
@@ -236,10 +236,10 @@ Upon pipeline completion, the aggregate summary archive `Results_Mining_<databas
 > **All SQL code in TAXIS was written by Stephen H. Bandeian, MD, JD.**  
 > Full credit, primary scientific authorship, and intellectual attribution for all SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`), 40-batch random partitioning architectures, measurement key packing schemes, healthcare utilization decile stratification, continuity-corrected directionality formulations ($DR$), and underlying analytical algorithms belong entirely to **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
 
-TAXIS is led by an interdisciplinary team from Johns Hopkins University, Indiana University, the Regenstrief Institute, and CoReason:
+TAXIS is led by an interdisciplinary team from Johns Hopkins University, Indiana University, the Regenstrief Institute, and [CoReason](https://www.coreason.ai):
 - **Stephen H. Bandeian, MD, JD** – Principal Investigator & Author of all SQL & Analytic Code, Johns Hopkins University School of Medicine
 - **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine
-- **Gowtham Rao, MD, PhD** – Investigator, CoReason, Inc. USA; OHDSI Phenotype Development & Evaluation Workgroup
+- **Gowtham Rao, MD, PhD** – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI Phenotype Development & Evaluation Workgroup
 - **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine
 
 ### Citation

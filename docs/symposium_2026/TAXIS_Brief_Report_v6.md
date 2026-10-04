@@ -7,7 +7,7 @@
 **Stephen H. Bandeian, MD, JD**¹ (Principal Investigator); **Gowtham Rao, MD, PhD**²,³ (Investigator); **Shaun Grannis, MD, MS**⁴,⁵ (Investigator); **J. Marc Overhage, MD, PhD**⁶,⁵ (Co-Principal Investigator)  
 
 ¹Johns Hopkins University School of Medicine, Division of Health Sciences Informatics, Department of Medicine, Baltimore, MD, USA  
-²CoReason, Inc. USA  
+²[CoReason, Inc.](https://www.coreason.ai) USA  
 ³OHDSI Phenotype Development and Evaluation Workgroup  
 ⁴Regenstrief Institute, Indianapolis, IN, USA  
 ⁵Indiana University School of Medicine, Indianapolis, IN, USA  
