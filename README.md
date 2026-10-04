@@ -30,7 +30,7 @@ However, observational health research requires knowing how clinical care is ope
 
 When this disconnect was empirically evaluated across an audited sample of 26,901 frequently co-occurring EHR concept pairs ($N_{AB} \ge 100$) mined from 2.16 million patient records in the Indiana Network for Patient Care (INPC), standard biomedical ontologies documented explicit relationships for only **0.44%** of pairs (119 pairs, of which 72 were simple hierarchical *is-a* links). The remaining 99.56% of these frequently co-occurring pairs had no relational links in standard terminologies, demonstrating that researchers cannot rely on vocabularies alone to identify real-world clinical connections.
 
-To bridge this operational gap, the **TAXIS** (*Transparent Analytic Knowledge Graph for Interoperable Science*) network study was established. Rather than treating raw co-occurrences as clinical truth, TAXIS combines empirical association mining with temporal precedence analysis, a structured two-stage clinical taxonomy, and external validation—achieving an **AUC of 0.81** against independent clinician ratings (ClinVec) and **Jaccard similarities of 0.97 to 0.995** reproducing established OHDSI Phenotype Library gold standards. Our core focus is engineering, releasing, and maintaining an international OHDSI network study across heterogeneous health systems to generate open, public concept-pair summary datasets for the observational research community.
+To bridge this operational gap, the **TAXIS** (*Transparent Analytic Knowledge Graph for Interoperable Science*) network study was established. Rather than treating raw co-occurrences as clinical truth, TAXIS combines empirical association mining with temporal precedence analysis and a structured two-stage clinical taxonomy, with early analyses indicating an **AUC of 0.81** against clinician relevance ratings on curated benchmark pairs (ClinVec) and **Jaccard similarities of 0.97 to 0.995** in preliminary single-site evaluations recreating three target OHDSI Phenotype Library definitions. Our core focus is engineering, releasing, and maintaining an international OHDSI network study across heterogeneous health systems to generate open, public concept-pair summary datasets for the observational research community.
 
 ---
 
@@ -114,7 +114,7 @@ We evaluated the performance of TAXIS across several independent benchmarks:
 | **Temporal Precedence** | PACES Clinical Benchmark | **99% Directional Concordance** | Accurately establishes temporal precedence between clinical interventions and underlying disorders. |
 | **Blinded Physician Review** | 291 Blinded INPC Pair Reviews | **88% Broad Group Agreement**<br>(58% Exact Taxonomy Code) | Demonstrates high inter-rater reliability across primary clinical relationship categories. |
 | **Cohort Overlap** | OHDSI Phenotype Library Circe Cohorts | **Jaccard: 0.97 – 0.995** | Exhibits high phenotypic concordance and cohort membership overlap for chronic cardiometabolic and respiratory phenotypes. |
-| **Vocabulary Coverage** | SNOMED-CT / UMLS Native Relationships | **0.4% Documented Pairs** | Empirically quantifies the gap between formal nosology and longitudinal EHR co-occurrence, motivating an empirical association layer validated against external benchmarks. |
+| **Vocabulary Coverage** | SNOMED-CT / UMLS Native Relationships | **0.4% Documented Pairs** | Empirically quantifies the gap between formal nosology and longitudinal EHR co-occurrence, motivating an empirical association layer evaluated across early benchmark analyses. |
 
 ---
 
