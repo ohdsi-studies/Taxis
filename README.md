@@ -190,6 +190,26 @@ TAXIS is designed to explore applications across four areas of observational res
                                                └──────── (Iterative Loop) ─────────►
 ```
 
+### Phenotype Phebruary 2026: 6-Bucket Clinical Elements & Multi-Tiered Cohorts
+
+During the **OHDSI Phenotype Development & Evaluation Workgroup's Phenotype Phebruary / Aphril 2026** initiative, the community highlighted the critical need for an empirically grounded, reproducible pipeline to solve the **Phenotyping Input Bottleneck**—namely, how to systematically construct input concept sets across distinct clinical elements without manual bespoke guesswork. Furthermore, community case adjudication using KEEPER demonstrated that diagnosis codes alone suffer from substantial false-positive contamination from Emergency Department "rule-out" visits, while genuine acute cases cluster multi-domain corroboration (confirmatory biomarkers and invasive interventions).
+
+To operationalize these insights, TAXIS establishes:
+1. **The 6-Bucket Clinical Element Slot Architecture**: Maps the 6 core clinical elements defined in Workgroup presentations directly to TAXIS association edges, temporal precedence ratios ($DR$), and Circe rules:
+   - *Bucket 1 (Primary Anchor)*: Incident diagnosis of interest in inpatient/ED setting (`PrimaryCriteria`).
+   - *Bucket 2 (Symptoms & Presentation)*: Non-specific co-presenting findings (`ASSOC_SYMPTOM`, `ASSOC_SIGN`) in $[-7, +1]$ days.
+   - *Bucket 3 (Diagnostic Labs & Procedures)*: Confirmatory laboratory tests and diagnostic testing (`DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED`) in $[-1, +3]$ days.
+   - *Bucket 4 (Therapeutic Interventions)*: Definitive event procedures (e.g., PCI, CABG) and acute pharmacotherapy (`THER_INTERVENTION_PROC`, `THER_FIRST_LINE`) in $[0, +2]$ days—the decisive separator between true cases and rule-outs.
+   - *Bucket 5 (Complications & Progression)*: Downstream organ failures and clinical sequelae (`PROG_COMPLICATION`) in $[+1, +30]$ days.
+   - *Bucket 6 (Alternative Diagnoses & Mimics)*: Competing causes and rule-out mimics (`ASSOC_MIMIC`, `DIAG_RULE_OUT`) in $[0, +7]$ days.
+2. **Multi-Tiered Circe Phenotype Synthesis**:
+   - *Tier 1 (Strict / Epidemiologic)*: Requires confirmed therapeutic interventions within $[0, +2]$ days to guarantee high Positive Predictive Value ($\ge 92\%$) for comparative trials.
+   - *Tier 2 (Broad / Surveillance)*: Captures hospital and emergency encounters with diagnostic work-up without restricting to invasive procedures, maximizing sensitivity ($\ge 95\%$) for disease incidence tracking.
+   - *Tier 3 (PheValuator Evaluators)*: Automatically synthesizes calibrated `xSpec` and `xSens` cohorts to train diagnostic predictive models without manual chart review.
+3. **Flagship Acute Myocardial Infarction (AMI) Case Study**: Demonstrates complete 6-bucket slot compilation for AMI, successfully differentiating true acute events from outpatient carry-forwards and single-day emergency rule-outs.
+4. **Interactive Adjudication Module for ATLAS v3.0 & Pythia**: Provides an interactive adjudication bridge ("Phinding Phenotypes with Phriends") enabling real-time slot evaluation, evidence summarization, and case certainty scoring.
+Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
+
 ---
 
 ## 3. Tripartite Technical Methodology

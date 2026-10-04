@@ -9,9 +9,9 @@
 > • `DEC-GR-006`: Target Federated CDM Deployments (Claims, EHR, International CDMs)  
 > • `DEC-GR-010`: Dual Lift Reporting Architecture  
 > **Study Leadership**:  
-> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine  
+> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
-> • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group)  
+> • Gowtham Rao, MD, PhD – Investigator, CoReason, Inc. USA; OHDSI (Phenotype working group lead)  
 > • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
 
 ---
@@ -67,44 +67,46 @@ Drawing upon cognitive architecture foundations (Kahneman System 1 vs. System 2)
 
 ---
 
-## 3. Deterministic Slot-Mapping Specification
+## 3. The 6-Bucket Clinical Element Slot-Mapping Specification
 
-The engine ingests the standardized OHDSI Phenotype Development & Evaluation Workgroup clinical description schema (`clinicalDescriptionPromptBriefWithExclusions.txt`) and executes deterministic 1-to-1 slot mapping:
+In accordance with the **OHDSI Phenotype Development & Evaluation Workgroup's Phenotype Phebruary / Aphril 2026** consensus framework (`DEC-GR-021`), the engine expands clinical description ingestion into a formal **6-Bucket Clinical Element Slot Architecture**:
 
-### Slot 1: Primary Index Criteria (`PrimaryCriteria.CriteriaList`)
-- **Clinical Anchor Source**: *Condition Overview & Acute/Chronic Presentation*.
-- **Circe Construction**:
-  - `ConditionOccurrence` criteria block.
-  - Standard SNOMED condition concept set expression (including descendants).
-  - Observation window requirement: $\ge 365$ days prior continuous observation (`PriorDays = 365`, `PostDays = 0`).
-  - First-in-history restriction (`First = true`) or recurrent episode parameterization.
+### Bucket 1: Primary Index Criteria (`PrimaryCriteria.CriteriaList`)
+- **Clinical Anchor Source**: *Condition Overview & Presentation*.
+- **Circe Construction**: Standard SNOMED condition concept set expression (including descendants) with $\ge 365$ days baseline continuous observation. Inpatient/Emergency Department position filtering applied for acute presentation cohorts.
 
-### Slot 2: Confirmatory Diagnostic Criteria (`InclusionRules[1]`)
+### Bucket 2: Symptoms & Physical Signs (`InclusionRules[1]`)
+- **Clinical Anchor Source**: *Presenting Complaints & Cardinal Symptoms*.
+- **Taxonomy Family**: `Class V: Manifestation & Clinical Finding` (`ASSOC_SYMPTOM`, `ASSOC_SIGN`).
+- **Circe Construction**: Condition or Observation criteria in $[-7, +1]$ days relative to index event.
+
+### Bucket 3: Confirmatory Diagnostic Criteria (`InclusionRules[2]`)
 - **Clinical Anchor Source**: *Diagnostic Criteria, Cardinal Physical Signs & Laboratory Values*.
-- **Taxonomy Family**: `Class II: Diagnostic & Indicative` (`DIAG_CONF_01`, `DIAG_MARK_01`, `DIAG_MARK_03`).
-- **Circe Construction**:
-  - `Measurement` criteria block.
-  - Standard LOINC test concept set expression.
-  - Temporal relative window: $[-7, +30]$ days relative to index event.
-  - Value thresholds: `Operator: ">="` or `"<="` mapped to guideline cutoffs (e.g., $HbA1c \ge 6.5\%$ for Type 2 Diabetes; $eGFR < 60\text{ mL/min}/1.73\text{m}^2$ for CKD).
+- **Taxonomy Family**: `Class II: Diagnostic & Indicative` (`DIAG_LAB_CONFIRMATORY`, `DIAG_TEST_INDICATED`).
+- **Circe Construction**: `Measurement` and `Procedure` criteria blocks with LOINC/CPT expressions in $[-1, +3]$ days.
 
-### Slot 3: Indicated Pharmacotherapy Criteria (`InclusionRules[2]`)
-- **Clinical Anchor Source**: *Medications Usually Given & First-Line Therapies*.
-- **Taxonomy Family**: `Class III: Therapeutic & Interventional` (`THER_FIRST_01`, `THER_FIRST_02`, `THER_MAINT_01`).
-- **Circe Construction**:
-  - `DrugExposure` criteria block.
-  - RxNorm ingredient concept set expression (with dose-form and ingredient grouping).
-  - Temporal relative window: $[0, +30]$ days for acute disease; $[0, +180]$ days for chronic maintenance.
-  - Occurrence count: $\ge 1$ prescription/dispensing event.
+### Bucket 4: Therapeutic Interventions — Procedures & Drugs (`InclusionRules[3]`)
+- **Clinical Anchor Source**: *Medications Usually Given, Acute Procedures & First-Line Therapies*.
+- **Taxonomy Family**: `Class III: Therapeutic & Interventional` (`THER_FIRST_LINE`, `THER_INTERVENTION_PROC`).
+- **Circe Construction**: `DrugExposure` (acute Rx within $[0, +2]$ days; maintenance within $[0, +180]$ days) and `ProcedureOccurrence` (e.g., revascularization, stenting, surgery within $[0, +2]$ days). Mandatory for Tier 1 Strict cohorts to eliminate single-day outpatient/ED "rule-out" visits.
 
-### Slot 4: Differential Diagnoses & Rule-Out Exclusions (`InclusionRules[3]`)
-- **Clinical Anchor Source**: *Differential Diagnoses & Excluded Conditions*.
-- **Taxonomy Family**: `Class I / II / V` (`DIAG_DIFF_01`, `ASSOC_PHENO_01`).
-- **Circe Construction**:
-  - Negative condition criteria (`Occurrence: {"Type": 0, "Count": 0}`).
-  - Standard concept set expression of clinical mimics (e.g., *Type 1 diabetes* and *Gestational diabetes* excluded when defining Type 2 diabetes).
-  - Lookback window: all time prior to index presentation ($[- \infty, 0]$ days).
-  - **Prevalence Cost Cap**: Exclusions are capped to eliminate clinical mimics without excessively restricting target populations (strictly $<10\%$ anchor cohort patient reduction).
+### Bucket 5: Acute & Subsequent Complications (`InclusionRules[4]` / Covariates)
+- **Clinical Anchor Source**: *Downstream Organ Failure, Clinical Sequelae & Prognosis*.
+- **Taxonomy Family**: `Class IV: Prognostic & Sequelae` (`PROG_COMPLICATION`).
+- **Circe Construction**: Condition criteria in $[+1, +30]$ days for acute disease progression characterization.
+
+### Bucket 6: Differential Diagnoses & Rule-Out Exclusions (`CensoringCriteria` / Exclusions)
+- **Clinical Anchor Source**: *Differential Diagnoses, Alternative Causes & Excluded Conditions*.
+- **Taxonomy Family**: `Class II / V` (`DIAG_RULE_OUT`, `ASSOC_MIMIC`).
+- **Circe Construction**: Negative criteria (`Occurrence = 0`) or censoring criteria strictly capped at $<10\%$ anchor cohort patient cost.
+
+### 3.1 Multi-Tiered Circe Phenotype Synthesis Engine
+The engine synthesizes three coordinated cohort tiers per clinical target:
+- **Tier 1 (Strict / Epidemiologic)**: Mandatory therapeutic intervention (Bucket 4) + confirmatory lab/test (Bucket 3) + primary inpatient/ED anchor (Bucket 1). Targeted for clinical trials and comparative safety studies where PPV $\ge 90\%$ is vital.
+- **Tier 2 (Broad / Surveillance)**: Primary or secondary anchor with diagnostic testing requirement (Bucket 3), omitting mandatory invasive procedures to maximize sensitivity ($\ge 95\%$) for incidence tracking.
+- **Tier 3 (Diagnostic Evaluator Cohorts)**: Calibrated `xSpec` and `xSens` definitions generated automatically to train and evaluate `PheValuator` models across partner CDMs.
+
+Detailed specification: see [`docs/phenotyping/PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md`](PHENOTYPE_PHEBRUARY_2026_TAXIS_INTEGRATION.md).
 
 ---
 
