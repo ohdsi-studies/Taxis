@@ -1,2 +1,8 @@
 # Private local correspondence and review material. Never commit these files.
 /local-private/
+
+# Local test data and database artifacts
+extras/testdata/
+*.sqlite
+*.duckdb
+*.zip
