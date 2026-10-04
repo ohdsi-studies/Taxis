@@ -49,7 +49,7 @@ Even when a library phenotype exists ("warm start"), Pythia relies on English-la
 
 Because Pythia has **zero empirical co-occurrence data**, it cannot estimate the real-world impact of an exclusion rule. When clinicians intuitively suggest excluding competing differential diagnoses (e.g., excluding Type 1 Diabetes from Type 2 Diabetes, or Asthma from COPD), they are unaware that real-world EHR and claims CDMs exhibit substantial diagnostic cross-coding and rule-out testing. 
 
-In practice, lifetime exclusions of common differential mimics cause **destructive cohort attrition**—eliminating 25% to 70% of eligible patients. Under current Atlas v3 workflows, this attrition is only discovered *post-hoc* after costly SQL database execution via `summarise_attrition`.
+In authoring experience, lifetime exclusions of common differential mimics often cause **destructive cohort attrition** (illustratively estimated at 25% to 70% of candidate patients in authoring practice). Under current Atlas v3 workflows, this attrition is typically discovered only *post-hoc* after costly SQL database execution via `summarise_attrition`.
 
 ---
 
@@ -85,7 +85,7 @@ In practice, lifetime exclusions of common differential mimics cause **destructi
      │   against 10% Rule-Out Cap   │  │ • Confirmatory labs (Lift>=3)│
      │ • Check Directionality (DR)  │  │ • First-line Rx (DR >= 1.50) │
      │ • Calibrate observation grain│  │ • Empirical grain guide      │
-     │   using cab_s54_grain_guide  │  │ • Safe exclusions (<5% over.)│
+     │   using cab_s54_grain_guide  │  │ • Low-overlap screen (<5%)   │
      └──────────────┬───────────────┘  └──────────────┬───────────────┘
                     │                                 │
                     └────────────────┬────────────────┘
@@ -130,12 +130,12 @@ To prevent destructive exclusion attrition, TAXIS pre-calculates the unadjusted 
 
 $$\text{Marginal Overlap Fraction} = \frac{\text{Persons}(A \cap B)}{\text{Persons}(A)}$$
 
-- **Low Marginal Overlap ($< 5\%$)**: Low attrition risk. Safe to exclude without damaging sensitivity.
-- **Moderate Marginal Overlap ($5\% - 10\%$)**: Flagged for clinician review.
-- **High Attrition Risk ($> 10\%$)**: When overlap exceeds 10%, Pythia intercepts the proposal and warns the investigator **before cohort instantiation**:
-  > *"Warning: In observational data, 28% of Type 2 Diabetes patients carry a code for Type 1 Diabetes. Adding a blanket lifetime exclusion will reduce cohort size substantially. Consider restricting the exclusion to insulin monotherapy without oral antidiabetics, or limiting the exclusion window to index day."*
+- **Low Marginal Overlap ($< 5\%$)**: Low marginal attrition risk. Serves as an authoring screen for candidate review; does not guarantee clinical sensitivity, protect against clinical subgroup loss, or bound cumulative attrition.
+- **Moderate Marginal Overlap ($5\% - 10\%$)**: Flagged as moderate marginal overlap for investigator adjudication.
+- **High Attrition Risk ($> 10\%$)**: When marginal overlap exceeds 10%, Pythia intercepts the proposal and alerts the investigator **before cohort instantiation**:
+  > *"Warning (Illustrative): In observational data, candidate mimics may exhibit substantial overlap (e.g., an illustrative ~28% cross-recording between related diabetes concepts). Adding a blanket lifetime exclusion will reduce cohort size substantially. Consider restricting the exclusion to insulin monotherapy without oral antidiabetics, or limiting the exclusion window to index day."*
 
-> **Methodological Boundary**: Marginal overlap is an unadjusted pairwise heuristic. When an investigator specifies multiple exclusion criteria, the cumulative attrition is determined by the *union* of those exclusions, which may compound (e.g., two disjoint 7% exclusions can remove 14% of the cohort). The 10% cap serves as an automated authoring screen to alert investigators to high-risk exclusions before database instantiation.
+> **Methodological Boundary**: Marginal overlap is an unadjusted pairwise heuristic rather than a sensitivity guarantee. When an investigator specifies multiple exclusion criteria, the cumulative attrition is determined by the *union* of those exclusions, which may compound (e.g., two disjoint 7% exclusions can remove 14% of the cohort). Cohort-specific joint-exclusion assessment remains necessary before interpreting attrition. The 10% cap serves solely as an automated authoring screen to alert investigators to high-risk exclusions before database instantiation; generated draft cohorts remain subject to expert clinician review.
 
 ### 3.4. Longitudinal Pattern Signatures & The Grain Guide (`cab_s54_grain_guide`)
 Sourced directly from `concept_ab_finalize.sql:842-874`, TAXIS classifies clinical concepts into empirical longitudinal signatures, eliminating window guesswork:
@@ -163,13 +163,13 @@ Sourced directly from `concept_ab_finalize.sql:842-874`, TAXIS classifies clinic
 
 ---
 
-## 4. Technical Architecture & Agent Tool Contracts
+## 4. Technical Architecture & Proposed Agent Tool Contracts
 
-To implement this architecture in Pythia (`@ohdsi/pythia-agent`), we define four first-class tool interfaces:
+To define this architecture for future implementation in Pythia (`@ohdsi/pythia-agent`), we define four proposed tool interface specifications (pending compiler and runtime integration):
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              PYTHIA AGENT TOOL ECOSYSTEM                               │
+│                        PROPOSED PYTHIA AGENT TOOL ECOSYSTEM                            │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                        │
 │   EXISTING TOOLS (Warm-Start)              NEW TAXIS TOOLS (Audit & Cold-Start)        │
@@ -183,7 +183,7 @@ To implement this architecture in Pythia (`@ohdsi/pythia-agent`), we define four
 │   └─────────────────────────────┘          └───────────────────────────────────────┘   │
 │   ┌─────────────────────────────┐          ┌───────────────────────────────────────┐   │
 │   │ phenotype_patterns          │ ◄──────► │ taxis_synthesize_coldstart            │   │
-│   │ • Aggregates library sets   │ Fallback │ • Generates 4-slot Circe JSON when    │   │
+│   │ • Aggregates library sets   │ Fallback │ • Generates proposed Circe JSON when  │   │
 │   └─────────────────────────────┘ Dispatch │   Phenotype Library has zero matches  │   │
 │                                            └───────────────────────────────────────┘   │
 │                                            ┌───────────────────────────────────────┐   │
@@ -193,14 +193,15 @@ To implement this architecture in Pythia (`@ohdsi/pythia-agent`), we define four
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.1. Tool 1: `taxis_synthesize_coldstart` (Cold-Start Resolution)
+### 4.1. Tool 1: `taxis_synthesize_coldstart` (Proposed Cold-Start Resolution)
 When `phenotype_patterns` detects zero matches in `OHDSI/PhenotypeLibrary`, it dispatches to `taxis_synthesize_coldstart`:
 
-#### ClojureScript Interface Specification (`agent/src/pythia/tools/taxis_synthesize_coldstart.cljs`):
+#### Proposed ClojureScript Interface Specification (`agent/src/pythia/tools/taxis_synthesize_coldstart.cljs`):
 ```clojure
 (ns pythia.tools.taxis-synthesize-coldstart
-  "Synthesizes a complete 4-slot OHDSI Circe JSON cohort definition for conditions
-   lacking a template in the OHDSI Phenotype Library (Cold-Start Resolution)."
+  "Synthesizes a proposed 4-slot OHDSI Circe JSON cohort definition for conditions
+   lacking a template in the OHDSI Phenotype Library (Cold-Start Resolution).
+   Generated cohorts are proposed drafts requiring investigator review."
   (:require [clojure.string :as str]
             [pythia.http :as http]))
 
@@ -218,14 +219,14 @@ When `phenotype_patterns` detects zero matches in `OHDSI/PhenotypeLibrary`, it d
                       {:conceptId conceptId
                        :targetName (or targetName (str "Concept-" conceptId))
                        :minLift 3.0
-                       :maxExclusionOverlap 0.05
+                       :maxExclusionOverlap 0.05 ;; Authoring threshold for low marginal overlap screening (<5%); does not guarantee sensitivity
                        :defaultGrain "first"})
       (.then (fn [response]
                {:content [{:type "text"
                            :text (js/JSON.stringify (clj->js response))}]}))))
 ```
 
-#### JSON Schema & Synthetic Return Payload:
+#### JSON Schema & Synthetic Demonstration Fixture:
 ```json
 {
   "anchorConceptId": 46271022,
@@ -278,14 +279,14 @@ When `phenotype_patterns` detects zero matches in `OHDSI/PhenotypeLibrary`, it d
       }
     ]
   },
-  "empiricalRationale": "Synthesized using 4-slot deterministic compiler: primary index event on First mention (grain: chronic), confirmed by eGFR measurement (<45 mL/min/1.73m2, Lift=6.4, DR=1.12), with safe exclusions pre-screened below 5% overlap."
+  "empiricalRationale": "Proposed draft synthesized using 4-slot deterministic compiler: primary index event on First mention (grain: chronic, DEC-GR-007 baseline default), confirmed by eGFR measurement (<45 mL/min/1.73m2, Lift=6.4, DR=1.12), with candidate exclusions pre-screened for low marginal overlap (<5%) subject to clinician protocol review."
 }
 ```
 
-### 4.2. Tool 2: `taxis_audit_exclusion_attrition` (Warm-Start Optimization)
+### 4.2. Tool 2: `taxis_audit_exclusion_attrition` (Proposed Warm-Start Optimization)
 When Pythia retrieves an existing Phenotype Library cohort (e.g. COPD #1263 or T2DM #1032), it passes candidate exclusions to this tool:
 
-#### ClojureScript Interface Specification (`agent/src/pythia/tools/taxis_audit_exclusion_attrition.cljs`):
+#### Proposed ClojureScript Interface Specification (`agent/src/pythia/tools/taxis_audit_exclusion_attrition.cljs`):
 ```clojure
 (ns pythia.tools.taxis-audit-exclusion-attrition
   "Audits candidate exclusion criteria against empirical co-occurrence distributions
@@ -407,9 +408,9 @@ To guarantee privacy preservation, eliminate sensitivity barriers with instituti
 
 ---
 
-## 6. Closing the Loop: Automated Phenotype Library Contribution Engine
+## 6. Closing the Loop: Proposed Automated Phenotype Library Contribution Engine
 
-The final phase of this architecture transforms newly synthesized phenotypes into peer-reviewed community assets:
+A proposed design framework to transform newly synthesized, benchmarked phenotypes into peer-reviewed community assets (unexecuted design specification awaiting CI implementation):
 
 ```text
 ┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
@@ -420,15 +421,15 @@ The final phase of this architecture transforms newly synthesized phenotypes int
 └────────────────────────┘      └────────────────────────┘      └────────────────────────┘
 ```
 
-1. **Automated Submission Packaging**:
-   - The evaluation package (`TaxisPhenotypeEvaluation`) instantiates the synthesized cohort across multiple partner CDMs.
-   - It runs `CohortDiagnostics` and `PheValuator` to generate empirical diagnostic performance characteristics (Sensitivity, Specificity, PPV, ROC-AUC).
-2. **Standardized PR Generation**:
-   - An automated script formats the Circe JSON into `inst/cohorts/<new_id>.json`.
+1. **Automated Submission Packaging (Proposed Specification)**:
+   - The evaluation package (`TaxisPhenotypeEvaluation`) instantiates the synthesized cohort across multiple partner CDMs upon investigator initiation.
+   - It executes `CohortDiagnostics` and `PheValuator` to generate empirical diagnostic performance characteristics (Sensitivity, Specificity, PPV, ROC-AUC).
+2. **Standardized Candidate PR Generation (Proposed Design)**:
+   - A proposed automation script formats the Circe JSON into `inst/cohorts/<new_id>.json`.
    - Compiles the diagnostic evidence into `inst/cohortDiagnostics/` and populates the OHDSI Phenotype Development & Evaluation Workgroup clinical description markdown template.
-   - Submits an automated candidate Pull Request to `OHDSI/PhenotypeLibrary`.
+   - Submits a candidate Pull Request to `OHDSI/PhenotypeLibrary` for human workgroup peer review.
 3. **Virtuous Cycle**:
-   - Once merged by human workgroup peers, the new phenotype becomes part of `phenotype-library/cohorts-index.edn`.
+   - Once evaluated and merged by human workgroup peers, the new phenotype becomes part of `phenotype-library/cohorts-index.edn`.
    - On the next release, Pythia accesses it directly as a **Tier 1 Warm-Start baseline**, expanding community knowledge while eliminating future cold starts for that condition.
 
 ---
