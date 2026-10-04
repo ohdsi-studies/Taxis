@@ -1,6 +1,7 @@
 ^\.git$
 ^\.gitignore$
 ^docs$
+^extras$
 ^local-private$
 ^examples$
 ^publications$

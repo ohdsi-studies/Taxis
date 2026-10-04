@@ -25,6 +25,10 @@ Imports:
     readr,
     dplyr,
     zip
+Suggests:
+    testthat (>= 3.0.0)
 License: Apache License 2.0
 Encoding: UTF-8
 RoxygenNote: 7.2.3
+URL: https://github.com/ohdsi-studies/Taxis
+BugReports: https://github.com/ohdsi-studies/Taxis/issues
