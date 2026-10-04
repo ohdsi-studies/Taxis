@@ -142,11 +142,20 @@ We have verified this complete three-phase pipeline (`concept_ab_init.sql`, `con
 ### 2. The Clinical Knowledge Graph (Taxonomy v6.0)
 Statistical co-occurrence in observational data indicates association rather than clinical etiology. To assign explicit clinical semantics, TAXIS incorporates a 112-code clinical relationship taxonomy organized across five core relationship families: causal and pathophysiological mechanisms, clinical manifestations and symptoms, diagnostic laboratory and procedural evaluations, therapeutic interventions, and differential diagnostic mimics. An ensemble of clinical models evaluates co-occurring concept pairs, assigns structured taxonomy codes and empirical evidence grades, and documents the clinical rationale for each relationship.
 
+For the definitive scientific monograph on its provenance (including Dr. Stephen H. Bandeian's clinical concept-pair architecture and AHRQ/CMS episode-of-care foundation, and Dr. J. Marc Overhage's clinical validation architecture), pathophysiological foundations, and complete code specifications, see the [Scientific Foundations & Specification of the TAXIS Clinical Pair Taxonomy](docs/knowledge_graph/TAXONOMY_SCIENTIFIC_FOUNDATIONS_AND_SPECIFICATION.md).
+
 ### 3. Demonstrating Downstream Applications
 While our primary focus is releasing and maintaining TAXIS as a network study package, this repository includes proof-of-concept packages illustrating how TAXIS data can be consumed by downstream tools:
 - **`Taxis` (this package)**: The core network study package. It executes the large-scale association mining pipeline across local CDM databases and packages privacy-preserving, cell-suppressed aggregate results to help build our public concept pair resource.
 - **`TaxisPhenotypeCreator`**: A companion proof-of-concept package showing how clinical descriptions and empirical graph edges could be translated into standards-compliant Circe JSON cohort definitions.
 - **`TaxisPhenotypeEvaluation`**: A companion evaluation package demonstrating how to assess cohort diagnostics and evaluate overlap against OHDSI Phenotype Library definitions across partner databases.
+
+### 4. Universal Compatibility with the OHDSI Tooling & Agentic Ecosystem
+TAXIS operates as an agnostic empirical foundation layer that integrates with both agentic (LLM-driven) and non-agentic (programmatic/graphical) cohort and concept set builders across the OHDSI community:
+- **Agentic & Generative AI Systems**: Supplies empirical co-occurrence matrices, continuity-corrected Directionality Ratios ($DR$), and temporal lag decay windows to **OHDSI Pythia** (ATLAS 3.0 AI Assistant), **Phenelope** (LLM concept set builder), **FastOMOP** (multi-agent RWE framework), **OHDSI KEEPER** (dual-hybrid LLM clinical case adjudication), and the **OHDSI Study Agent**, grounding generative models in empirical real-world evidence and eliminating hallucinations.
+- **Programmatic & Graphical Frameworks**: Integrates into **Capr** (HADES R domain-specific language), **ATLAS 3.0** (TrexSQL DuckDB query cache acceleration with $O(1)$ short-circuiting and descendant pruning), **PHOEBE** (concept set recommendation), and **Aphrodite** (anchor-based machine learning phenotyping).
+
+For complete architectural patterns, code examples, and Model Context Protocol (FastMCP) schemas, see the [TAXIS Cohort & Concept Set Builder Ecosystem Specification](docs/phenotyping/TAXIS_COHORT_AND_CONCEPT_SET_BUILDER_ECOSYSTEM.md).
 
 ---
 
@@ -244,7 +253,7 @@ Upon pipeline completion, the aggregate summary archive `Results_Mining_<databas
 │   ├── protocol/                # Study protocol & design specifications
 │   ├── mining/                  # Concept AB association mining engine specifications
 │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
-│   ├── phenotyping/             # Automated phenotype builder specifications
+│   ├── phenotyping/             # Cohort & concept set builder ecosystem (Atlas 3.0, Pythia, Capr, LLM agents)
 │   └── validation/              # ClinVec empirical benchmark and concordance results
 ├── extras/                      # Multi-site study packages and execution drivers
 │   ├── CodeToRun.R              # Push-button network execution driver for root Taxis package
