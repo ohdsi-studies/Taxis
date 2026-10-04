@@ -37,9 +37,10 @@ packageMiningResults <- function(connectionDetails,
                                  databaseId,
                                  minCellCount = 5) {
 
-  # Enforce mandatory integer threshold floor of at least 5 (DEC-GR-005)
-  if (is.null(minCellCount) || is.na(minCellCount) || !is.numeric(minCellCount) || minCellCount < 5) {
-    ParallelLogger::logWarn(sprintf("Requested minCellCount (%s) is below mandatory floor (5). Enforcing minCellCount = 5.", as.character(minCellCount)))
+  # Enforce mandatory integer threshold floor of at least 5 (DEC-GR-005, REC-038-2)
+  if (is.null(minCellCount) || is.na(minCellCount) || !is.numeric(minCellCount) ||
+      length(minCellCount) != 1 || is.infinite(minCellCount) || minCellCount < 5) {
+    ParallelLogger::logWarn(sprintf("Invalid or sub-threshold minCellCount (%s). Enforcing mandatory floor minCellCount = 5.", as.character(minCellCount)))
     minCellCount <- 5L
   } else {
     minCellCount <- as.integer(minCellCount)
@@ -62,10 +63,10 @@ packageMiningResults <- function(connectionDetails,
   conn <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(conn), add = TRUE)
 
-  # Define exact permitted schemas, sensitive count columns, and dependent fields
+  # Exact declared projections strictly matching bundled SQL definitions
   tableSpecs <- list(
     cab_process_log = list(
-      requiredCols = c("step_datetime", "batch_number", "step", "table_name", "rows_inserted", "step_note"),
+      requiredCols = c("batch_number", "table_name", "step", "step_datetime"),
       countCols = c()
     ),
     cab_s13_strat_all = list(
@@ -87,42 +88,81 @@ packageMiningResults <- function(connectionDetails,
     cab_s54_grain_guide = list(
       requiredCols = c("concept_id", "src", "obs_act", "pers_act", "mentions_per_person", "n_gaps",
                        "median_gap_bucket", "median_span_bucket", "frac_gaps_tight",
-                       "frac_gaps_mid", "frac_gaps_long", "pattern", "grain", "recommended_analysis_role"),
+                       "frac_gaps_mid", "frac_gaps_long", "pattern", "grain", "rationale"),
       countCols = c("obs_act", "pers_act", "n_gaps")
     )
   )
 
-  # Apply rigorous suppression with algebraic back-calculation masking
+  # Query all required tables with fail-closed error handling (REC-038-1)
+  rawTables <- list()
+  for (tableName in names(tableSpecs)) {
+    spec <- tableSpecs[[tableName]]
+    ParallelLogger::logInfo(sprintf("Extracting aggregate table: %s...", tableName))
+    sql <- sprintf("SELECT %s FROM %s.%s;", paste(spec$requiredCols, collapse = ", "), resultsDatabaseSchema, tableName)
+    sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
+
+    # Fail closed on query failure (no silent skipping)
+    data <- tryCatch({
+      DatabaseConnector::querySql(conn, sql)
+    }, error = function(e) {
+      stop(sprintf("Table %s failed to query: %s. Export aborted to prevent partial or unmasked package generation.",
+                   tableName, conditionMessage(e)))
+    })
+
+    if (is.null(data) || nrow(data) == 0) {
+      stop(sprintf("Table %s is empty. Required aggregate mining results are missing; aborting export.", tableName))
+    }
+
+    colnames(data) <- tolower(colnames(data))
+
+    # Fail-closed schema enforcement: check all required columns are present
+    missingCols <- setdiff(spec$requiredCols, colnames(data))
+    if (length(missingCols) > 0) {
+      stop(sprintf("Table %s failed schema validation: missing required columns [%s]. Export aborted.",
+                   tableName, paste(missingCols, collapse = ", ")))
+    }
+
+    # Restrict to permitted schema columns only
+    rawTables[[tableName]] <- data[, spec$requiredCols, drop = FALSE]
+  }
+
+  # Track masked concepts in cab_s39_pattern_all for cross-table suppression (REC-038-2)
+  # If any gap histogram bin was masked (< threshold), track (concept_id, src) to prevent subtraction recovery in grain_guide
+  patternData <- rawTables[["cab_s39_pattern_all"]]
+  maskedGapBins <- patternData[patternData$metric == "gap" & patternData$n_obs > 0 & patternData$n_obs < minCellCount, ]
+  maskedConceptKeys <- if (nrow(maskedGapBins) > 0) {
+    unique(paste(maskedGapBins$concept_id, maskedGapBins$src, sep = "_"))
+  } else {
+    character(0)
+  }
+
+  # Apply suppression with cross-table companion protection
   applyTableSuppression <- function(tableName, df, threshold = minCellCount) {
     if (tableName == "cab_s13_strat_all") {
-      # If persons_in_decile is small, mask persons and person-days to prevent rate-based reconstruction
       mask <- df$persons_in_decile > 0 & df$persons_in_decile < threshold
       df$persons_in_decile[mask] <- -1
       df$person_days_in_decile[mask] <- -1
     } else if (tableName == "cab_s37_lag_all") {
-      maskEvents <- df$n_events > 0 & df$n_events < threshold
-      df$n_events[maskEvents] <- -1
-      maskPairs <- df$n_pairs > 0 & df$n_pairs < threshold
-      df$n_pairs[maskPairs] <- -1
+      df$n_events[df$n_events > 0 & df$n_events < threshold] <- -1
+      df$n_pairs[df$n_pairs > 0 & df$n_pairs < threshold] <- -1
     } else if (tableName == "cab_s38_profile_all") {
-      maskRecs <- df$n_records > 0 & df$n_records < threshold
-      df$n_records[maskRecs] <- -1
-      maskPers <- df$n_persons > 0 & df$n_persons < threshold
-      df$n_persons[maskPers] <- -1
+      df$n_records[df$n_records > 0 & df$n_records < threshold] <- -1
+      df$n_persons[df$n_persons > 0 & df$n_persons < threshold] <- -1
     } else if (tableName == "cab_s39_pattern_all") {
-      maskObs <- df$n_obs > 0 & df$n_obs < threshold
-      df$n_obs[maskObs] <- -1
-      maskPers <- df$n_persons > 0 & df$n_persons < threshold
-      df$n_persons[maskPers] <- -1
+      df$n_obs[df$n_obs > 0 & df$n_obs < threshold] <- -1
+      df$n_persons[df$n_persons > 0 & df$n_persons < threshold] <- -1
     } else if (tableName == "cab_s54_grain_guide") {
-      # Joint masking: if either pers_act or obs_act is small, mask both AND mentions_per_person
+      # Activity masking
       maskActivity <- (df$pers_act > 0 & df$pers_act < threshold) | (df$obs_act > 0 & df$obs_act < threshold)
       df$pers_act[maskActivity] <- -1
       df$obs_act[maskActivity] <- -1
       df$mentions_per_person[maskActivity] <- -1.0
 
-      # Gap masking: if n_gaps is small, mask n_gaps AND dependent fractions
-      maskGaps <- df$n_gaps > 0 & df$n_gaps < threshold
+      # Cross-table gap histogram protection (REC-038-2):
+      # Mask n_gaps if n_gaps < threshold OR if ANY constituent gap histogram bin in cab_s39_pattern_all was masked
+      rowKeys <- paste(df$concept_id, df$src, sep = "_")
+      hasMaskedBin <- rowKeys %in% maskedConceptKeys
+      maskGaps <- (df$n_gaps > 0 & df$n_gaps < threshold) | hasMaskedBin
       df$n_gaps[maskGaps] <- -1
       df$frac_gaps_tight[maskGaps] <- -1.0
       df$frac_gaps_mid[maskGaps] <- -1.0
@@ -133,41 +173,13 @@ packageMiningResults <- function(connectionDetails,
 
   approvedBasenames <- c()
 
-  for (tableName in names(tableSpecs)) {
-    spec <- tableSpecs[[tableName]]
-    ParallelLogger::logInfo(sprintf("Extracting aggregate table: %s...", tableName))
-    sql <- sprintf("SELECT %s FROM %s.%s;", paste(spec$requiredCols, collapse = ", "), resultsDatabaseSchema, tableName)
-    sql <- SqlRender::translate(sql, targetDialect = connectionDetails$dbms)
-
-    data <- tryCatch({
-      DatabaseConnector::querySql(conn, sql)
-    }, error = function(e) {
-      ParallelLogger::logWarn(sprintf("Could not query table %s: %s", tableName, conditionMessage(e)))
-      NULL
-    })
-
-    if (!is.null(data) && nrow(data) > 0) {
-      colnames(data) <- tolower(colnames(data))
-
-      # Fail-closed schema enforcement: check all required columns are present
-      missingCols <- setdiff(spec$requiredCols, colnames(data))
-      if (length(missingCols) > 0) {
-        stop(sprintf("Table %s failed schema validation: missing required columns [%s]. Export aborted to prevent unmasked disclosure.",
-                     tableName, paste(missingCols, collapse = ", ")))
-      }
-
-      # Restrict to permitted schema columns only
-      data <- data[, spec$requiredCols, drop = FALSE]
-
-      # Apply suppression and companion reconstruction masking
-      dataSuppressed <- applyTableSuppression(tableName, data, threshold = minCellCount)
-
-      csvBasename <- sprintf("%s_%s.csv", tableName, databaseId)
-      csvPath <- file.path(exportDir, csvBasename)
-      readr::write_csv(dataSuppressed, csvPath)
-      approvedBasenames <- c(approvedBasenames, csvBasename)
-      ParallelLogger::logInfo(sprintf("Wrote %d rows to %s (suppression and reconstruction guards applied).", nrow(dataSuppressed), csvBasename))
-    }
+  for (tableName in names(rawTables)) {
+    dataSuppressed <- applyTableSuppression(tableName, rawTables[[tableName]], threshold = minCellCount)
+    csvBasename <- sprintf("%s_%s.csv", tableName, databaseId)
+    csvPath <- file.path(exportDir, csvBasename)
+    readr::write_csv(dataSuppressed, csvPath)
+    approvedBasenames <- c(approvedBasenames, csvBasename)
+    ParallelLogger::logInfo(sprintf("Wrote %d rows to %s (suppression and cross-table guards applied).", nrow(dataSuppressed), csvBasename))
   }
 
   # Build study manifest metadata
@@ -206,7 +218,14 @@ packageMiningResults <- function(connectionDetails,
                  paste(unexpectedMembers, collapse = ", ")))
   }
 
+  missingMembers <- setdiff(approvedBasenames, archiveMembers)
+  if (length(missingMembers) > 0) {
+    file.remove(zipFileName)
+    stop(sprintf("INTEGRITY VIOLATION: Archive missing expected members [%s]. Zip deleted.",
+                 paste(missingMembers, collapse = ", ")))
+  }
+
   ParallelLogger::logInfo(sprintf("Successfully packaged %d approved aggregate results into: %s", length(approvedBasenames), zipFileName))
-  ParallelLogger::logInfo("Verification confirmed: Zero patient-level identifiers, unmasked small cells, or unapproved files.")
+  ParallelLogger::logInfo(sprintf("Packaging complete: %d aggregate summary files exported with small-cell suppression (threshold: %d).", length(approvedBasenames), minCellCount))
   return(zipFileName)
 }
