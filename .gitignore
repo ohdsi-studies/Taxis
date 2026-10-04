@@ -11,3 +11,5 @@ extras/*output*/
 .Rproj.user
 __pycache__/
 *.pyc
+.Rhistory
+.RData

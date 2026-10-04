@@ -36,11 +36,11 @@ To address this gap, the **TAXIS** (*Transparent Analytic Knowledge Graph for In
 
 To establish clear operational boundaries (`DEC-GR-027`): **TAXIS is an empirical association mining engine and OHDSI network study package; it is not an end-user cohort algorithm builder or negative control selector application.**
 
-The primary deliverable of this repository is the execution-ready network study package and its underlying association engine. Downstream applications in this codebase (such as Circe cohort generation in `extras/`) are crude proofs of concept demonstrating potential utility:
-1. **Computable Cohort Specification**: Proof of concept showing how empirical concept pairs can inform Circe JSON cohort definitions by surfacing confirmatory labs and diagnostic mimics.
-2. **Empirical Negative Control Discovery**: Mined concept pairs demonstrating empirical independence across databases serve as candidate control batteries for expert clinical review.
-3. **Causal & Confounder Selection**: Tracking temporal sequence directionality assists epidemiologists in identifying baseline covariates while safeguarding against conditioning on intermediate mediators.
-4. **Network Evidence Interpretation**: Quantitative empirical metrics help investigators contextualize unexpected drug-outcome signals and differentiate authentic associations from surveillance artifacts.
+The primary deliverable of this repository is the execution-ready network study package and its underlying association engine. Downstream applications in this codebase (such as Circe cohort generation in `extras/`) are proofs of concept demonstrating potential utility:
+1. **Richer Phenotype Definitions**: Surfaces commonly co-occurring lab tests, typical medications, and similar conditions to help refine computable cohort definitions.
+2. **Candidate Negative Controls**: Identifies clinical concepts that rarely co-occur across databases to propose candidate negative controls for clinical review.
+3. **Smarter Confounder Selection**: Knowing which event occurred first helps researchers select true baseline confounders (present before treatment) and avoid adjusting for intermediate steps caused by the treatment.
+4. **Context for Unexpected Signals**: Provides baseline co-occurrence benchmarks so investigators can determine whether an unexpected drug-outcome link reflects clinical reality or high healthcare utilization.
 
 ---
 
@@ -72,7 +72,7 @@ To evaluate the longitudinal sequence between two concepts $(A, B)$, TAXIS check
   - $DR \ge 1.50$: Concept A empirically precedes Concept B (e.g., Acute Myocardial Infarction precedes Percutaneous Coronary Intervention).
   - $DR \le 0.67$: Concept B empirically precedes Concept A.
   - $0.67 < DR < 1.50$: Events occur concurrently or with balanced temporal ordering.
-- *Epidemiological Boundary*: Observational temporal order reflects real-world clinical documentation and practice patterns. It provides empirical clues for phenotyping, but does not establish biological etiology or prove causality due to potential confounding by indication, surveillance artifacts, and diagnostic delay.
+- *Epidemiological Boundary*: Calendar sequence shows which event was recorded first in routine care. While useful for phenotyping, it reflects clinical documentation patterns rather than biological proof of causation (for example, diagnostic delays or treatments prescribed before formal diagnosis coding).
 
 ### Step 3: Clinical Phenotyping Utility
 Downstream tools query the pre-computed concept-pair summaries to construct and refine reproducible cohort definitions:
