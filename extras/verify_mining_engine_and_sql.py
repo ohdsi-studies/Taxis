@@ -231,8 +231,12 @@ def test_table_coverage_in_specification():
 
 
 def test_ohdsi_tsql_dialect_conformance():
-    """Verify universal OHDSI Transact-SQL (T-SQL) dialect conformance and SqlRender guards."""
-    print("--> Test 7: Validating universal OHDSI T-SQL dialect & SqlRender guards...")
+    """Static pattern & guard audit: verify elimination of non-standard constructs and presence of SqlRender guards.
+    
+    Note: Evaluates static file patterns and token guards. Does not execute live
+    SqlRender dialect translation or live DBMS queries across target engines.
+    """
+    print("--> Test 7: Static pattern audit: OHDSI T-SQL construct checks & SqlRender DDL guards...")
     sql_files = ["concept_ab_init.sql", "concept_ab_batch.sql", "concept_ab_finalize.sql"]
     errors = []
 
@@ -281,7 +285,7 @@ def test_ohdsi_tsql_dialect_conformance():
             print(f"  [FAIL] {err}")
         return False
 
-    print(f"  [PASS] All {len(sql_files)} SQL files strictly conform to universal OHDSI T-SQL with guarded DDL.")
+    print(f"  [PASS] All {len(sql_files)} SQL files pass static syntax checks for portable constructs, neutral defaults, and guarded DDL.")
     return True
 
 

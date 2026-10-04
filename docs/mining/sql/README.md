@@ -97,6 +97,9 @@ The executing database user requires:
 | `RESULTS_SCHEMA` | e.g. `taxis_results` | Read/write schema where all output tables are built. |
 | `CAB_BATCH_COUNT` | `40` (default) | Partitions the patient cohort to optimize disk and memory utilization. |
 | `CAB_PARTIAL_RUN_BATCH_LIMIT` | `40` (or `1` for test) | Number of batches to process. Set to 1 for a fast end-to-end dry-run. |
+| `CAB_CREATE_INDEX_DDL` | `true` (default; set `false` for Snowflake/BigQuery) | Controls generation of `CREATE INDEX` and `UPDATE STATISTICS` DDL. Columnar platforms must disable this. |
+
+> **Portability & Dialect Status Note**: The SQL pipeline templates have undergone static syntax audits to eliminate platform-specific functions (replacing non-standard `GREATEST()` with portable `CASE WHEN` and PostgreSQL-specific default timestamps with standard ANSI `CURRENT_TIMESTAMP`) and enclose all index/statistics DDL inside `{@create_index_ddl}` guards. Live multi-dialect translation and execution across target DBMS engines remain subject to partner-site validation in live HADES environments.
 
 ---
 
