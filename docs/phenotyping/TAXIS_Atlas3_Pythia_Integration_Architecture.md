@@ -62,34 +62,40 @@ $$\text{Lift}_{\text{strat}}(A, B) = \frac{\sum_{k=1}^{10} w_k \cdot \text{Obs}_
 When Pythia proposes confirmatory criteria for an index condition, TAXIS filters out high-frequency incidental co-occurrences (e.g., routine metabolic panels, essential hypertension) and surfaces only those clinical criteria with true diagnostic signal ($\text{Lift}_{\text{strat}} \ge 3.0$).
 
 ### 2.2. Continuity-Corrected Directionality Ratio ($DR$)
-A major flaw in naive phenotype authoring is adding treatments or tests in temporal windows that violate clinical sequencing. TAXIS calculates the **Directionality Ratio ($DR$)** between Concept A (index) and Concept B (candidate criterion):
+A major challenge in phenotype authoring is placing clinical criteria in temporal windows that conform to observed clinical sequences. TAXIS calculates the **Directionality Ratio ($DR$)** between Concept A (index) and Concept B (candidate criterion):
 
 $$DR(A \rightarrow B) = \frac{\text{Pairs}(A \text{ before } B) + 0.5}{\text{Pairs}(B \text{ before } A) + 0.5}$$
 
-- **$DR \ge 1.50$ (Empirical Temporal Succession)**: Concept B reliably follows Concept A. Pythia uses this to configure post-index inclusion windows ($[0, +30\text{d}]$ or $[0, +365\text{d}]$) for first-line therapies (`THER_DRUG_FIRSTLINE`) and downstream complications (`PROG_COMPLICATION`).
-- **$0.67 < DR < 1.50$ (Empirical Concurrency)**: Concepts occur synchronously (same day or same encounter). Pythia uses this for presentation symptoms and pathognomonic confirmatory labs (`DIAG_LAB_CONFIRM`).
-- **$DR \le 0.67$ (Empirical Precursor / Predisposition)**: Concept B precedes Concept A. Pythia uses this for pre-index baseline exclusions or etiology criteria (`ETIOL_PREDISPOSE`).
+- **$DR \ge 1.50$ (Empirical Temporal Succession)**: Concept B reliably follows Concept A in observational records. Pythia uses this as a candidate ranking signal for post-index inclusion windows ($[0, +30\text{d}]$ or $[0, +365\text{d}]$) for potential first-line therapies (`THER_DRUG_FIRSTLINE`) and downstream complications (`PROG_COMPLICATION`).
+- **$0.67 < DR < 1.50$ (Empirical Temporal Symmetry)**: Concept pairs exhibit balanced before/after ordering. 
+- **$DR \le 0.67$ (Empirical Precursor / Predisposition)**: Concept B reliably precedes Concept A. Pythia uses this as a signal for pre-index baseline exclusions or etiology criteria (`ETIOL_PREDISPOSE`).
+
+> **Methodological Boundary**: $DR$ is calculated strictly from non-synchronous sequences ($A$ before $B$ vs. $B$ before $A$). It does not capture same-calendar-day events. Same-day clinical concurrency is measured separately by concurrent co-occurrence ($A \cap B$ on the same index date or visit). Furthermore, temporal precedence represents an empirical observational sequence reflecting real-world clinical recording and documentation patterns, rather than definitive proof of biological causality or guideline-indicated therapy. It serves as an informative ranking heuristic for investigator review.
 
 ### 2.3. Pre-Execution 10% Rule-Out Attrition Cap (`DEC-GR-005` / `DEC-GR-017`)
-In current Pythia workflows, users add exclusion criteria without knowing their impact on sample size. TAXIS pre-calculates the exact proportion of anchor patients who carry each differential diagnosis mimic:
+In current Pythia workflows, users add exclusion criteria without knowing their impact on sample size. TAXIS pre-calculates the unadjusted marginal proportion of anchor patients who carry each differential diagnosis mimic:
 
-$$\text{Patient Overlap Fraction} = \frac{\text{Persons}(A \cap B)}{\text{Persons}(A)}$$
+$$\text{Marginal Overlap Fraction} = \frac{\text{Persons}(A \cap B)}{\text{Persons}(A)}$$
 
-- **Safe Specificity Enhancer ($< 5\%$)**: Example: Bronchiectasis in COPD (~1.5% co-occurrence). Safe to exclude without damaging cohort sensitivity.
-- **Moderate Trade-Off ($5\% - 10\%$)**: Flagged for user adjudication.
-- **Aggressive Exclusion Risk ($> 10\%$)**: Example: Type 1 Diabetes in Type 2 Diabetes (~28% co-occurrence due to cross-coding or rule-out testing). TAXIS alerts Pythia to warn the investigator *before cohort instantiation*:
-  > *"Warning: In real-world data, 28% of Type 2 Diabetes patients carry an ICD/SNOMED code for Type 1 Diabetes. Adding a blanket lifetime exclusion will reduce cohort size by >25%. Consider restricting the exclusion to insulin monotherapy without oral antidiabetics, or limiting the exclusion window to index day."*
+- **Low Overlap ($< 5\%$)**: Example: Bronchiectasis in COPD (~1.5% co-occurrence). Low marginal attrition risk.
+- **Moderate Overlap ($5\% - 10\%$)**: Flagged for clinical user review.
+- **High Overlap Risk ($> 10\%$)**: Example: Type 1 Diabetes in Type 2 Diabetes (~28% co-occurrence due to cross-coding or rule-out testing). TAXIS alerts Pythia to warn the investigator *before cohort instantiation*:
+  > *"Warning: In real-world data, 28% of Type 2 Diabetes patients carry an ICD/SNOMED code for Type 1 Diabetes. Adding a blanket lifetime exclusion will reduce cohort size substantially. Consider restricting the exclusion to insulin monotherapy without oral antidiabetics, or limiting the exclusion window to index day."*
+
+> **Methodological Boundary**: Marginal overlap is an unadjusted pairwise heuristic. When an investigator specifies multiple exclusion criteria, the cumulative attrition is determined by the *union* of those exclusions, which may compound (e.g., two disjoint 7% exclusions can remove 14% of the cohort). The 10% cap serves as an automated authoring screen to alert investigators to high-risk exclusions before database instantiation.
 
 ### 2.4. Longitudinal Pattern Signatures & The Grain Guide (`cab_s54_grain_guide`)
-Pythia frequently faces ambiguity regarding whether an entry event should capture the "First Mention" or "All Mentions", and what observation washout is required. TAXIS classifies every clinical concept into one of five longitudinal signatures:
+Pythia frequently faces ambiguity regarding whether an entry event should capture the "First Mention" or "All Mentions", and what observation washout is appropriate. Sourced directly from `concept_ab_finalize.sql:842-874`, TAXIS classifies clinical concepts into empirical longitudinal signatures:
 
-| Pattern Signature | Mentions / Person | Median Gap ($\tau$) | Recommended Grain | Atlas v3 / Pythia Modeling Rule |
-| :--- | :---: | :---: | :---: | :--- |
-| **`punctate`** | $< 1.2$ | None | **All Mentions** | Acute one-time event (e.g., accidental injury). No washout needed. |
-| **`clustered`** | $1.2 - 8.0$ | $\le 14$ days | **First Mention** | Acute episode with flurry of care (e.g., Acute MI, Pneumonia). Collapse into 30d episodes. |
-| **`chronic`** | $\ge 8.0$ | $\le 90$ days | **First Mention** | Indefinite disease course (e.g., T2DM, COPD, CKD). Require 365d prior observation; enter on first. |
-| **`recurrent`** | $\ge 1.2$ | $\ge 90$ days | **All Mentions** | Distinct episodic recurrence (e.g., Major Depressive Episode, Gout). Require 90d-180d washout. |
-| **`episodic`** | Mixed | Bimodal | **Both / Dual** | Complex cycle (e.g., Multiple Sclerosis, Relapsing Remitting). Model onset and episodes separately. |
+| Pattern Signature | Empirical SQL Classification Rules | Recommended Grain | Atlas v3 / Pythia Modeling Rule |
+| :--- | :--- | :---: | :--- |
+| **`punctate`** | `mentions_per_person < 1.05` | **All Mentions** | Acute one-time event (e.g., accidental injury). Minimal or no washout needed. |
+| **`clustered`** | `median_gap_bucket <= 14` days | **First Mention** | Acute episode with flurry of care (e.g., Acute MI, Pneumonia). Collapse into 30d episodes. |
+| **`chronic`** | `mentions_per_person >= 8.0` and `median_gap_bucket <= 90` days | **First Mention** | Indefinite disease course (e.g., T2DM, COPD, CKD). Require prior observation; enter on first. |
+| **`recurrent`** | `median_gap_bucket >= 90` days | **All Mentions** | Distinct episodic recurrence (e.g., Major Depressive Episode, Gout). Require 90d-180d washout. |
+| **`episodic`** | `frac_gaps_tight >= 0.25` and `frac_gaps_long >= 0.25` | **Both / Dual** | Complex cycle (e.g., Multiple Sclerosis, Relapsing Remitting). Model onset and episodes separately. |
+| **`mixed`** | Other distributed recurrence patterns | **Both / Dual** | Heterogeneous recording pattern. Require investigator adjudication. |
+| **`unknown`** | `n_gaps is null or n_gaps = 0` | **Both / Dual** | Insufficient gap data. Default to user-specified protocol. |
 
 ---
 
@@ -372,30 +378,39 @@ When designing a phenotype for an anchor condition:
 
 ---
 
-## 5. Quantitative Benchmarks & Expected Performance Impact
+## 5. Design Target Hypotheses & Proposed Evaluation Framework
 
-Integrating TAXIS into Atlas v3 and Pythia delivers measurable, quantified improvements across three core dimensions:
+> **Evaluation Scope & Status**: The performance metrics below represent **projected design target hypotheses** for upcoming multi-site observational evaluation; they do not represent completed prospective trial outcomes. Illustrative tool-payload values in Section 3 are synthetic demonstration fixtures. Formal validation requires multi-CDM execution against institutional data partners.
 
-| Phenotyping Metric | Standard Atlas / Pythia (Baseline) | Atlas v3 + TAXIS Empirical Integration | Quantified Benefit |
+| Phenotyping Metric | Standard Atlas / Pythia (Observed Baseline) | Atlas v3 + TAXIS Empirical Integration (Design Target) | Hypothesized Rationale |
 | :--- | :--- | :--- | :--- |
-| **Phenotype Cold-Start Rate** | **Fails on ~60%** of conditions not in Phenotype Library v3.37. | **< 2% failure rate**: Covers all OMOP standard concepts with empirical graph associations. | **30x increase** in condition coverage without hallucination. |
-| **Inclusion Rule Attrition Failures** | **~35% of novel cohorts** suffer $\ge 90\%$ catastrophic patient loss after initial generation. | **< 3% attrition failure rate**: Pre-execution 10% rule-out cap blocks destructive exclusions. | **> 90% reduction** in wasted database generation runs. |
-| **Concordance with Clinician Adjudication** | Variable (0.65 – 0.82 F1-score depending on prompt complexity). | **0.94 – 0.98 F1-score** across benchmark conditions (COPD, CKD, T2DM, Obesity, Hyperkalemia). | Highly calibrated clinical specificity and sensitivity. |
-| **Cohort Generation Speed / Iteration Cycle** | 4 – 8 trial-and-error generation runs per validated cohort. | **1 – 2 runs**: Correct criteria, windows, and exclusions configured on the first turn. | **4x acceleration** in study cohort delivery. |
+| **Phenotype Cold-Start Rate** | **Fails on ~60%** of conditions not in Phenotype Library v3.37. | **< 2% failure target**: Expands coverage across standard concepts with empirical graph associations. | Empirically grounded graph relationships eliminate dependence on static library JSONs. |
+| **Inclusion Rule Attrition Failures** | **~35% of novel cohorts** suffer $\ge 90\%$ catastrophic patient loss after initial generation. | **< 3% attrition target**: Pre-execution 10% rule-out cap alerts users to high-attrition exclusions. | Intercepts high-risk exclusions before database instantiation. |
+| **Concordance with Clinician Adjudication** | Variable (0.65 – 0.82 F1-score depending on prompt complexity). | **0.90 – 0.95 F1 target** across benchmark conditions (COPD, CKD, T2DM, Obesity, Hyperkalemia). | Highly calibrated clinical specificity and sensitivity. |
+| **Cohort Generation Speed / Iteration Cycle** | 4 – 8 trial-and-error generation runs per validated cohort. | **1 – 2 runs target**: Recommended criteria, windows, and exclusions configured on the first turn. | Substantial acceleration in study cohort delivery. |
 
 ---
 
-## 6. Implementation Roadmap for OHDSI Community Release
+## 6. Implementation Roadmap & Site-Local Governance Boundary
 
-### Phase 1: Prototype REST Bridge (`taxis-service`) (Q4 2026)
-- Package TAXIS 40-batch matrices (`cab_s54_grain_guide`, `cab_s37_lag_all`, `cab_s55_pair_all`) into a lightweight, containerized FastAPI / SQLite microservice.
-- Expose `/api/v1/recommend`, `/api/v1/audit-exclusion`, and `/api/v1/grain`.
+### 6.1. Site-Local Data Governance & Perimeter Security (`DEC-GR-005`, `DEC-GR-013`)
 
-### Phase 2: Dynamic Browser Tool Mount in Atlas v3 (Q1 2027)
+To guarantee complete privacy preservation and adhere strictly to institutional data use term sheets:
+1. **Site-Local Isolation of Pair Matrices**: Populated concept-pair co-occurrence matrices (`cab_s55_pair_all`), raw transition matrices, and local patient counts **must remain site-local behind institutional firewalls at all times**. They are never packaged into public distributable libraries or transmitted off-premises.
+2. **Code-Only Distributable Artifacts**: Distributable packages (such as `@ohdsi/atlas-plugin-taxis` or containerized service engines) are strictly code-only. They execute against local data behind the partner's firewall.
+3. **Aggregate-Only Outbound Perimeter**: When Pythia interacts with remote LLM endpoints (e.g. cloud-hosted models), the communication boundary transmits strictly aggregate, small-cell suppressed descriptive metadata ($< 5$). Zero patient identifiers, granular cell counts, or pairwise occurrence matrices may cross the outbound perimeter.
+
+### 6.2. Phased Release Roadmap
+
+#### Phase 1: Prototype Site-Local REST Bridge (`taxis-service`) (Q4 2026)
+- Package TAXIS 40-batch query logic (`cab_s54_grain_guide`, `cab_s37_lag_all`) into a lightweight, site-local FastAPI microservice residing behind the local database firewall.
+- Expose site-local endpoints: `/api/v1/recommend`, `/api/v1/audit-exclusion`, and `/api/v1/grain` with strict small-cell suppression ($< 5$).
+
+#### Phase 2: Dynamic Browser Tool Mount in Atlas v3 (Q1 2027)
 - Ship `@ohdsi/atlas-plugin-taxis` for Atlas v3.
-- Register browser tools via `window.__pythiaClientTools` for zero-friction client-side integration.
+- Register browser tools via `window.__pythiaClientTools` for zero-friction client-side integration connecting strictly to the site-local API.
 
-### Phase 3: Upstream Pythia Agent Contribution (Q2 2027)
+#### Phase 3: Upstream Pythia Agent Contribution (Q2 2027)
 - Submit Pull Request to `OHDSI/Pythia` adding `taxis-associations.cljs` and `taxis-attrition.cljs` into Pythia core agent tools.
 - Update Pythia eval suite (`plugin/evals/*.eval.ts`) asserting zero over-exclusion attrition on benchmark conditions.
 
@@ -403,4 +418,5 @@ Integrating TAXIS into Atlas v3 and Pythia delivers measurable, quantified impro
 
 ## 7. Conclusion
 
-By pairing the conversational elegance and card-proposal UX of **Atlas v3 / Pythia** with the empirical rigor, stratified lift, directionality ratios, and 10% rule-out caps of **TAXIS**, the OHDSI community gains a transformative, end-to-end phenotyping ecosystem. Researchers can author phenotypes in minutes with mathematical certainty that their criteria reflect true clinical signal rather than incidental confounding or catastrophic exclusion.
+By pairing the conversational elegance and card-proposal UX of **Atlas v3 / Pythia** with the empirical rigor, stratified lift, directionality ratios, and 10% rule-out caps of **TAXIS**, the OHDSI community gains a comprehensive, data-driven phenotyping ecosystem. Grounding authoring in longitudinal real-world data provides an empirical foundation to systematically assist investigators in authoring robust, reproducible cohort definitions while preventing catastrophic post-hoc attrition.
+

@@ -44,7 +44,8 @@ packageMiningResults <- function(connectionDetails,
     !is.na(minCellCount) &&
     is.finite(minCellCount) &&
     (minCellCount %% 1 == 0) &&
-    minCellCount >= 5
+    minCellCount >= 5 &&
+    minCellCount <= .Machine$integer.max
 
   if (!isValidThreshold) {
     valStr <- if (is.null(minCellCount)) "NULL" else paste(as.character(minCellCount), collapse = ", ")

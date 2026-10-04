@@ -183,7 +183,8 @@ def run_all_tests():
 
     print("======================================================================")
     if all(results):
-        print("ALL HADES CONFORMANCE TESTS PASSED (3/3). Conformance: 100%.")
+        print("ALL HADES STRUCTURAL & METADATA PRE-FLIGHT CHECKS PASSED (3/3).")
+        print("Notice: Static pre-flight verified. Native R CMD check and network interoperability pending partner execution.")
         print("======================================================================")
         return 0
     else:
