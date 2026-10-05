@@ -397,6 +397,23 @@ Standard biomedical vocabularies maintain an architectural separation between or
 
 In routine electronic health records, provider orders are rarely coded in SNOMED, and standard terminologies lack an official, granular crosswalk connecting the procedure order to its specific resulting LOINC measurement values. Pipeline v57 resolves this ontology gap empirically: by evaluating longitudinal co-occurrences between measurements and clinical findings within a $\pm 60$-day window, the mining engine discovers which discrete laboratory results and abnormal findings systematically accompany specific disorders and clinical interventions directly from real-world data.
 
+#### Measurement Value Categorization & Five-Tier Result Binning
+In real-world hospital EHRs, mere presence of a laboratory order is clinically ambiguous without its numerical or qualitative result. Pipeline v57 incorporates categorical result binning:
+- **Normal (`N`)**: Laboratory result falls within established reference limits ($[\text{range\_low}, \text{range\_high}]$).
+- **Low (`L`) / High (`H`)**: Moderate out-of-range deviations (e.g., fasting glucose 110–125 mg/dL).
+- **Critical Panic Values (`LL` / `HH`)**: Life-threatening pathophysiological derangements (e.g., Troponin I > 5.0 ng/mL, potassium < 2.5 mEq/L, or glucose > 400 mg/dL).
+
+In the packed measurement key (`test_concept_id * 1e9 + result_code`), `result_code` encodes this categorical tier. This enables the mining engine to differentiate routine surveillance tests from acute, pathognomonic diagnostic findings (e.g., distinguishing an annual screening HbA1c from a critical hyperglycemia reading).
+
+---
+
+### 2.11 Table-Driven Declarative Control Architecture for Knowledge Rediscovery
+
+To prevent fragile, hard-coded heuristics across thousands of diverse concept combinations, the TAXIS knowledge rediscovery architecture is organized around a **declarative Control Table**:
+- Each row specifies a distinct concept-pair configuration: concept domain pair (`Dx-Dx`, `Dx-Drg`, `Dx-Proc`, `Dx-Meas`), subtype classifications, chronicity modes (`ongoing` vs. `time-limited`), temporal lookback/lookforward windows, and permitted semantic relationship codes.
+- The control table injects bounded semantic choices and domain-specific rules into downstream LLM adjudication, preventing nonsensical questions (e.g., asking whether a diagnostic imaging scan prevents a disease).
+- This design transforms knowledge extraction into an automated, table-driven system where subsequent iterations require only modifying or appending rows in the control table rather than modifying core engine programming.
+
 ---
 
 ## 3. Cross-Domain Intersections & Concept Standardization
