@@ -1,0 +1,15 @@
+# Private local correspondence and review material. Never commit these files.
+/local-private/
+/supervisor/
+
+# Local test data and database artifacts
+extras/testdata/
+extras/*output*/
+*.sqlite
+*.duckdb
+*.zip
+.Rproj.user
+__pycache__/
+*.pyc
+.Rhistory
+.RData

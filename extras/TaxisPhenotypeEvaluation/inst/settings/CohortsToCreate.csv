@@ -1,0 +1,11 @@
+cohortId,cohortName,cohortType,conditionConceptId,phenotypeName,pairGroup,jsonPath,sqlPath
+1798322,Taxis COPD,TAXIS_KG_Generated,255573,Chronic obstructive pulmonary disease,COPD,cohorts/1798322.json,sql/sql_server/1798322.sql
+1263,OHDSI COPD 1263,PhenotypeLibrary_GoldStandard,255573,Chronic obstructive pulmonary disease,COPD,cohorts/1263.json,sql/sql_server/1263.sql
+1798323,Taxis Obesity,TAXIS_KG_Generated,433736,Obesity,Obesity,cohorts/1798323.json,sql/sql_server/1798323.sql
+1179,OHDSI Obesity 1179,PhenotypeLibrary_GoldStandard,433736,Obesity,Obesity,cohorts/1179.json,sql/sql_server/1179.sql
+1798324,Taxis CKD,TAXIS_KG_Generated,46271022,Chronic kidney disease,CKD,cohorts/1798324.json,sql/sql_server/1798324.sql
+1191,OHDSI CKD 1191,PhenotypeLibrary_GoldStandard,46271022,Chronic kidney disease,CKD,cohorts/1191.json,sql/sql_server/1191.sql
+1798325,Taxis Hyperkalemia,TAXIS_KG_Generated,434610,Hyperkalemia,Hyperkalemia,cohorts/1798325.json,sql/sql_server/1798325.sql
+940,OHDSI Hyperkalemia 940,PhenotypeLibrary_GoldStandard,434610,Hyperkalemia,Hyperkalemia,cohorts/940.json,sql/sql_server/940.sql
+1798326,Taxis Type 2 Diabetes Mellitus,TAXIS_KG_Generated,201826,Type 2 diabetes mellitus,T2DM,cohorts/1798326.json,sql/sql_server/1798326.sql
+1032,OHDSI T2DM 1032,PhenotypeLibrary_GoldStandard,201826,Type 2 diabetes mellitus,T2DM,cohorts/1032.json,sql/sql_server/1032.sql

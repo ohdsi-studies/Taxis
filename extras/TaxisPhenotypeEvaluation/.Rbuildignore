@@ -1,0 +1,15 @@
+^\.git$
+^\.github$
+^\.gitignore$
+^\.lintr$
+^.*\.Rproj$
+^\.Rproj\.user$
+^deploy\.sh$
+^compare_versions$
+^\.Rhistory$
+^\.RData$
+^extras$
+^local-private$
+.*\.zip$
+^output$
+

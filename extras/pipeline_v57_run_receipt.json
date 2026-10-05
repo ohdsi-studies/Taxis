@@ -1,0 +1,98 @@
+{
+  "run_id": "run_20261004_165258",
+  "run_timestamp": "2026-10-04T20:53:19Z",
+  "status": "SUCCESS",
+  "total_duration_seconds": 21.16,
+  "tool_versions": {
+    "r_version": "R version 4.6.1 (2026-06-24 ucrt)",
+    "sqlrender_version": "1.19.7",
+    "databaseconnector_version": "8.0.0",
+    "digest_version": "0.6.39"
+  },
+  "sql_hashes": {
+    "concept_ab_init_sha256": "194d8d6db3dfebf957634bd5a4dd59f3b852691f9741675f7a899f0aa88bf1ec",
+    "concept_ab_batch_sha256": "ae2d4cac494d80559e5ee762135e2fc699b771f20cd76ae79a86607a6f55f6fa",
+    "concept_ab_finalize_sha256": "ebc848bbae200a903d27de4559a4247f77ce6a349c8e35265fa93f651314904d"
+  },
+  "parameters": {
+    "dbms": "postgresql",
+    "database": "synthea",
+    "cdm_schema": "cdm",
+    "project_reference_schema": "concept_ab_vocab",
+    "results_schema": "work_cab_test",
+    "batch_count": 1,
+    "batch_number": 1,
+    "partial_run_batch_limit": 1,
+    "window_days": 35,
+    "threshold_support_count": 0,
+    "threshold_support_fraction": 0,
+    "threshold_pair_count": 0,
+    "cab_min_concept_obs": 0,
+    "cab_min_conditional_prob": 0,
+    "cab_min_ab_obs": 0,
+    "total_input_persons": 2694,
+    "partition_persons": 2694
+  },
+  "phase_results": {
+    "init": {
+      "status": "PASS",
+      "duration_seconds": 0.63
+    },
+    "batch_1": {
+      "status": "PASS",
+      "duration_seconds": 9.87
+    },
+    "finalize": {
+      "status": "PASS",
+      "duration_seconds": 8.04
+    }
+  },
+  "table_count": 44,
+  "table_counts": {
+    "all_persons_batch": 2694,
+    "cab_person_attr": 2694,
+    "cab_person_batch": 2694,
+    "cab_process_log": 96,
+    "cab_s00_obs_period": 2694,
+    "cab_s01_visit": 1037,
+    "cab_s02_condition": 65332,
+    "cab_s03_procedure": 31990,
+    "cab_s04_device": 0,
+    "cab_s05_drug": 53663,
+    "cab_s06_observation": 2,
+    "cab_s07_measurement": 39665,
+    "cab_s08_observation_test": 2,
+    "cab_s09_measurement_test": 39665,
+    "cab_s10_person_all": 1,
+    "cab_s10_person_cum": 1,
+    "cab_s13_strat_all": 10,
+    "cab_s13_strat_cum": 10,
+    "cab_s20_marginal_all": 615,
+    "cab_s20_marginal_cum": 615,
+    "cab_s23_strat_all": 1845,
+    "cab_s23_strat_cum": 1845,
+    "cab_s30_all": 14653,
+    "cab_s30_cum": 14653,
+    "cab_s33_mh_all": 4192,
+    "cab_s33_strat_all": 11443,
+    "cab_s33_strat_cum": 11443,
+    "cab_s37_lag_all": 405,
+    "cab_s37_lag_cum": 405,
+    "cab_s38_profile_all": 166,
+    "cab_s38_profile_cum": 166,
+    "cab_s39_pattern_all": 1095,
+    "cab_s39_pattern_cum": 1095,
+    "cab_s40_all": 15965,
+    "cab_s50_all": 15965,
+    "cab_s54_grain_guide": 324,
+    "cab_s55_pair_all": 9118,
+    "cab_timing_all": 191,
+    "cab_vocab_all_output": 326,
+    "meas_obs_attribute_s36_all": 228,
+    "meas_obs_attribute_s36_cum": 228,
+    "meas_obs_profile_s35_all": 76,
+    "meas_obs_profile_s35_cum": 76,
+    "taxis_run_receipt": 7
+  },
+  "error_message": {}
+}

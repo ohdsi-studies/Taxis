@@ -1,0 +1,37 @@
+Package: TaxisPhenotypeEvaluation
+Title: TAXIS Network Phenotype Evaluation and Benchmark Package
+Version: 1.0.0
+Authors@R: c(
+    person("Gowtham", "Rao", email = "gowtham.rao@coreason.ai", role = c("aut", "cre")),
+    person("Stephen", "Bandeian", email = "sbandeian@gmail.com", role = "aut"),
+    person("Shaun", "Grannis", email = "sgrannis@regenstrief.org", role = "aut"),
+    person("J. Marc", "Overhage", email = "overhage@gmail.com", role = "aut")
+  )
+Description: Evaluates 5 clinical phenotypes generated automatically from the TAXIS Knowledge Graph
+  (COPD, Obesity, CKD, Hyperkalemia, Type 2 Diabetes Mellitus) against comparator cohorts from the
+  OHDSI Phenotype Library on OMOP CDM databases. Generates cohort counts, patient-level overlap
+  (Jaccard similarity), CohortDiagnostics characterization, and PheValuator diagnostic performance
+  characteristics (Sensitivity, Specificity, PPV) with complete privacy preservation and zero patient-level data export.
+Depends:
+    R (>= 4.0.0)
+Imports:
+    DatabaseConnector (>= 5.0.0),
+    CohortGenerator (>= 0.8.0),
+    CohortDiagnostics (>= 3.0.0),
+    CirceR (>= 1.3.0),
+    SqlRender (>= 1.15.0),
+    PheValuator (>= 2.1.0),
+    ParallelLogger (>= 3.0.0),
+    readr,
+    dplyr,
+    zip
+Suggests:
+    testthat (>= 3.0.0)
+Remotes:
+    ohdsi/CohortDiagnostics,
+    ohdsi/PheValuator
+License: Apache License 2.0
+Encoding: UTF-8
+URL: https://github.com/ohdsi-studies/Taxis
+BugReports: https://github.com/ohdsi-studies/Taxis/issues
+Config/roxygen2/version: 8.1.0

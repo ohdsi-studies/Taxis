@@ -1,0 +1,16 @@
+^\.git$
+^\.github$
+^\.gitignore$
+^\.lintr$
+^.*\.Rproj$
+^\.Rproj\.user$
+^deploy\.sh$
+^compare_versions$
+^docs$
+^extras$
+^local-private$
+^examples$
+^publications$
+^\.vscode$
+\.Renviron.*
+\.DS_Store$
