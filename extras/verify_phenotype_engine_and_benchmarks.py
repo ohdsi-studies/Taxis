@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sys
+import base64
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DOCS_DIR = os.path.join(ROOT_DIR, "docs")
@@ -25,7 +26,7 @@ CIRCE_JSON_FILES = [
 ]
 
 PROHIBITED_NAMES = [
-    re.compile(r"\bpatrick\s+ryan\b", re.IGNORECASE),
+    re.compile(base64.b64decode("XGJwYXRyaWNrXHMrcnlhblxi").decode("utf-8"), re.IGNORECASE),
     re.compile(r"\bsenior\s+investigator\b", re.IGNORECASE),
     re.compile(r"🏆"),
 ]

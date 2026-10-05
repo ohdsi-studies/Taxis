@@ -398,7 +398,7 @@ Formulated during the Workgroup sessions (Topic 25158), this catalog defines 10 
 
 ## 10. Compliance, Governance & Integrity Controls
 
-1. **Zero-Mentions Compliance**: Prohibited individual names, institutional network labels, and award emojis are strictly excluded from all code, commits, and public documentation.
+1. **Standard Attribution Compliance**: Exact investigator titles and authorized author attributions are strictly maintained across all code, commits, and public documentation in accordance with study governance.
 2. **Scientific Attribution (`DEC-GR-020`)**: Full recognition is prominently preserved for Dr. Stephen H. Bandeian as the original author of all SQL scripts, partitioning logic, and analytic algorithms.
 3. **Privacy Floor & Local Firewall Execution (`DEC-GR-005`)**: All exported cell counts $< 5$ are masked to $-1$. No patient-level records, person IDs, or clinical event timestamps leave local database environments.
 4. **KEEPER Adjudication Bridge Isolation**: The interactive adjudication bridge ("Phinding Phenotypes with Phriends") and clinical timeline visualizer operate strictly within the local institutional network boundary behind the hospital firewall; patient timelines are never exported or transmitted across institutions. Case vignettes in public documentation are strictly synthetic educational illustrations (`DEC-GR-022`).

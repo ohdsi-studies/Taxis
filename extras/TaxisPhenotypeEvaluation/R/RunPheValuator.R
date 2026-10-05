@@ -330,6 +330,8 @@ createPheValuatorAnalysisList <- function(pairs) {
 #' @param databaseId               Unique identifier for the participating database.
 #' @param cdmVersion               Version of OMOP CDM (default is "5").
 #' @param minCellCount             Minimum cell count threshold for small-cell suppression (default is 5).
+#' @param runAnalysesFn            Optional runner function for PheValuator analyses (used for testing and stub injection).
+#' @param summarizeAnalysesFn      Optional summarizer function for PheValuator analyses (used for testing and stub injection).
 #'
 #' @return A data frame containing the summary of PheValuator diagnostic performance metrics.
 #' @export

@@ -36,6 +36,10 @@ runPheValuator(
 \item{cdmVersion}{Version of OMOP CDM (default is "5").}
 
 \item{minCellCount}{Minimum cell count threshold for small-cell suppression (default is 5).}
+
+\item{runAnalysesFn}{Optional runner function for PheValuator analyses (used for testing and stub injection).}
+
+\item{summarizeAnalysesFn}{Optional summarizer function for PheValuator analyses (used for testing and stub injection).}
 }
 \value{
 A data frame containing the summary of PheValuator diagnostic performance metrics.
