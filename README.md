@@ -49,6 +49,7 @@ The primary deliverable of this repository is the execution-ready network study 
 3. **Smarter Confounder Selection**: Knowing which event occurred first helps researchers review candidate baseline variables (present before treatment) and avoid adjusting for intermediate steps caused by the treatment; causal relevance requires study-specific clinical evaluation.
 4. **Context for Unexpected Signals**: Provides baseline co-occurrence benchmarks so investigators can determine whether an unexpected drug-outcome link reflects clinical reality or high healthcare utilization.
 5. **Toward Judea Pearl's Causal Inference**: In observational epidemiology, valid causal effect estimation requires constructing Directed Acyclic Graphs (DAGs) to identify confounders and avoid collider bias. By systematically establishing what causes what, what indicates what, and what treats what across all OMOP domains, TAXIS provides the structural knowledge substrate needed to automate DAG generation across the OHDSI network.
+6. **The Foundation for Evidence-Based Medicine 2.0 (EBM 2.0)**: Assembles fragmented point-in-time OMOP facts into computable longitudinal care narratives, bridging classical Cochrane EBM 1.0 (designed for the statistical "average patient") to continuous, representative real-world evidence across multimorbid populations (see [TAXIS Future Architectural Roadmap](docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md)).
 
 ---
 

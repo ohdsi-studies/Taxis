@@ -41,6 +41,21 @@ To preserve absolute scientific rigor and transparent communication across the O
 
 This document details the **Tier 3 Prospective Roadmap**, providing the conceptual foundation and clinical design philosophy that will guide future iterations of the TAXIS network study.
 
+### 1.1 The Historical Evolution of Evidence-Based Medicine (EBM 1.0 to EBM 2.0)
+The TAXIS relationship layer addresses a fundamental structural limitation in the historical progression of medical evidence:
+- **1850s–1900s (Observational Foundations)**: John Snow’s epidemiological cholera investigations established empirical disease mapping and population-level risk analysis.
+- **1920s–1950s (Statistical Methodologies)**: Ronald Fisher, Austin Bradford Hill, and Jerome Cornfield formalized mathematical statistics, observational cohort designs, and the Randomized Controlled Trial (RCT).
+- **1990s–2010s (Evidence-Based Medicine 1.0)**: The Cochrane Collaboration and David Sackett established systematic reviews, meta-analyses, and clinical practice guidelines. While foundational, EBM 1.0 possesses intrinsic structural boundaries: evidence remains fragmented across isolated trials, guidelines target the statistical "average patient", clinical trials routinely exclude multimorbid patients, and clinicians are forced to synthesize disparate findings on an *ad hoc* basis.
+- **2020s–2050s (Evidence-Based Medicine 2.0)**: Enabled by widespread electronic health record capture and the OMOP Common Data Model, EBM 2.0 unlocks continuous real-world evidence from representative populations. However, out-of-the-box OMOP stores clinical events as fragmented point-in-time fact records (occurrences, exposures, measurements) without the connective clinical reasoning clinicians intuitively apply. TAXIS provides this computable relational substrate, assembling flat fact tables into coherent longitudinal clinical narratives.
+
+### 1.2 Grounding in Structure-Process-Outcome (SPO) and Systems Engineering (SEIPS)
+To systematically identify opportunities to improve care at population scale, the TAXIS conceptual architecture is explicitly grounded in Avedis Donabedian's **Structure-Process-Outcome (SPO)** model (1966) and the **Systems Engineering Initiative for Patient Safety (SEIPS)** framework:
+1. **Structure (Contextual Root Causes)**: Patient-level factors (access barriers, social determinants of health, language, economic constraints) and clinician/delivery-system infrastructure (diagnostic tools, team staffing, practice incentives).
+2. **Process (Mediating Decisions & Healthcare Actions)**: Diagnostic timeliness, guideline treatment selection, medication adherence, care coordination, and procedural execution.
+3. **Outcomes & Resource Deficits**: Preventable disease progression, acute flares, hospital readmissions, prolonged symptom burdens, and excess expenditures.
+
+Under this model, variances between guideline-recommended care and observed patient trajectories are quantified as **mediating causes** that explain downstream health deficits.
+
 ---
 
 ## 2. Roadmap Item 1: The "Bill of Materials" (BOM) Process-of-Care Architecture
@@ -90,6 +105,52 @@ For major procedures, the analytical unit is defined as $A \to B \mid C_{\text{a
 - **Intra-Service Encounter (Day 0)**: Operating room anesthesia, hemodynamic monitoring, vein harvesting.
 - **Post-Service Surveillance Window ($[0, +90\text{ days}]$)**: Post-operative wound care, deep vein thrombosis prophylaxis, physical therapy, and complication surveillance.
 
+### 2.4 The 4-Level Concrete Bill of Materials (BOM) Decomposition
+In manufacturing, a Bill of Materials recursively decomposes an aircraft or automobile into assemblies, subassemblies, and discrete parts. In clinical delivery, care is structured across four standardized hierarchical tiers:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                   THE 4-LEVEL CLINICAL PROCESS-OF-CARE HIERARCHY                       │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ LEVEL 1: MAJOR CLINICAL TASKS (GENERIC PROCESS STEPS)                                  │
+│ • Initial Presentation ──► Diagnostic Evaluation ──► Treatment Planning ──►            │
+│   Treatment Execution ──► Recovery & Surveillance ──► 2° Prevention ──► Rehabilitation │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ LEVEL 2: PRINCIPAL UNITS OF CARE (CLINICAL INTERVENTIONS)                              │
+│ • Defined by the dominant procedural anchor (e.g., CABG Surgery, Hip Fracture Repair) │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ LEVEL 3: SUBTASKS & SUBUNITS OF CARE (ORCHESTRATED COMPONENTS)                         │
+│ • Pre-op clearance, Anesthesia induction, Swan-Ganz catheterization, Saphenous vein    │
+│   harvesting, Cardiopulmonary bypass, Graft anastomosis, Post-op wound management      │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ LEVEL 4: DISCRETE SERVICES & STEPS (CLAIM-LEVEL FACTS)                                 │
+│ • Specific clinical actions (e.g., for Swan-Ganz: central vein insertion, catheter     │
+│   positioning into PA, post-insertion confirmatory portable chest X-ray)               │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Clinical Exemplar: Hip Fracture Care Norms
+- **Health Problem**: Traumatic Femoral Neck Fracture (`Level 1 Task: Treatment`).
+- **Unit of Care (Level 2)**: Hip fracture repair (hemiarthroplasty vs. total joint replacement).
+- **Subtask Norm (Level 3)**: Prevention of post-operative deep vein thrombosis (DVT).
+- **Subunit of Care (Level 3)**: Daily post-operative anticoagulation for 14 days starting on Day 1.
+- **Service Step (Level 4)**: Enoxaparin sodium 40 mg subcutaneous daily.
+
+### 2.5 "Cycles of Care" as a Longitudinal Complexity & Failure Metric
+Care delivery for complex conditions is rarely a linear progression. When an initial treatment fails, clinical tasks must cycle repeatedly:
+- Each major process step (diagnostic workup, therapeutic stabilization, rehabilitative recovery) may exhibit multiple iterative cycles.
+- The overall complexity and quality of care for an episode can be evaluated by measuring:
+  1. The **number of cycles** required to achieve clinical stabilization.
+  2. The **cumulative cost and outcome** of each successive cycle.
+  3. Patients experiencing high cycle counts represent diagnostic delays, therapeutic non-responsiveness, or recurrent disease flares.
+
+### 2.6 Shared Patient-Clinician Responsibilities & Mediating Variances
+Clinical outcomes depend on a collaborative partnership between patient and clinician:
+- **Clinician Responsibilities**: Timely diagnostic evaluation, guideline-directed medical therapy selection, coordination across specialist teams, proactive surveillance.
+- **Patient Responsibilities**: Prompt presentation upon symptom emergence, appointment adherence, prescribed medication persistence, communicating side effects.
+
+Variances between EHR-recorded clinician recommendations (e.g., ordered diagnostic tests, prescribed medications, follow-up intervals) and subsequent patient actions (e.g., unfilled prescriptions, missed follow-ups) serve as quantifiable **mediating causes** that explain downstream health disparities and preventable adverse outcomes.
+
 ---
 
 ## 3. Roadmap Item 2: Condition Sub-Episodes (Staging Progression & Acute Exacerbations)
@@ -102,6 +163,31 @@ TAXIS Phase 2 introduces nested **Condition Sub-Episodes**:
 1. **Baseline Chronic Trajectory**: Spanning from initial clinical diagnosis through continuous observation.
 2. **Acute Exacerbation Sub-Episodes**: High-density temporal clusters of acute interventions nested within the chronic episode (e.g., IV loop diuretics and hospital admission representing an acute decompensated heart failure sub-episode).
 3. **Staging Progression Sub-Episodes**: Detected through formal code transitions (e.g., CKD Stage 3 $\to$ CKD Stage 4) or sustained biomarker shifts (e.g., persistent decline in estimated GFR).
+
+### 3.3 Coronary Artery Disease (CAD) Two-Axis Sub-Episode Matrix
+As formulated in Dr. Bandeian's clinical logic specifications, chronic conditions can be partitioned across two independent clinical dimensions: **Disease Control (Acuity)** and **Disease Staging**:
+
+| Sub-Episode Dimension | Clinical Sub-Episode | Operational Trigger | Window Duration | Control Tier | Stage Tier |
+|---|---|---|---|:---:|:---:|
+| **Control Axis (Acuity)** | **Acute Myocardial Infarction (AMI)** | Inpatient hospital admission for AMI | 90 days | **Level 4** | — |
+| | **Unstable Angina** | Inpatient hospital admission for unstable angina | $\ge 90$ days | **Level 3** | — |
+| | **Stable Angina** | E&M, ED, or Inpatient encounter with angina | $\ge 90$ days | **Level 2** | — |
+| | **Stable CAD** | Absence of acute ischemic events in patient with CAD | Indefinite | **Level 1** | — |
+| **Staging Axis (Progression)** | **Stable CAD s/p AMI** | Period following 90 days post-AMI event | Indefinite | — | **Stage 4** |
+| | **Stable CAD s/p Revascularization** | Period following 90 days post-CABG or PCI | Indefinite | — | **Stage 2** |
+| | **CAD with Chronic Angina** | Persistent exertional angina in documented CAD | Indefinite | — | **Stage 2** |
+| | **Stable CAD without Angina** | Asymptomatic chronic coronary disease | Indefinite | — | **Stage 1** |
+
+### 3.4 Cascading Multi-Order Complications & Working Diagnosis Resolution
+Flat concept-pair associations cannot capture multi-hop cascading pathophysiological trajectories. Phase 2 introduces an iterative **6-Step Sequential Causal Linkage Algorithm**:
+1. **`epi_1` (Raw Diagnosis Capture)**: Unlinked incoming diagnostic codes recorded across encounters.
+2. **`epi_2` (Symptom & Finding Attribution)**: Links presenting symptoms and physical findings to the inciting condition (e.g., `cough` and `leukocytosis` linked to `pneumonia`).
+3. **`epi_3` (Working Diagnosis Resolution)**: Merges preliminary working diagnoses into the confirmed definitive diagnosis (e.g., merging `acute bronchitis` into confirmed `bacterial pneumonia`).
+4. **`epi_4` (1st-Order Complication Linkage)**: Links immediate acute systemic complications to the primary pathology (e.g., `pneumonia` $\to$ `severe sepsis`).
+5. **`epi_5` (2nd-Order Complication Linkage)**: Links secondary organ system failures to the systemic cascade (e.g., `sepsis` $\to$ `acute renal failure`).
+6. **`epi_6` (3rd-Order Complication Linkage)**: Links tertiary downstream electrolyte and metabolic derangements to secondary organ failure (e.g., `acute renal failure` $\to$ `hyperkalemia`).
+
+This multi-order recursive linkage traces complex inpatient clinical trajectories back to their primary etiologic anchor.
 
 ---
 
@@ -151,6 +237,17 @@ Because TAXIS establishes an empirical, evidence-weighted knowledge graph of wha
 - Flags and eliminates potential collider variables to prevent collider-stratification bias.
 - Identifies intermediate variables to prevent over-adjustment bias.
 
+### 6.3 Competitive Causality & Empirical Probability Ratios
+In multimorbid clinical reality, patients frequently present with clinical findings that could be attributed to multiple competing underlying conditions. For example, a patient with both a long-standing history of alcohol abuse and a recent cerebral infarction develops an acute speech/language impairment. Which condition is the causative anchor?
+
+Rather than relying on arbitrary clinician heuristic rules, the TAXIS knowledge graph provides the empirical substrate to calculate **Time-Decayed Conditional Probabilities**:
+- By querying empirical lag distributions (`cab_s37_lag_all`), the model computes:
+  $$P(\text{Finding } B \mid \text{Condition } A_1, \Delta t_1) \quad \text{vs.} \quad P(\text{Finding } B \mid \text{Condition } A_2, \Delta t_2)$$
+- In Dr. Bandeian's clinical demonstration ledger:
+  * For a patient with Alcohol Abuse documented 90 days prior: $P(\text{Speech Deficit} \mid \text{Alcohol Abuse}, \Delta t = 90\text{d}) = 0.0007$.
+  * For the same patient with Cerebral Embolism / Stroke documented 30 days prior: $P(\text{Speech Deficit} \mid \text{Stroke}, \Delta t = 30\text{d}) = 0.0533$.
+  * The resulting **Probability Ratio is 76 : 1 in favor of Stroke**, providing a quantitative, transparent mechanism to attribute complications in multimorbid patients.
+
 ---
 
 ## 7. Roadmap Item 6: The Computable Patient Narrative & Health-Adjusted Life Expectancy (HALE)
@@ -165,6 +262,16 @@ The ultimate clinical objective of the TAXIS clinical relationship layer is to a
 To compare outcomes across entirely different diseases (e.g., cancer care vs. diabetes control), TAXIS envisions mapping patient trajectories to **Health-Adjusted Life Expectancy (HALE)** or Quality-Adjusted Life Years (QALYs):
 - Variances from best practice (e.g., omitted diabetic eye exams, delayed antibiotic initiation in sepsis, failure to prescribe beta-blockers post-MI) are translated into estimated life-expectancy and functional deficits.
 - This creates a **"Common Yardstick"** allowing health systems and public health researchers to identify and prioritize the greatest opportunities to improve health outcomes at population scale.
+
+### 7.3 Contextual Factors Starter-Set for Population Health Analytics
+To fully operationalize Donabedian Structure-Process-Outcome (SPO) analytics, Phase 3 incorporates a standardized starter-set of patient- and provider-level contextual factors:
+- **Patient Contextual Factors**:
+  * Geo-coded neighborhood socioeconomic disadvantage indices, including the **Area Deprivation Index (ADI)** and the CDC **Social Vulnerability Index (SVI)** linked via 9-digit or 5-digit ZIP codes.
+  * Standardized social determinants of health (SDOH) Z-codes mapped into OMOP observation records.
+- **Provider & Health System Contextual Factors**:
+  * National Provider Identifier (NPI) organizational attributes via **NPPES**.
+  * Institutional capabilities and bed capacities via the **CMS Provider of Services (POS)** file.
+  * Regional healthcare resource density and health professional shortage areas (HPSAs) via the **HRSA Area Resource File (ARF)**.
 
 ---
 
