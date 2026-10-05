@@ -107,6 +107,7 @@ To maintain clear scientific and operational boundaries (`DEC-GR-027`), TAXIS is
 | **Phenotype Evaluation Package** | **Demonstration Prototype** | [`extras/TaxisPhenotypeEvaluation/`](extras/TaxisPhenotypeEvaluation/) | Standalone companion package evaluating cohort overlap and Semi-Automated Phenotype Performance Evaluation with PheValuator. |
 | **ATLAS v3.0 / Pythia Integration** | **[Proposed Future Blueprint]** | [`docs/phenotyping/`](docs/phenotyping/) | Conceptual architecture for TrexSQL DuckDB caches and AI agent tools. |
 | **Multi-Site Federated Meta-Analysis** | **[Proposed Future Blueprint]** | [`docs/mining/`](docs/mining/) | Proposed random-effects synthesis specification (synthetic arithmetic benchmark in `extras/`). |
+| **Phase 2 Architectural Roadmap** | **[Architectural Roadmap]** | [`docs/roadmap/`](docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md) | Formal three-tier separation (`DEC-GR-061`): BOM care process hierarchy, condition sub-episodes, 5-tier lab binning, and causal DAG specifications. |
 
 ---
 
@@ -223,6 +224,7 @@ Upon pipeline completion, the aggregate summary archive `Results_Mining_<databas
 │   ├── governance/              # Network data use agreements & privacy policies
 │   ├── protocol/                # Study protocol & design specifications
 │   ├── mining/                  # Concept AB association mining engine specifications
+│   ├── roadmap/                 # Future architectural roadmap & theoretical frameworks (DEC-GR-061)
 │   ├── knowledge_graph/         # Clinical Pair Taxonomy v6.0 definitions
 │   ├── phenotyping/             # Cohort & concept set builder ecosystem (Atlas 3.0, Pythia, Capr, LLM agents)
 │   └── validation/              # ClinVec empirical benchmark and concordance results

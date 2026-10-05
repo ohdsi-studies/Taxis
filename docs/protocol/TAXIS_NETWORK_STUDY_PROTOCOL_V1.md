@@ -110,6 +110,11 @@ Applying the initial design to 2.16M longitudinal patient records (11.3 million 
 4. **Structured Taxonomy Classification**: Moving beyond binary association, Pipeline v57 introduced a two-stage ensemble clinical classifier mapping edges into 112 standardized clinical taxonomy codes across 32 clinical families.
 
 ### 3.3 The "Bill of Materials" (BOM) Nested Process-of-Care Architecture
+
+> [!NOTE]
+> **Phase 1 Production vs. Phase 2 Architectural Roadmap (`DEC-GR-061`)**:  
+> The nested Bill of Materials (BOM) process-of-care architecture and Condition Sub-Episodes represent foundational theoretical design frameworks and Phase 2 roadmap targets. In Phase 1 network execution (Pipeline v57; `inst/sql/sql_server/*.sql`), association mining operates over empirical event co-occurrence within parameterized temporal horizons (e.g., $[-30\text{d}, +30\text{d}]$, $[-365\text{d}, +365\text{d}]$) anchored on initial presentation with 365-day wash-in. Complete specifications for prospective BOM episode construction and multi-state episode tables are detailed in the companion roadmap: [`docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md`](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md).
+
 Clinical care is not an unorganized list of billing codes; it is a **nested hierarchy of clinical processes and subprocesses**, directly analogous to a manufacturing **Bill of Materials (BOM)** (e.g., how an aircraft or automobile is assembled from assemblies, subassemblies, and components). In TAXIS, care is structured into:
 1. **Level 1 (L1) Problem Episodes**: Triggered by an index event (e.g., onset of acute appendicitis or initial diagnosis of diabetes), representing the overarching patient journey from initial evaluation to resolution or chronic disease management.
 2. **Condition Sub-Episodes**: Distinct temporal phases within chronic episodes representing disease staging progression, loss of glycemic or hemodynamic control, or acute exacerbations (e.g., acute decompensated heart failure within chronic CHF, or acute COPD flare-up) that trigger intensified diagnostic and therapeutic interventions.
@@ -358,6 +363,10 @@ To convert massive observational associations into a computable, typed clinical 
 #### 3. Confounder Identification & Balance Evaluation
 - **Informing Study Design**: Uses explicit relationship semantics to help investigators distinguish true baseline confounders from downstream complications or treatment side effects, preventing over-adjustment bias.
 - **Confounder Balance**: Provides a clinical basis to evaluate whether essential confounders achieve balance across treatment cohorts.
+
+> [!NOTE]
+> **Aspirational Vision & Downstream Horizon (`DEC-GR-061`)**:  
+> While Sub-aims 1 (Circe cohort synthesis) and 2–3 (negative controls and confounding control) are directly operationalized in Phase 1 study tooling (`extras/`), Sub-aims 4 (Automated Causal DAG Construction) and 5 (Computable Patient Narratives & HALE) represent prospective architectural horizons enabled by the TAXIS relationship layer, formally tracked under the [TAXIS Future Architectural Roadmap](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md).
 
 #### 4. Foundation for Judea Pearl's Causal Inference & Automated DAG Construction
 - **Automating Structural Causal Models**: In observational epidemiology (e.g., comparative effectiveness and drug safety surveillance), identifying valid causal effects requires constructing Directed Acyclic Graphs (DAGs) under Judea Pearl's structural causal framework. In current practice, epidemiologists must draw DAGs by hand based on subjective clinical intuition, manually guessing which covariates represent true confounders, intermediate mediators, colliders, or instruments.

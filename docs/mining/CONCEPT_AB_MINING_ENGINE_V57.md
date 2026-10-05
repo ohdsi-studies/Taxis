@@ -8,6 +8,7 @@
 > • `DEC-GR-005`: Aggregate-Only Non-PHI Policy (concept-pair matrices remain local behind firewalls)  
 > • `DEC-GR-006`: Target Federated CDM Deployments (Claims, EHR, International CDMs)  
 > • `DEC-GR-010`: Dual Lift Reporting Architecture (Unadjusted Person Lift vs. Utilization-Stratified Lift)  
+> • `DEC-GR-061`: Three-Tier Operational & Architectural Standard (Tier 1 Production Core SQL, Tier 2 Post-Processing & Meta-Analysis, Tier 3 Future Architectural Roadmap; see [`docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md`](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md))  
 > **Study Leadership**:  
 > • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
 > • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
@@ -348,71 +349,25 @@ To qualify for downstream clinical knowledge graph inclusion and network dissemi
 
 ---
 
-### 2.8 The "Bill of Materials" (BOM) Nested Process-of-Care Architecture
+### 2.8 Measurement Result Key Packing & Adjudication (`test_concept_id * 1e9 + result_shape`)
 
-Clinical care is not a flat sequence of disconnected billing codes; it is a **nested hierarchy of clinical processes and subprocesses**, directly analogous to a manufacturing **Bill of Materials (BOM)** (e.g., how an aircraft or automobile is assembled from assemblies, subassemblies, and components). To capture this reality, the TAXIS process-of-care architecture organizes care into three hierarchical tiers:
+To capture discrete laboratory results and clinical findings without exploding relational schemas, Pipeline v57 mints deterministic surrogate 64-bit integer keys:
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                   LEVEL 1 (L1): PROBLEM CARE EPISODE                   │
-│   • Triggered by index recognition of an illness, injury, or risk      │
-│   • Spans initial presentation, evaluation, treatment, and follow-up   │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Orchestrates
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                   LEVEL 2 (L2): PROCEDURAL ANCHOR                      │
-│   • Principal unit of care per encounter (inpatient or ambulatory)     │
-│   • Ranked deterministically via clinical invasiveness (CMS RBCS/BTOS) │
-│     (Major Surgery > Inpatient > Emergency > Therapy > Imaging > Lab)  │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Bundles Supporting Care
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                  SUPPORTING SERVICE NESTED HIERARCHY                   │
-│   • Pre-Service Suitability & Risk: [-30, 0] days before anchor        │
-│   • Intra-Service Support: Anesthesia, perfusion, vein harvest, ECG    │
-│   • Post-Service Surveillance: [0, +90] days recovery & complications  │
-└────────────────────────────────────────────────────────────────────────┘
-```
+$$\text{concept\_id}_{\text{packed}} = \text{cast}(\text{test\_concept\_id as bigint}) \times 10^9 + \text{value\_component}$$
 
-This BOM framework allows researchers to evaluate whether an entire process of care was completed safely and appropriately, distinguishing principal clinical interventions from peripheral supporting services.
+In `concept_ab_batch.sql` (lines 664–906), the result shape is adjudicated deterministically across six mutually exclusive shapes:
+1. **Flag (Range-Derived or Value-Side)**: Evaluated against reference ranges (`range_low`, `range_high`) to assign standard OMOP interpretation concepts:
+   - Low: Concept `4267416`
+   - High: Concept `4328749`
+   - Normal: Concept `4069590`
+   - Value-side flags (e.g., lab-coded abnormal) pass through directly from the concept interpretation lookup (`cab_vocab_all_meas_obs_test`).
+2. **Categorical Result**: Passes through `value_as_concept_id` directly when present.
+3. **Discrete Integer (Observation)**: Whole numbers in $[0, 100000)$ mapped to the integer band `60000000 + value_as_number` (e.g., Apgar scores, counts).
+4. **Assertion**: Assigned `test_concept_id` itself when `is_assertion_eligible = 1`.
+5. **No Result Placeholder**: Assigned OMOP placeholder `46237210`.
+6. **Unusable Result Placeholder**: Assigned reserved code `36309857` (or `70000000`).
 
----
-
-### 2.9 Concept Granularity: Reconciling Anchor Concepts and Atomic Codes
-
-A core methodological tension in designing the Concept AB engine was balancing **concept aggregation** against **atomic code specificity**:
-* **The Case for "Anchor Concepts"**: Grouping fragmented clinical variations (e.g., rolling 120 minor variants of Type 2 Diabetes into a single anchor concept) is a mathematical necessity to avoid combinatorial explosion and prevent spurious temporal noise.
-* **The Case for Atomic Granularity**: Clinical informaticians require granular atomic codes for community trust and clinical fidelity—for example, distinguishing between a mild lateral malleolar ankle fracture (which correlates with a plain radiograph) versus an open trimalleolar fracture (which correlates with pre-operative CT imaging, surgical reduction, and hardware immobilization).
-* **The Reconciled Solution**: Pipeline v57 supports **dual processing**. Temporal associations are mined at both the aggregated anchor level (to identify macro clinical pathways) and at the atomic concept level (to preserve clinical nuances). The threat of database combinatorial explosion is controlled by enforcing strict minimum co-occurrence and significance thresholds ($N_{AB} \ge 100$, $\text{Lift}_{\text{strat}} \ge 1.50$), safely pruning noisy micro-variants while preserving high-yield clinical distinctions.
-
----
-
-### 2.10 Empirical LOINC Measurement ↔ SNOMED Procedure Crosswalking
-
-Standard biomedical vocabularies maintain an architectural separation between orders and results:
-* **SNOMED-CT / CPT**: Encodes the **procedure or order**—the clinical *act* of measuring (e.g., ordering a fasting plasma glucose test).
-* **LOINC**: Encodes the **discrete result**—the numerical value or analyte level (e.g., blood glucose = 142 mg/dL).
-
-In routine electronic health records, provider orders are rarely coded in SNOMED, and standard terminologies lack an official, granular crosswalk connecting the procedure order to its specific resulting LOINC measurement values. Pipeline v57 resolves this ontology gap empirically: by evaluating longitudinal co-occurrences between measurements and clinical findings within a $\pm 60$-day window, the mining engine discovers which discrete laboratory results and abnormal findings systematically accompany specific disorders and clinical interventions directly from real-world data.
-
-#### Measurement Value Categorization & Five-Tier Result Binning
-In real-world hospital EHRs, mere presence of a laboratory order is clinically ambiguous without its numerical or qualitative result. Pipeline v57 incorporates categorical result binning:
-- **Normal (`N`)**: Laboratory result falls within established reference limits ($[\text{range\_low}, \text{range\_high}]$).
-- **Low (`L`) / High (`H`)**: Moderate out-of-range deviations (e.g., fasting glucose 110–125 mg/dL).
-- **Critical Panic Values (`LL` / `HH`)**: Life-threatening pathophysiological derangements (e.g., Troponin I > 5.0 ng/mL, potassium < 2.5 mEq/L, or glucose > 400 mg/dL).
-
-In the packed measurement key (`test_concept_id * 1e9 + result_code`), `result_code` encodes this categorical tier. This enables the mining engine to differentiate routine surveillance tests from acute, pathognomonic diagnostic findings (e.g., distinguishing an annual screening HbA1c from a critical hyperglycemia reading).
-
----
-
-### 2.11 Table-Driven Declarative Control Architecture for Knowledge Rediscovery
-
-To prevent fragile, hard-coded heuristics across thousands of diverse concept combinations, the TAXIS knowledge rediscovery architecture is organized around a **declarative Control Table**:
-- Each row specifies a distinct concept-pair configuration: concept domain pair (`Dx-Dx`, `Dx-Drg`, `Dx-Proc`, `Dx-Meas`), subtype classifications, chronicity modes (`ongoing` vs. `time-limited`), temporal lookback/lookforward windows, and permitted semantic relationship codes.
-- The control table injects bounded semantic choices and domain-specific rules into downstream LLM adjudication, preventing nonsensical questions (e.g., asking whether a diagnostic imaging scan prevents a disease).
-- This design transforms knowledge extraction into an automated, table-driven system where subsequent iterations require only modifying or appending rows in the control table rather than modifying core engine programming.
+This bijective encoding ensures that a test and its qualitative result (e.g., "Fasting blood glucose: High") aggregate as a single distinct, countable clinical entity across all 40 parallel processing batches.
 
 ---
 
@@ -771,6 +726,17 @@ A structured architectural crosswalk was conducted comparing the released OHDSI 
   7. Output Table Set      All 18 canonical tables materialized:      Complete 18 export tables       Concordant
                            cab_s10, s20, s30, s40, s50, s55, s13,     profiled and documented         (Exact)
                            s23, s33, s33_mh, vocab, lag, timing...                                                    
+ ──────────────────────   ────────────────────────────────────────── ─────────────────────────────   ────────
+  [TIER 3 ARCHITECTURAL ROADMAP EXTENSIONS - NOT IN PHASE 1 RELEASED SQL ENGINE (DEC-GR-061)]
+ ──────────────────────   ────────────────────────────────────────── ─────────────────────────────   ────────
+  8. BOM Process Triggers  Symmetric [-W, +W] co-occurrence counting  Two-level BOM triggers with     Roadmap
+                           implemented across 40 batches              asymmetric surgical horizons    (Tier 3)
+                                                                                                              
+  9. Condition Episodes    Single-span wash-in and first/any          Multi-episode clinical states   Roadmap
+                           mention models                             with state-transition matrices  (Tier 3)
+                                                                                                              
+ 10. Control Tables        SQL-embedded parameters & constants        External declarative control    Roadmap
+                           (@batch_count, @window_days)               tables for dynamic execution    (Tier 3)
 ```
 
 ### Detailed Concordance Verification Points:
@@ -869,7 +835,91 @@ The pipeline produces 18 finalized relational tables in `RESULTS_SCHEMA`, struct
 
 ---
 
-## 8. Data Governance, Security & Network Policies
+## 8. Theoretical Design Philosophy & Prospective Architectural Roadmap (Phase 2 Horizon)
+
+> [!IMPORTANT]
+> **Operational Separation Standard (`DEC-GR-061`)**:  
+> The architectural models, care process triggers, and causal frameworks detailed in this section represent **Tier 3 (Prospective Architectural Roadmap)** specifications. They reflect the overarching theoretical design philosophy conceived by Dr. Stephen H. Bandeian and study leadership, establishing the long-term vision for observational health intelligence.  
+> - **Tier 1 (Production Core / Released SQL Engine)**: `inst/sql/sql_server/*.sql` executes the 40-batch random partitioning engine, 24 domain-pair classes, 3-tier measurement key packing (`test * 1e9 + result_shape`), healthcare utilization decile stratification, and symmetric $[-W, +W]$ co-occurrence counting.
+> - **Tier 2 (Post-Processing & Meta-Analysis)**: `R/`, `classify_pairs.py`, and `extras/TaxisPhenotypeEvaluation/` execute Haldane-Anscombe continuity-corrected Directionality Ratios ($DR$), multi-model consensus adjudication, and DerSimonian-Laird random-effects pooling.
+> - **Tier 3 (Future Roadmap & Vision)**: Standalone specification in [`docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md`](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md) detailing Bill of Materials triggers, condition sub-episodes, 5-tier lab panic binning, declarative control tables, Judea Pearl structural causal DAGs, and Computable Patient Narratives with HALE metrics.
+
+### 8.1 The Three-Tier Architectural Taxonomy (`DEC-GR-061`)
+To ensure complete transparency and prevent ambiguity among network study collaborators, the TAXIS architecture is strictly governed under a three-tier taxonomy:
+1. **Tier 1: Production Core (Released SQL Engine)**: Canonical T-SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`) operating directly against OMOP CDM v5.4. These scripts are mathematically and structurally verified, distributed in `inst/sql/sql_server/`, and execute today on network partner databases.
+2. **Tier 2: Operational Post-Processing & Meta-Analysis**: R packages and Python translation harnesses (`classify_pairs.R`, `classify_pairs.py`, `packageMiningResults()`) applying continuity corrections, decile odds ratios, empirical benchmark crosswalks, and federated synthesis.
+3. **Tier 3: Future Architectural Roadmap & Theoretical Vision**: Prospective frameworks designed to structure future engine iterations (Phase 2/3), bridging empirical association mining with manufacturing-grade care process modeling and structural causal inference.
+
+### 8.2 Hierarchical Care Process Triggers & Bill of Materials (BOM) Architecture
+In modern manufacturing, complex assemblies (e.g., aircraft, automobiles) are decomposed into a multi-level Bill of Materials (BOM) detailing parent assemblies, subassemblies, and discrete parts. Clinical care delivery exhibits an identical hierarchical structure, yet observational health databases conventionally store events as a flat sequence of billing and procedure codes.
+
+In the prospective Phase 2 engine architecture, care is organized into a nested two-level BOM trigger hierarchy:
+1. **Level 1 (L1) Problem Episodes**: Triggered by an initial condition index event (e.g., first presentation of acute cholecystitis, or index diagnosis of type 2 diabetes mellitus following a 365-day clean wash-in). The L1 episode defines the macroscopic clinical envelope across months or years.
+2. **Level 2 (L2) Procedural Anchors**: Within an active L1 episode, invasive therapeutic interventions serve as deterministic L2 anchors. Anchors are identified hierarchically based on clinical invasiveness (major inpatient surgery > outpatient procedure > bedside therapy > diagnostic imaging > laboratory assay > evaluation and management visit).
+3. **Asymmetric Clinical Horizons**: Surrounding each L2 anchor, the temporal window expands asymmetrically:
+   - *Pre-procedural indication & diagnostic workup window*: $[-30, 0]$ days prior to procedure (e.g., abdominal ultrasound, preoperative clearance labs).
+   - *Intra-procedural bundles*: Day 0 contemporaneous interventions (anesthesia, intraoperative monitoring, surgical pathology).
+   - *Post-procedural recovery & complication surveillance window*: $[0, +90]$ days post-procedure (surgical site infections, thromboembolic events, readmissions).
+
+*SQL Implementation Boundary*: Dr. Bandeian confirmed that the BOM trigger pipeline was developed and validated in claims environments and is scheduled for native OMOP CDM migration in Phase 2. The released Phase 1 SQL engine (`concept_ab_batch.sql`) operationalizes robust symmetric $[-W, +W]$ sliding windows ($W = 30, 90, 365, 730$ days), establishing the empirical baseline without requiring complex recursive episode construction.
+
+### 8.3 Longitudinal Condition Sub-Episodes & Dynamic Lookback Boundaries
+Chronic clinical conditions (e.g., Congestive Heart Failure, Chronic Kidney Disease, Major Depressive Disorder) are neither static continuous states nor isolated punctate events. They evolve through dynamic, episodic phases:
+1. **Initial Decompensated Presentation**: The acute onset requiring aggressive stabilization and diagnostic confirmation.
+2. **Quiescent Maintenance Phase**: Long-term stable disease characterized by routine monitoring and chronic maintenance pharmacotherapy.
+3. **Acute Exacerbation / Progression Sub-Episodes**: Sudden clinical decompensation (e.g., acute pulmonary edema in chronic heart failure; transition from CKD Stage 3 to Stage 4) triggering intensified care.
+
+In Phase 1 released SQL, chronic conditions are anchored on the initial presentation following a 365-day wash-in (`first_mention` and `all_mentions` models in `cab_s39_pattern_all` and `cab_s54_grain_guide`). In the Phase 2 roadmap, the engine introduces **Condition Sub-Episodes** parameterized by dynamic lookback boundaries and gap-closure rules (e.g., a 90-day clean period demarcating separate acute exacerbations). This architecture tracks multi-state Markovian disease transitions across the patient lifecycle.
+
+### 8.4 5-Tier Laboratory Abnormalities with Panic Limits
+Laboratory observations provide critical diagnostic specificity, but raw numeric values vary widely across local health system units. Phase 1 released SQL (`concept_ab_batch.sql`, lines 664–906) resolves this by binning laboratory measurements into three standardized interpretation tiers via 64-bit packed surrogate keys (`test_concept_id * 1e9 + result_shape`):
+- `Low` (Concept `4267416`)
+- `High` (Concept `4328749`)
+- `Normal` (Concept `4069590`)
+
+The Phase 2 roadmap expands this schema into a **5-Tier Continuous & Critical Result Taxonomy**:
+1. **Extreme / Panic Low (`LL`)**: Values below life-threatening critical thresholds (e.g., Serum Potassium $< 2.5\text{ mEq/L}$, Blood Glucose $< 40\text{ mg/dL}$) requiring immediate emergent intervention.
+2. **Abnormal Low (`L`)**: Values below standard reference range but above panic limits.
+3. **Normal Physiological Range (`N`)**: Values within standard laboratory reference intervals.
+4. **Abnormal High (`H`)**: Values above standard reference range but below panic limits.
+5. **Extreme / Panic High (`HH`)**: Values exceeding critical thresholds (e.g., Serum Potassium $> 6.5\text{ mEq/L}$, Troponin $> 10\times$ URL).
+
+This 5-tier taxonomy provides the granular biomarker sensitivity necessary to detect acute toxicities, severe disease decompensation, and emergent contraindications directly from observational fact tables.
+
+### 8.5 Declarative Control Table Architecture & Orchestration Decoupling
+In the released Phase 1 codebase, pipeline execution parameters (e.g., batch partition count `@batch_count = 40`, temporal window `@window_days = 30`, support thresholds `@cab_min_ab_obs`) are managed via SqlRender token parameters dispatched from R orchestration scripts (`RunMining.R`, `concept_ab_run.R`).
+
+The Phase 2 roadmap transitions to a **Declarative Control-Table Architecture**:
+- All execution parameters, domain pairings, temporal window bounds, and diagnostic exclusion rules are stored in a database control table (`taxis_control_params`).
+- Analytical worker nodes query the control table dynamically, enabling runtime reconfiguration, site-specific parameter overrides, and parallel batch orchestration across heterogeneous compute clusters without modifying or recompiling underlying SQL templates.
+
+### 8.6 Automated Structural Causal DAG Construction (Pearl / Rubin Framework)
+Observational causal inference (e.g., evaluating comparative drug safety or treatment effectiveness) requires controlling for confounding while avoiding collider-stratification bias and intermediate-variable overadjustment. Under the structural causal framework formalized by Judea Pearl and Donald Rubin, epidemiologists construct Directed Acyclic Graphs (DAGs) to identify minimal sufficient adjustment sets. In current practice, DAGs are constructed manually through subjective clinical intuition.
+
+The TAXIS knowledge graph provides the foundational empirical and semantic substrate to automate structural causal DAG construction:
+1. **Empirical Directionality & Precedence ($DR$)**: Directionality Ratios establish temporal ordering, ensuring directed edges obey time-arrow constraints ($t_A < t_B$).
+2. **Taxonomic Class Segregation**: The Two-Stage Screen-and-Code Ensemble explicitly categorizes edges into:
+   - Etiologic / Causal precursors (Class I)
+   - Diagnostic indications and symptoms (Class II)
+   - Treatments and interventions (Class III)
+   - Downstream complications and disease progression (Class IV)
+3. **Automated Graph Surgery**: By combining temporal precedence with typed edge semantics, automated DAG construction algorithms can identify true confounders (shared common causes of exposure and outcome), distinguish them from intermediate mediators ($A \to M \to Y$) and post-exposure colliders, and emit provably minimal sufficient adjustment sets for targeted causal queries.
+
+### 8.7 Computable Patient Narratives & Health-Adjusted Life Expectancy (HALE)
+The ultimate translational vision of the TAXIS relationship layer is synthesizing fragmented observational fact records into a **Computable Patient Narrative**:
+1. **Longitudinal Trajectory Reconstruction**: By linking condition episodes, diagnostic delays, therapeutic interventions, and adverse events into a coherent narrative timeline, the engine models the full longitudinal trajectory of patient health.
+2. **Quantifying Deviations from Optimal Care**: Comparing observed patient trajectories against evidence-grounded care pathways reveals missed clinical opportunities (e.g., delayed microalbuminuria screening in diabetic patients, failure to initiate guideline-directed medical therapy in heart failure).
+3. **Health-Adjusted Life Expectancy (HALE) Deficit Modeling**: By mapping care process deviations to actuarial survival and quality-of-life curves, the framework computes cumulative HALE deficits. This transforms observational healthcare analytics from retrospective billing audits into a proactive, population-scale system for health optimization.
+
+### 8.8 Prospective Architectural Migration Path (Phase 1 $\to$ Phase 2 Horizon)
+The transition from Phase 1 to Phase 2 is structured as a non-breaking, additive evolution:
+- **Zero Disruption to Phase 1 Network Operations**: The canonical 40-batch SQL engine (`inst/sql/sql_server/*.sql`) remains the frozen, verified standard for the Phase 1 international network study and OHDSI Symposium showcase.
+- **Sidecar Prototyping & Field Validation**: Phase 2 components (BOM triggers, 5-tier lab binning, declarative control tables) are prototyped as modular sidecars within `extras/` and evaluated on internal development CDMs prior to network release.
+- **Detailed Specifications**: Complete database schemas, trigger rules, and migration runbooks are documented in [`docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md`](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md).
+
+---
+
+## 9. Data Governance, Security & Network Policies
 
 The Concept AB Mining Engine operates in strict conformity with the **TAXIS Network Data Use Term Sheet** ([`docs/governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md`](../governance/TAXIS_NETWORK_DATA_USE_TERM_SHEET.md)):
 
@@ -880,7 +930,7 @@ The Concept AB Mining Engine operates in strict conformity with the **TAXIS Netw
 
 ---
 
-## 9. Study Leadership & Academic Citations
+## 10. Study Leadership & Academic Citations
 
 If you utilize the Concept AB Mining Engine architecture or association metrics in your research, please cite:
 
