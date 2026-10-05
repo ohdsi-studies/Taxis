@@ -308,6 +308,7 @@ create table @results_database_schema.cab_s39_pattern_cum (
 -- all currently guesses. Both are written only for batch_number <= 2, which is
 -- a 10% random sample since persons are randomly partitioned.
 -- =====================================================
+-- cab_s37_lag_cum: lag decay out to +/- 400 days (lag_bucket: delta/10, -999 and 999 are tails)
 drop table if exists @results_database_schema.cab_s37_lag_cum;
 create table @results_database_schema.cab_s37_lag_cum (
   batch_number  int      null,
