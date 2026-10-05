@@ -2,6 +2,7 @@ test_that("Taxis package exports required functions", {
   expect_true(exists("execute"))
   expect_true(exists("runConceptMining"))
   expect_true(exists("packageMiningResults"))
+  expect_true(exists("loadReferenceTables"))
 })
 
 test_that("minCellCount threshold validation enforces scalar integer floor of 5 (REC-039-1)", {
@@ -99,3 +100,48 @@ test_that("Cross-table gap histogram protection closes 1/19/20 subtraction attac
   expect_equal(grainData$frac_gaps_mid[1], -1.0)
   expect_equal(grainData$frac_gaps_long[1], -1.0)
 })
+
+test_that("Bundled normalized reference assets and manifest are valid (REV-084)", {
+  csvDir <- system.file("csv", package = "Taxis")
+  if (csvDir == "" || !dir.exists(csvDir)) {
+    csvDir <- file.path(getwd(), "..", "..", "inst", "csv")
+    if (!dir.exists(csvDir)) {
+      csvDir <- file.path(getwd(), "inst", "csv")
+    }
+  }
+  expect_true(dir.exists(csvDir))
+
+  manifestPath <- file.path(csvDir, "manifest.json")
+  expect_true(file.exists(manifestPath))
+
+  manifest <- jsonlite::fromJSON(manifestPath)
+  expect_true(!is.null(manifest$tables))
+
+  expectedFiles <- c(
+    "cab_visit_hierarchy.csv.gz",
+    "cab_chronic_conditions.csv.gz",
+    "cab_device.csv.gz",
+    "cab_procedure.csv.gz",
+    "cab_meas_obs_test.csv.gz",
+    "cab_drug_ing_form.csv.gz",
+    "cab_concept_names.csv.gz"
+  )
+
+  for (fName in expectedFiles) {
+    expect_true(fName %in% names(manifest$tables))
+    meta <- manifest$tables[[fName]]
+    fPath <- file.path(csvDir, fName)
+    expect_true(file.exists(fPath))
+    expect_true(file.size(fPath) > 0)
+    expect_true(meta$row_count > 0)
+  }
+
+  expect_equal(manifest$tables[["cab_visit_hierarchy.csv.gz"]]$row_count, 20L)
+  expect_equal(manifest$tables[["cab_chronic_conditions.csv.gz"]]$row_count, 29346L)
+  expect_equal(manifest$tables[["cab_device.csv.gz"]]$row_count, 32517L)
+  expect_equal(manifest$tables[["cab_procedure.csv.gz"]]$row_count, 151868L)
+  expect_equal(manifest$tables[["cab_meas_obs_test.csv.gz"]]$row_count, 299934L)
+  expect_equal(manifest$tables[["cab_concept_names.csv.gz"]]$row_count, 392648L)
+  expect_equal(manifest$tables[["cab_drug_ing_form.csv.gz"]]$row_count, 2996686L)
+})
+
