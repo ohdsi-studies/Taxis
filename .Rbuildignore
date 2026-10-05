@@ -14,3 +14,6 @@
 ^\.vscode$
 \.Renviron.*
 \.DS_Store$
+^LICENSE$
+^supervisor$
+^docker$
