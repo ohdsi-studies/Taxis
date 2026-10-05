@@ -31,4 +31,4 @@ Formal knowledge graph schema, relational code tables, directional precedence bo
 - **Stephen H. Bandeian, MD, JD** – Principal Investigator (Original SQL Engine & Taxonomy Architecture Author)
 - **J. Marc Overhage, MD, PhD** – Co-Principal Investigator (Clinical Validation Lead & Adjudicator)
 - **Gowtham Rao, MD, PhD** – Investigator (Phenotype Development & Evaluation Workgroup)
-- **Shaun Grannis, MD, MS** – Investigator (Regenstrief Institute / Indiana University School of Medicine)
+- **Shaun Grannis, MD, MS** – Investigator ([Regenstrief Institute](https://www.regenstrief.org) / [Indiana University School of Medicine](https://medicine.iu.edu))

@@ -3,10 +3,10 @@
 > **Study Title**: Transparent Analytic Knowledge Graph for Interoperable Science (TAXIS)  
 > **Collaborator Showcase Entry**: #127 (2026 OHDSI Global Symposium, October 20–22, 2026, New Brunswick, NJ)  
 > **Study Leadership**:  
-> • **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine  
-> • **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
+> • **Stephen H. Bandeian, MD, JD** – Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org)  
+> • **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / [Indiana University School of Medicine](https://medicine.iu.edu)  
 > • **Gowtham Rao, MD, PhD** – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI Phenotype Development & Evaluation Workgroup  
-> • **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine  
+> • **Shaun Grannis, MD, MS** – Investigator, [Regenstrief Institute](https://www.regenstrief.org) / [Indiana University School of Medicine](https://medicine.iu.edu)  
 > **Decision Code Reference**: `DEC-GR-057` (Two-Track Collaborator Invitation Architecture)
 
 ---

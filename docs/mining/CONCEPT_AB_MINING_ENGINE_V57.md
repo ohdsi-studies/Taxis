@@ -10,13 +10,13 @@
 > • `DEC-GR-010`: Dual Lift Reporting Architecture (Unadjusted Person Lift vs. Utilization-Stratified Lift)  
 > • `DEC-GR-061`: Three-Tier Operational & Architectural Standard (Tier 1 Production Core SQL, Tier 2 Post-Processing & Meta-Analysis, Tier 3 Future Architectural Roadmap; see [`docs/roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md`](../roadmap/TAXIS_FUTURE_ARCHITECTURAL_ROADMAP.md))  
 > **Study Leadership**:  
-> • Stephen H. Bandeian, MD, JD – Principal Investigator, Johns Hopkins University School of Medicine (Original SQL & Analytic Code Author)  
-> • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine  
+> • Stephen H. Bandeian, MD, JD – Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org) (Original SQL & Analytic Code Author)  
+> • J. Marc Overhage, MD, PhD – Co-Principal Investigator, The Overhage Group / [Indiana University School of Medicine](https://medicine.iu.edu)  
 > • Gowtham Rao, MD, PhD – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI (Phenotype working group)  
-> • Shaun Grannis, MD, MS – Investigator, Regenstrief Institute / Indiana University School of Medicine  
+> • Shaun Grannis, MD, MS – Investigator, [Regenstrief Institute](https://www.regenstrief.org) / [Indiana University School of Medicine](https://medicine.iu.edu)  
 >  
 > **Original Scientific & Analytic Authorship**:  
-> All SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`), database architectures, 40-batch random partitioning strategies, measurement key packing schemes, continuity-corrected directionality ratios, and original analytic algorithms embodied in Pipeline v57 were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine).
+> All SQL scripts (`concept_ab_init.sql`, `concept_ab_batch.sql`, `concept_ab_finalize.sql`), database architectures, 40-batch random partitioning strategies, measurement key packing schemes, continuity-corrected directionality ratios, and original analytic algorithms embodied in Pipeline v57 were conceived, designed, and authored by **Stephen H. Bandeian, MD, JD** (Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org)).
 
 ---
 
@@ -474,7 +474,7 @@ Processing billions of longitudinal record pairs across millions of patients exc
 
 ## 5. Empirical Benchmark: Indiana Network for Patient Care (INPC) 2.16M Patient Run
 
-The Concept AB Mining Engine (Pipeline v57) was executed across the **Indiana Network for Patient Care (INPC)** OMOP CDM v5.4 instance at Indiana University / Regenstrief Institute by Dr. Stephen H. Bandeian, MD, JD. The empirical results below document the scale, domain coverage, pair-space density, temporal dynamics, semantic distance, statistical lift distributions, and independent clinician/LLM validation.
+The Concept AB Mining Engine (Pipeline v57) was executed across the **Indiana Network for Patient Care (INPC)** OMOP CDM v5.4 instance at [Indiana University](https://www.iu.edu) / [Regenstrief Institute](https://www.regenstrief.org) by Dr. Stephen H. Bandeian, MD, JD. The empirical results below document the scale, domain coverage, pair-space density, temporal dynamics, semantic distance, statistical lift distributions, and independent clinician/LLM validation.
 
 ### 5.1 Headline Data Universe (Table 1)
 The production execution surveyed over 2.15 million longitudinal patients across more than 11.2 million person-years of observation, capturing 1.88 billion clinical fact events.

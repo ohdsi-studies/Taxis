@@ -3,10 +3,10 @@
 > **Document Type**: Network Participation Term Sheet & Data Governance Specification  
 > **Target Audience**: Institutional Review Boards (IRBs), Data Governance Committees, and Network Data Partners  
 > **Study Leadership**:
-> - **Stephen H. Bandeian, MD, JD** (Principal Investigator, Johns Hopkins University School of Medicine)
-> - **J. Marc Overhage, MD, PhD** (Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine)  
+> - **Stephen H. Bandeian, MD, JD** (Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org))
+> - **J. Marc Overhage, MD, PhD** (Co-Principal Investigator, The Overhage Group / [Indiana University School of Medicine](https://medicine.iu.edu))  
 > - **Gowtham Rao, MD, PhD** (Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI)
-> - **Shaun Grannis, MD, MS** (Investigator, Regenstrief Institute / Indiana University School of Medicine)
+> - **Shaun Grannis, MD, MS** (Investigator, [Regenstrief Institute](https://www.regenstrief.org) / [Indiana University School of Medicine](https://medicine.iu.edu))
 > **OHDSI Presentation**: 2026 OHDSI Global Symposium Collaborator Showcase (Entry #127, October 20–22, 2026, New Brunswick, NJ)  
 
 ---

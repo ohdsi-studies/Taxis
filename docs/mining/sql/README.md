@@ -7,13 +7,13 @@ This guide walks you through running the SQL-based Concept AB Mining Engine (Pip
 ## Study Leadership and Authorship
 
 All of the SQL algorithms, database schemas, 40-batch partitioning strategies, measurement packing logic, and original analytic code in this pipeline were conceived, designed, and authored by:
-- **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine
+- **Stephen H. Bandeian, MD, JD** – Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org)
 
 Study Leadership:
-- **Stephen H. Bandeian, MD, JD** – Principal Investigator, Johns Hopkins University School of Medicine
-- **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / Indiana University School of Medicine
+- **Stephen H. Bandeian, MD, JD** – Principal Investigator, [Johns Hopkins University School of Medicine](https://www.hopkinsmedicine.org)
+- **J. Marc Overhage, MD, PhD** – Co-Principal Investigator, The Overhage Group / [Indiana University School of Medicine](https://medicine.iu.edu)
 - **Gowtham Rao, MD, PhD** – Investigator, [CoReason, Inc.](https://www.coreason.ai) USA; OHDSI Phenotype Development & Evaluation Workgroup
-- **Shaun Grannis, MD, MS** – Investigator, Regenstrief Institute / Indiana University School of Medicine
+- **Shaun Grannis, MD, MS** – Investigator, [Regenstrief Institute](https://www.regenstrief.org) / [Indiana University School of Medicine](https://medicine.iu.edu)
 
 ---
 
