@@ -54,7 +54,9 @@
 #' (init, batch, finalize), 40-batch random partitioning strategies, healthcare
 #' utilization decile stratification, and underlying analytic algorithms belong to
 #' Dr. Stephen H. Bandeian.
-#'
+#' @import DatabaseConnector
+#' @import SqlRender
+#' @import ParallelLogger
 #' @export
 execute <- function(connectionDetails,
                     cdmDatabaseSchema,

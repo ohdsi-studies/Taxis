@@ -83,7 +83,9 @@ createPhenotype <- function(name,
 #'
 #' @param circeList A list object representing an OHDSI Circe cohort definition.
 #' @param filePath  Destination file path.
-#'
+#' @import CirceR
+#' @import SqlRender
+#' @import jsonlite
 #' @export
 exportCirceJson <- function(circeList, filePath) {
   jsonStr <- jsonlite::toJSON(circeList, auto_unbox = TRUE, pretty = TRUE)

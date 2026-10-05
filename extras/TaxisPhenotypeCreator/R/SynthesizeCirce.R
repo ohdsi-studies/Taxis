@@ -132,7 +132,7 @@ synthesizeCirceCohort <- function(name,
     }
 
     inclusionRules[[length(inclusionRules) + 1]] <- list(
-      name = "Confirmatory Laboratory Finding",
+      name = "Confirmatory Laboratory Measurements",
       description = "Evidence of confirmatory laboratory measurement in [-7, +30] day window around index presentation.",
       expression = list(
         Type = "ALL",
@@ -159,7 +159,7 @@ synthesizeCirceCohort <- function(name,
     nextId <- nextId + 1
 
     inclusionRules[[length(inclusionRules) + 1]] <- list(
-      name = "Indicated Pharmacotherapy",
+      name = "Indicated First-Line Pharmacotherapy",
       description = "Prescription or dispensing of indicated first-line medication within [0, +90] days following index.",
       expression = list(
         Type = "ALL",
@@ -186,7 +186,7 @@ synthesizeCirceCohort <- function(name,
     nextId <- nextId + 1
 
     inclusionRules[[length(inclusionRules) + 1]] <- list(
-      name = "Rule-Out Exclusions",
+      name = "Rule-Out Differential Diagnosis Exclusions",
       description = "Zero prior or concurrent occurrences of conflicting differential diagnoses.",
       expression = list(
         Type = "ALL",

@@ -139,12 +139,12 @@ runConceptMining <- function(connectionDetails,
     statements <- statements[nchar(trimws(statements)) > 0]
     if (length(statements) > 0) {
       if (progressBar) {
-        pb <- txtProgressBar(min = 0, max = length(statements), style = 3)
+        pb <- utils::txtProgressBar(min = 0, max = length(statements), style = 3)
       }
       for (i in seq_along(statements)) {
         DatabaseConnector::executeSql(connection, statements[i], progressBar = FALSE)
         if (progressBar) {
-          setTxtProgressBar(pb, i)
+          utils::setTxtProgressBar(pb, i)
         }
       }
       if (progressBar) {

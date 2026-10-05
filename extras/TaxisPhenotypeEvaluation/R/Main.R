@@ -37,7 +37,11 @@
 #' @param runDiagnostics Logical: should CohortDiagnostics be executed? Default is TRUE.
 #' @param runPheValuator Logical: should PheValuator evaluation be performed? Default is TRUE.
 #' @param minCellCount Minimum count threshold for cell suppression (default is 5). Counts < minCellCount are masked.
-#'
+#' @import DatabaseConnector
+#' @import CohortGenerator
+#' @import SqlRender
+#' @import ParallelLogger
+#' @import dplyr
 #' @export
 execute <- function(connectionDetails,
                     cdmDatabaseSchema,
