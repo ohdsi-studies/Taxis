@@ -312,7 +312,7 @@ drop table if exists @results_database_schema.cab_s37_lag_cum;
 create table @results_database_schema.cab_s37_lag_cum (
   batch_number  int      null,
   pair_type     smallint not null,
-  lag_bucket    int      not null,  -- delta/10; -999 and 999 are the tails
+  lag_bucket    int      not null,
   n_events      bigint   null,
   n_pairs       bigint   null
 );
@@ -429,4 +429,4 @@ from s1 a
 {@create_index_ddl} ? {
 create index idx_apb_batch on @results_database_schema.all_persons_batch (batch_number);
 create index idx_apb_pid on @results_database_schema.all_persons_batch (person_id);
-}
+}
