@@ -560,13 +560,7 @@ select concept_id, concept_name, concept_domain, concept_vocab from (
   select concept_id, concept_name, domain_id, vocabulary_id
     from @omop_reference_schema.concept where concept_id in (4267416, 4328749, 4069590, 46237210, 36309857)
   union
-  select concept_id, concept_name, concept_domain, concept_vocab from @project_reference_schema.cab_vocab_all_procedure
-  union
-  select concept_id, concept_name, concept_domain, concept_vocab from @project_reference_schema.cab_vocab_all_device
-  union
-  select concept_id, concept_name, concept_domain, concept_vocab from @project_reference_schema.cab_vocab_all_drug_ing_form
-  union
-  select concept_id, concept_name, concept_domain, concept_vocab from @project_reference_schema.cab_vocab_all_meas_obs_test
+  select concept_id, concept_name, concept_domain, concept_vocab from @project_reference_schema.cab_concept_names
 ) u
 ), keys as ( -- every distinct (concept_id, src) in this run's marginal table
 select distinct concept_id, src from @results_database_schema.cab_s20_marginal_all
