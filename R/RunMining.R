@@ -30,7 +30,7 @@
 #' @param cdmDatabaseSchema        Schema name where OMOP CDM v5.4 clinical data resides.
 #' @param resultsDatabaseSchema    Schema name where cumulative and final result tables will be written.
 #'                                 Requires CREATE, DROP, INSERT, UPDATE, SELECT permissions.
-#' @param projectReferenceSchema   Schema containing pre-loaded TAXIS reference tables (cab_vocab_all_*).
+#' @param projectReferenceSchema   Schema containing pre-loaded TAXIS reference tables (cab_visit_hierarchy, cab_chronic_conditions, cab_device, cab_procedure, cab_meas_obs_test, cab_drug_ing_form, cab_concept_names, or legacy cab_vocab_all_*).
 #' @param omopReferenceSchema      Schema containing standardized OMOP vocabulary tables.
 #' @param batchCount               Total number of random batches to partition patients into (default: 40).
 #' @param partialRunBatchLimit     Number of batches to execute this run (default: 40; set to 1 for test).
@@ -120,6 +120,45 @@ runConceptMining <- function(connectionDetails,
   # Ensure results schema exists
   if (tolower(connectionDetails$dbms) %in% c("postgresql", "redshift", "sql server")) {
     try(DatabaseConnector::executeSql(conn, sprintf("CREATE SCHEMA IF NOT EXISTS %s;", resultsDatabaseSchema), progressBar = FALSE), silent = TRUE)
+  }
+
+  # Verify and reconcile reference schema tables
+  dbms <- DatabaseConnector::dbms(conn)
+  hasProcedure <- DatabaseConnector::existsTable(conn, databaseSchema = projectReferenceSchema, tableName = "cab_procedure")
+  hasLegacyProcedure <- DatabaseConnector::existsTable(conn, databaseSchema = projectReferenceSchema, tableName = "cab_vocab_all_procedure")
+
+  if (!hasProcedure && hasLegacyProcedure) {
+    ParallelLogger::logInfo("Detected legacy reference tables (cab_vocab_all_*). Creating schema adapter views...")
+    adapterSqls <- c(
+      sprintf("CREATE OR REPLACE VIEW %s.cab_visit_hierarchy AS SELECT * FROM %s.cab_vocab_all_visit_hierarchy;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_chronic_conditions AS SELECT * FROM %s.cab_vocab_all_chronic_conditions;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_device AS SELECT * FROM %s.cab_vocab_all_device;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_procedure AS SELECT * FROM %s.cab_vocab_all_procedure;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_meas_obs_test AS SELECT * FROM %s.cab_vocab_all_meas_obs_test;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_drug_ing_form AS SELECT * FROM %s.cab_vocab_all_drug_ing_form;", projectReferenceSchema, projectReferenceSchema),
+      sprintf("CREATE OR REPLACE VIEW %s.cab_concept_names AS
+               SELECT concept_id, concept_name, concept_domain, concept_vocab FROM %s.cab_vocab_all_procedure
+               UNION
+               SELECT concept_id, concept_name, concept_domain, concept_vocab FROM %s.cab_vocab_all_device
+               UNION
+               SELECT concept_id, concept_name, concept_domain, concept_vocab FROM %s.cab_vocab_all_drug_ing_form
+               UNION
+               SELECT concept_id, concept_name, concept_domain, concept_vocab FROM %s.cab_vocab_all_meas_obs_test;",
+              projectReferenceSchema, projectReferenceSchema, projectReferenceSchema, projectReferenceSchema, projectReferenceSchema)
+    )
+    for (asql in adapterSqls) {
+      tryCatch({
+        asqlTrans <- SqlRender::translate(asql, targetDialect = dbms)
+        DatabaseConnector::executeSql(conn, asqlTrans, progressBar = FALSE)
+      }, error = function(e) {
+        ParallelLogger::logWarn(sprintf("Notice on legacy adapter view: %s", e$message))
+      })
+    }
+  } else if (!hasProcedure && !hasLegacyProcedure) {
+    ParallelLogger::logWarn(sprintf(
+      "Reference table 'cab_procedure' not detected in schema '%s'. If reference tables have not been loaded, execute Taxis::loadReferenceTables(connectionDetails, '%s') prior to running mining.",
+      projectReferenceSchema, projectReferenceSchema
+    ))
   }
 
   oldOpt <- getOption("databaseConnectorInteger64AsNumeric")

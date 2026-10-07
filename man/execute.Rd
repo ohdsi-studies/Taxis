@@ -36,7 +36,7 @@ execute(
 \item{resultsDatabaseSchema}{Schema name where cumulative and final result tables will be written.
 Requires CREATE, DROP, INSERT, UPDATE, SELECT permissions.}
 
-\item{projectReferenceSchema}{Schema containing pre-loaded TAXIS reference tables (cab_vocab_all_*).}
+\item{projectReferenceSchema}{Schema containing pre-loaded TAXIS reference tables (cab_visit_hierarchy, cab_chronic_conditions, cab_device, cab_procedure, cab_meas_obs_test, cab_drug_ing_form, cab_concept_names, or legacy cab_vocab_all_*).}
 
 \item{omopReferenceSchema}{Schema containing standardized OMOP vocabulary tables (default: cdmDatabaseSchema).}
 

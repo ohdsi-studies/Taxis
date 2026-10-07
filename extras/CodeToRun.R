@@ -59,9 +59,12 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
 cdmDatabaseSchema      <- Sys.getenv("CDM_SCHEMA", "cdm")
 resultsDatabaseSchema  <- Sys.getenv("RESULTS_SCHEMA", "taxis_results")
 
-# The schema where the 6 pre-loaded reference lookup tables live (3.51M rows total).
-# (Tables: cab_vocab_all_visit_hierarchy, cab_vocab_all_procedure, cab_vocab_all_device,
-#  cab_vocab_all_chronic_conditions, cab_vocab_all_meas_obs_test, cab_vocab_all_drug_ing_form)
+# The schema where the TAXIS reference lookup tables live.
+# If these tables have not been loaded yet, you can load them automatically from
+# the package bundle by running:
+#   Taxis::loadReferenceTables(connectionDetails, projectReferenceSchema)
+# (Tables: cab_visit_hierarchy, cab_chronic_conditions, cab_device,
+#  cab_procedure, cab_meas_obs_test, cab_drug_ing_form, cab_concept_names)
 projectReferenceSchema <- Sys.getenv("PROJECT_REFERENCE_SCHEMA", "concept_ab_vocab")
 omopReferenceSchema    <- Sys.getenv("OMOP_REFERENCE_SCHEMA", cdmDatabaseSchema)
 

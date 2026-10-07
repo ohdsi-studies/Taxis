@@ -35,3 +35,9 @@ Official release of the TAXIS (Temporal Association eXploration for Clinical Inf
   - Pre-flight verification (Phase A: `batchCount = 40`, `partialRunBatchLimit = 1`) executes in minutes to verify drivers, permissions, and schemas.
   - Full production execution (Phase B: `partialRunBatchLimit = 40`) executes the complete longitudinal study.
   - Single driver script in `extras/CodeToRun.R`.
+* **Bundled & Normalized Reference Vocabulary (Pipeline v58 / REV-084)**:
+  - Reference lookup tables normalized to decouple repetitive strings from relational join keys, reducing raw tables from ~993 MB down to 42.6 MB gzipped.
+  - Bundled directly inside the R package (`inst/csv/*.csv.gz`), eliminating external file downloads or S3/FTP setup for data partners.
+  - Push-button in-database loader provided via `Taxis::loadReferenceTables()`.
+  - Modernized `concept_ab_batch.sql` and `concept_ab_finalize.sql` to directly query normalized integer tables and unified `cab_concept_names`.
+  - Full two-way backward compatibility: automatic schema adapter views for existing `cab_vocab_all_*` databases, and legacy compatibility views created during reference loading.

@@ -43,7 +43,7 @@ For conditions and procedures/devices these are ordinary OMOP standard
 concept_ids. But TWO families are deliberately NOT OMOP concepts, because
 OMOP has no single standard concept for the thing we need to count:
 
-  1. DRUG  -> ing_form_key (from cab_vocab_all_drug_ing_form).
+  1. DRUG  -> ing_form_key (from cab_drug_ing_form).
      We count drugs at the ingredient + dose-form-category level, not at the
      raw drug-product level (e.g. "lisinopril - oral tablet", collapsing the
      many strengths/brands). No OMOP concept expresses that combination, so a
@@ -61,7 +61,7 @@ CONSEQUENCES (true for both families):
   - These ids do NOT exist in the OMOP concept table. Joining them to
     @omop_reference_schema.concept returns nothing; a human-readable name must
     be built by DECODING (unpack the meas/obs key into test + result, or look
-    ing_form_key up in cab_vocab_all_drug_ing_form). This is done in
+    ing_form_key up in cab_drug_ing_form). This is done in
     post-processing, not in the pipeline.
   - They are large. test_concept_id * 1e9 pushes result ids well above normal
     concept_id range, so every column that carries a concept_id — cab_s06/s07,
@@ -107,11 +107,11 @@ PREREQUISITES
 - init (concept_ab_init.sql) must have run: all_persons_batch and the
   empty cumulative tables must exist.
 - Project lookup tables must exist in @project_reference_schema:
-    cab_vocab_all_visit_hierarchy   (visit level lookup)
-    cab_vocab_all_procedure         (procedure concept lookup)
-    cab_vocab_all_device            (device concept lookup)
-    cab_vocab_all_drug_ing_form     (drug input -> ing_form_key)
-    cab_vocab_all_meas_obs_test     (test lookup: domain, is_question,
+    cab_visit_hierarchy   (visit level lookup)
+    cab_procedure         (procedure concept lookup)
+    cab_device            (device concept lookup)
+    cab_drug_ing_form     (drug input -> ing_form_key)
+    cab_meas_obs_test     (test lookup: domain, is_question,
                                      is_assertion_eligible, flag_concept_id)
 - The OMOP standard vocabulary 'concept' table must exist in
   @omop_reference_schema (used to recover coded measurement values).
@@ -269,7 +269,7 @@ distinct
   case when dateadd(day, -90, a.visit_start_date) > b.observation_period_start_date and dateadd(day, 90, a.visit_end_date) < b.observation_period_end_date then 1 else 0 end as visit_clear_period
 from @source_cdm_schema.visit_occurrence a
   inner join @results_database_schema.cab_s00_obs_period b on a.person_id = b.person_id and a.visit_start_date between b.observation_period_start_date and b.observation_period_end_date
-  left join @project_reference_schema.cab_vocab_all_visit_hierarchy c on a.visit_concept_id = c.visit_concept_id
+  left join @project_reference_schema.cab_visit_hierarchy c on a.visit_concept_id = c.visit_concept_id
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
 )
 select
@@ -420,7 +420,7 @@ select
 into @results_database_schema.cab_s02_condition
 from s2 a
   left outer join @results_database_schema.cab_person_attr pa on a.person_id = pa.person_id
-  left outer join @project_reference_schema.cab_vocab_all_chronic_conditions ch on a.concept_id = ch.concept_id
+  left outer join @project_reference_schema.cab_chronic_conditions ch on a.concept_id = ch.concept_id
 where a.rn = 1
 ;
 
@@ -450,7 +450,7 @@ select
   a.procedure_date as start_date,
   a.procedure_date as end_date
 from @source_cdm_schema.procedure_occurrence a
-  inner join @project_reference_schema.cab_vocab_all_procedure b on a.procedure_concept_id = b.concept_id_in
+  inner join @project_reference_schema.cab_procedure b on a.procedure_concept_id = b.concept_id_in
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
   left outer join @results_database_schema.cab_s01_visit c on a.person_id = c.person_id and a.visit_occurrence_id = c.visit_occurrence_id
 ), s2 as ( -- dedup: pick winning record per (person, visit, procedure, start_date)
@@ -531,7 +531,7 @@ select
   end as end_date
 from @source_cdm_schema.device_exposure a
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
-  inner join @project_reference_schema.cab_vocab_all_device b on a.device_concept_id = b.concept_id_in
+  inner join @project_reference_schema.cab_device b on a.device_concept_id = b.concept_id_in
   left outer join @results_database_schema.cab_s01_visit c on a.person_id = c.person_id and a.visit_occurrence_id = c.visit_occurrence_id
 ), s2 as ( -- dedup: pick winning record per (person, visit, concept_id, start_date)
 select
@@ -607,7 +607,7 @@ select distinct
   b.dose_form_concept_id
 from @source_cdm_schema.drug_exposure a
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
-  inner join @project_reference_schema.cab_vocab_all_drug_ing_form b on a.drug_concept_id = b.concept_id_in
+  inner join @project_reference_schema.cab_drug_ing_form b on a.drug_concept_id = b.concept_id_in
   left outer join @results_database_schema.cab_s01_visit c on a.person_id = c.person_id and a.visit_occurrence_id = c.visit_occurrence_id
 ), s2 as ( -- dedup: pick winning record per (person, visit, ing_form_key, start_date)
 select
@@ -670,7 +670,7 @@ select @batch_number as batch_number, 'cab_s05_drug' as table_name, 1 as step, @
 --
 -- computed inline in s5.
 --
--- TEST LOOKUP  (cab_vocab_all_meas_obs_test), two-column identity:
+-- TEST LOOKUP  (cab_meas_obs_test), two-column identity:
 --     concept_id_in   -> matches the fact table (join key)
 --     concept_id      -> canonical/remapped id (= concept_id_in except CPT4/HCPCS/ICD-proc test
 --                        concepts crosswalked to SNOMED/LOINC); used for the pack, output, dedup.
@@ -729,7 +729,7 @@ select
   a.observation_date as start_date
 from @source_cdm_schema.observation a
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
-  inner join @project_reference_schema.cab_vocab_all_meas_obs_test b on b.concept_id_in = a.observation_concept_id
+  inner join @project_reference_schema.cab_meas_obs_test b on b.concept_id_in = a.observation_concept_id
   left outer join vmap v on nullif(a.value_as_concept_id, 0) is null and v.source_text = upper(ltrim(rtrim(a.value_as_string)))
 ), s4 as (
 select
@@ -860,7 +860,7 @@ select
   case when a.range_low = 0 and a.range_high = 0 then null else a.range_high end as range_high
 from @source_cdm_schema.measurement a
   inner join @results_database_schema.cab_person_batch p on a.person_id = p.person_id
-  inner join @project_reference_schema.cab_vocab_all_meas_obs_test b on b.concept_id_in = a.measurement_concept_id
+  inner join @project_reference_schema.cab_meas_obs_test b on b.concept_id_in = a.measurement_concept_id
   left outer join vmap v on a.value_as_concept_id = 0 and v.source_text = upper(ltrim(rtrim(a.value_source_value)))
 ), s1 as ( -- value-side flag fact: the interpretation concept for the VALUE concept, precomputed on the
           -- lookup as flag_concept_id (null when the value is not a flag). keyed on the value concept.
@@ -868,7 +868,7 @@ select
   s0.*,
   val.flag_concept_id as val_flag_concept_id
 from s0
-  left outer join @project_reference_schema.cab_vocab_all_meas_obs_test val on val.concept_id_in = s0.value_as_concept_id
+  left outer join @project_reference_schema.cab_meas_obs_test val on val.concept_id_in = s0.value_as_concept_id
 ), s4 as ( -- one pass: result_shape (for dedup) and flag_concept_id (the interpretation concept). the
           -- value-side flag is a straight passthrough of the precomputed id; only the range-derived flag
           -- is computed per-record. no string flag_label anywhere.

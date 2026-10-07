@@ -28,7 +28,7 @@
 #' @param cdmDatabaseSchema        Schema name where OMOP CDM v5.4 clinical data resides.
 #' @param resultsDatabaseSchema    Schema name where cumulative and final result tables will be written.
 #'                                 Requires CREATE, DROP, INSERT, UPDATE, SELECT permissions.
-#' @param projectReferenceSchema   Schema containing pre-loaded TAXIS reference tables (cab_vocab_all_*).
+#' @param projectReferenceSchema   Schema containing pre-loaded TAXIS reference tables (cab_visit_hierarchy, cab_chronic_conditions, cab_device, cab_procedure, cab_meas_obs_test, cab_drug_ing_form, cab_concept_names, or legacy cab_vocab_all_*).
 #' @param omopReferenceSchema      Schema containing standardized OMOP vocabulary tables (default: cdmDatabaseSchema).
 #' @param outputFolder             Local directory where logs, SQL dumps, and results archives will be stored.
 #' @param databaseId               Short unique identifier for the database (e.g. 'INPC', 'JNJ_CCAE').

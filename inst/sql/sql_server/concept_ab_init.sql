@@ -308,11 +308,12 @@ create table @results_database_schema.cab_s39_pattern_cum (
 -- all currently guesses. Both are written only for batch_number <= 2, which is
 -- a 10% random sample since persons are randomly partitioned.
 -- =====================================================
+-- cab_s37_lag_cum: lag decay out to +/- 400 days (lag_bucket: delta/10, -999 and 999 are tails)
 drop table if exists @results_database_schema.cab_s37_lag_cum;
 create table @results_database_schema.cab_s37_lag_cum (
   batch_number  int      null,
   pair_type     smallint not null,
-  lag_bucket    int      not null,  -- delta/10; -999 and 999 are the tails
+  lag_bucket    int      not null,
   n_events      bigint   null,
   n_pairs       bigint   null
 );
@@ -429,4 +430,4 @@ from s1 a
 {@create_index_ddl} ? {
 create index idx_apb_batch on @results_database_schema.all_persons_batch (batch_number);
 create index idx_apb_pid on @results_database_schema.all_persons_batch (person_id);
-}
+}

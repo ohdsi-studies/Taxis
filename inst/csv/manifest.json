@@ -1,0 +1,131 @@
+{
+  "generated_at": "2026-10-05 15:13:08 UTC",
+  "tables": {
+    "cab_visit_hierarchy.csv.gz": {
+      "source_file": "cab_vocab_all_visit_hierarchy.csv",
+      "row_count": 20,
+      "columns": [
+        "visit_concept_id",
+        "visit_concept_name",
+        "visit_level",
+        "visit_level_name"
+      ],
+      "sql_types": [
+        "INTEGER",
+        "VARCHAR(255)",
+        "INTEGER",
+        "VARCHAR(255)"
+      ],
+      "raw_bytes": 1050,
+      "gzip_bytes": 454,
+      "sha256": "f2b936bdfd8bff9b76bc461a36a15302b4a10d199aebd1d1baacf39f6a423de9"
+    },
+    "cab_chronic_conditions.csv.gz": {
+      "source_file": "cab_vocab_all_chronic_conditions.csv",
+      "row_count": 29346,
+      "columns": [
+        "concept_id"
+      ],
+      "sql_types": [
+        "BIGINT"
+      ],
+      "raw_bytes": 3128070,
+      "gzip_bytes": 79255,
+      "sha256": "746b24101405abe222507dfdb644b8bac6d29189f4b396121c28badee422cbd1"
+    },
+    "cab_device.csv.gz": {
+      "source_file": "cab_vocab_all_device.csv",
+      "row_count": 32517,
+      "columns": [
+        "concept_id_in",
+        "concept_id",
+        "implant_flag"
+      ],
+      "sql_types": [
+        "INTEGER",
+        "BIGINT",
+        "INTEGER"
+      ],
+      "raw_bytes": 4765775,
+      "gzip_bytes": 168656,
+      "sha256": "04dc1be33b47606a0dca4580a9f752eb7e6ea5f8d50df9e96c33934c5c654fc4"
+    },
+    "cab_procedure.csv.gz": {
+      "source_file": "cab_vocab_all_procedure.csv",
+      "row_count": 151868,
+      "columns": [
+        "concept_id_in",
+        "concept_id",
+        "concept_rbcs_1",
+        "concept_rvu"
+      ],
+      "sql_types": [
+        "INTEGER",
+        "BIGINT",
+        "INTEGER",
+        "NUMERIC(10,2)"
+      ],
+      "raw_bytes": 27899854,
+      "gzip_bytes": 1038075,
+      "sha256": "78acb5963bc53bba7015805b3416ed3970a8c7dd0989933560d7aba91a7a02b3"
+    },
+    "cab_meas_obs_test.csv.gz": {
+      "source_file": "cab_vocab_all_meas_obs_test.csv",
+      "row_count": 299934,
+      "columns": [
+        "concept_id_in",
+        "concept_id",
+        "is_question",
+        "is_assertion_eligible",
+        "flag_concept_id"
+      ],
+      "sql_types": [
+        "INTEGER",
+        "BIGINT",
+        "INTEGER",
+        "INTEGER",
+        "INTEGER"
+      ],
+      "raw_bytes": 58598373,
+      "gzip_bytes": 2061242,
+      "sha256": "cb588937508d2bdc05f0ca92162f91bbf95b978f04779d875cfe5bc5ab210681"
+    },
+    "cab_drug_ing_form.csv.gz": {
+      "source_file": "cab_vocab_all_drug_ing_form.csv",
+      "row_count": 2996686,
+      "columns": [
+        "concept_id_in",
+        "concept_id",
+        "ingredient_id",
+        "dose_form_concept_id"
+      ],
+      "sql_types": [
+        "INTEGER",
+        "BIGINT",
+        "INTEGER",
+        "INTEGER"
+      ],
+      "raw_bytes": 946966259,
+      "gzip_bytes": 33263741,
+      "sha256": "ac76533aa7a17c0746bdbbe5f07da78b6c3f140d588d54c40e4ea9b723d5b4b8"
+    },
+    "cab_concept_names.csv.gz": {
+      "source_file": "UNION(procedure, device, meas_obs_test, drug_ing_form)",
+      "row_count": 392648,
+      "columns": [
+        "concept_id",
+        "concept_name",
+        "concept_domain",
+        "concept_vocab"
+      ],
+      "sql_types": [
+        "BIGINT",
+        "VARCHAR(500)",
+        "VARCHAR(20)",
+        "VARCHAR(50)"
+      ],
+      "gzip_bytes": 8067805,
+      "sha256": "3497fb5fd3172b4170f2f7e976d0d72b6e71526b2ada81900a1f94d0663d0789"
+    }
+  }
+}
